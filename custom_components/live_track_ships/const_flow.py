@@ -1,0 +1,57 @@
+"""Constants for the config flow and setup wiring."""
+
+DOMAIN = "live_track_ships"
+# ⚠ geo_location is the map surface; sensor carries the count the dashboard's
+# control card needs. A geo_location integration cannot be counted by a
+# template, because its entities are transient and unnamed in advance.
+PLATFORMS = ["geo_location", "sensor"]
+
+CONF_SOURCE = "source"
+CONF_API_KEY = "api_key"
+CONF_LATITUDE = "latitude"
+CONF_LONGITUDE = "longitude"
+CONF_RADIUS_KM = "radius_km"
+CONF_MAX_VESSELS = "max_vessels"
+# ⚠ BarentsWatch is the only source needing TWO credentials - OAuth2
+# client_credentials. The client_id has the shape <email>:<clientname>
+# and must be stored EXACTLY as issued; URL-encoding happens at request
+# time, and pre-encoding it fails with an opaque `invalid_client`.
+CONF_CLIENT_ID = "client_id"
+CONF_CLIENT_SECRET = "client_secret"
+
+SOURCE_AISSTREAM = "aisstream"
+SOURCE_DIGITRAFFIC = "digitraffic"
+SOURCE_BARENTSWATCH = "barentswatch"
+
+# ⚠ aisstream is the ONLY free, live, GLOBAL source that needs no receiver.
+# Digitraffic is open and needs no credentials but covers Finnish and Baltic
+# waters only. AISHub requires contributing your own receiver feed. Kystverket
+# is unreachable without a registration form and was measured DEAD from here -
+# all ports timed out. There is NO free live public AIS feed for US waters.
+# See Live Track Ships SSOT section 15.
+SOURCES = {
+    SOURCE_AISSTREAM: "aisstream.io — worldwide, free API key required",
+    SOURCE_DIGITRAFFIC: "Fintraffic Digitraffic — Finnish and Baltic waters, "
+                        "no key",
+    SOURCE_BARENTSWATCH: "BarentsWatch AIS Live — Norwegian waters, "
+                         "free client registration required",
+}
+
+# ⚠⚠ THIS IS A SAFETY CEILING, NOT A DISPLAY LIMIT. Revised 2026-09-08.
+#
+# It was 50, then 100, both chosen to keep a map readable. That reasoning is
+# GONE: ha-map-card renders 154 markers comfortably and `cluster_markers` is a
+# RUNTIME TOGGLE the user controls, so nothing about the display needs a cap.
+#
+# What still needs one is the Home Assistant state machine and the recorder.
+# ⚠ MAX_RADIUS_KM is 500, and a 500 km circle at the measured Solent density
+# of 43.4 vessels per 1000 km2 holds roughly 34,000 vessels. That is not a map
+# problem; it is an instance-destroying problem.
+#
+# So the default is high enough to be invisible on ordinary water - the peak
+# measured over five days on the Chicagoland rectangle was 106 - and the
+# ceiling exists only to stop a pathological radius over a busy sea.
+#
+# ⚠ When it DOES bite, say so. A quietly clipped list looks exactly like
+# missing coverage.
+DEFAULT_MAX_VESSELS = 1000

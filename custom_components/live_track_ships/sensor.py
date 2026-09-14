@@ -1,0 +1,73 @@
+"""Sensor platform: how many vessels are on the map.
+
+⚠ WHY THIS EXISTS. The map's control card carries a count for every other
+source - "Aircraft in range", "UP-W trains running", "South Shore running" -
+and a geo_location integration has no equivalent, because its entities are
+transient and cannot be counted by a template that names them.
+
+⚠ IT COUNTS WHAT IS PUBLISHED, NOT WHAT IS HELD. The store keeps vessels for a
+retention window and caps what it publishes; the number a user sees on the map
+is the published one. Reporting the held count would overstate the map.
+
+⚠ AND IT SURFACES TRUNCATION. `05_SHARED_LESSONS.md` and the Ships SSOT both
+record that a quietly clipped list looks exactly like missing coverage, so
+`truncated_from` is an attribute here rather than a debug log line.
+"""
+
+from __future__ import annotations
+
+import logging
+
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
+
+from .const_flow import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup_entry(hass, entry, async_add_entities):
+    feed = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([VesselCountSensor(entry, feed)])
+
+
+class VesselCountSensor(SensorEntity):
+    """Vessels currently shown on the map."""
+
+    _attr_should_poll = False
+    _attr_icon = "mdi:ferry"
+    _attr_native_unit_of_measurement = "vessels"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_has_entity_name = False
+
+    def __init__(self, entry, feed):
+        self._feed = feed
+        # ⚠ Namespaced and tied to the config entry, so a second area gets its
+        # own sensor rather than colliding.
+        self._attr_unique_id = f"{DOMAIN}:{entry.entry_id}:vessel_count"
+        self._attr_name = "Ships in range"
+
+    async def async_added_to_hass(self):
+        self.async_on_remove(self._feed.add_listener(self._changed))
+
+    def _changed(self):
+        if self.hass is not None:
+            self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> int:
+        # ⚠ len(published()) not len(store): the number on the map.
+        return len(self._feed.store.published())
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        store = self._feed.store
+        attrs = {
+            "tracked": len(store),
+            "radius_km": self._feed.radius,
+        }
+        # ⚠ Only present when the cap actually bit. A quietly clipped list
+        # looks like missing coverage - say so rather than hide it.
+        if store.truncated_from:
+            attrs["truncated_from"] = store.truncated_from
+            attrs["showing_nearest"] = len(store.published())
+        return attrs

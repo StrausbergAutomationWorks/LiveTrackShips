@@ -1,0 +1,13 @@
+{
+  "domain": "live_track_ships",
+  "name": "Live Track Ships",
+  "version": "0.0.1",
+  "documentation": "https://github.com/StrausbergAutomationWorks/LiveTrackShips",
+  "issue_tracker": "https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues",
+  "codeowners": ["@StrausbergAutomationWorks"],
+  "config_flow": true,
+  "iot_class": "cloud_push",
+  "integration_type": "service",
+  "requirements": [],
+  "dependencies": []
+}
