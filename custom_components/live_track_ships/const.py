@@ -74,7 +74,13 @@ NON_VESSEL_TYPES = (
 # display. Same principle as "Unknown" being the correct label for a TIS-B
 # radar track - do not fill a gap with a sentinel.
 HEADING_UNAVAILABLE = 511
-ROT_UNAVAILABLE = (-128, -127)
+# ⚠⚠ ROT_UNAVAILABLE WAS HERE AND NOTHING EVER IMPORTED IT. It read
+# (-128, -127) while the adapters carried their own copies - one of which read
+# (-128, 128) - so the corpus held four copies of one constant in three
+# different states, and the drift was invisible because this copy was dead.
+# Rate of turn is now decoded once, by `rot_to_dps` in sources/base.py, which
+# is also the only place that knows +127 is a SATURATION sentinel and not a
+# reading. SSOT.md items 18 and 20.
 COG_UNAVAILABLE = 360.0
 NAV_STATUS_UNDEFINED = 15
 SOG_UNAVAILABLE = 102.3

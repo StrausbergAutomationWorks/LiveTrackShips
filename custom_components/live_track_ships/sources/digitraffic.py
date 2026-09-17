@@ -30,7 +30,7 @@ import asyncio
 import datetime as _dt
 import logging
 
-from .base import KNOTS_TO_KMH, Observation
+from .base import KNOTS_TO_KMH, Observation, rot_to_dps
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +46,12 @@ USER_AGENT = "StrausbergAutomationWorks/LiveTrackShips"
 COG_UNAVAILABLE = 360.0
 HEADING_UNAVAILABLE = 511
 SOG_UNAVAILABLE = 102.3
-ROT_UNAVAILABLE = (-128, 128)
+# ⚠ Rate of turn is decoded by `rot_to_dps` in base.py and has NO sentinel
+# constant here, deliberately. This file's copy read (-128, 128): -128 mapped,
+# 128 is unreachable in a signed byte so that element never fired, and BOTH
+# -127 and +127 were published as readings. Measured over 1,063 vessels in one
+# live pull: rot ranged -128..127 with 41 distinct values and nothing outside
+# it. SSOT.md items 18 and 20. Do not add a private list back.
 NAV_STATUS_UNDEFINED = 15
 SHIP_TYPE_UNAVAILABLE = 0
 
@@ -159,7 +164,7 @@ class DigitrafficSource:
         # that is the pair, not the hull. See 05_SHARED_LESSONS.md B2.
 
         sog = _clean(props.get("sog"), SOG_UNAVAILABLE)
-        rot = _clean(props.get("rot"), ROT_UNAVAILABLE)
+        rot = rot_to_dps(props.get("rot"))
 
         return Observation(
             identity=str(mmsi),

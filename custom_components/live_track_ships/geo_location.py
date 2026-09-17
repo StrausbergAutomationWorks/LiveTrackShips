@@ -38,6 +38,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
 
 from .const_flow import DOMAIN
+from .ship_types import label_for as ship_type_label
 from .sources.base import Observation
 
 _LOGGER = logging.getLogger(__name__)
@@ -200,6 +201,10 @@ class ShipEvent(GeolocationEvent):
             ("rate_of_turn_dps", o.rate_of_turn_dps),
             ("name", o.name),
             ("ship_type", o.ship_type),
+            # ⚠ The label is OMITTED, not "Unknown", when the code is the 0
+            # sentinel or a reserved range - measured, 147 of 255 reported
+            # types are 0. A placeholder cannot be told from a reading. D0.
+            ("ship_type_label", ship_type_label(o.ship_type)),
             ("call_sign", o.call_sign),
             ("destination", o.destination),
             ("imo", o.imo),

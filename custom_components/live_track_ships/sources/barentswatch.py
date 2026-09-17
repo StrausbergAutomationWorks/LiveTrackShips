@@ -32,7 +32,7 @@ import logging
 import math
 import random
 
-from .base import KNOTS_TO_KMH, Observation
+from .base import KNOTS_TO_KMH, Observation, rot_to_dps
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +57,9 @@ BACKOFF_MAX_S = 300.0
 COG_UNAVAILABLE = 360.0
 HEADING_UNAVAILABLE = 511
 SOG_UNAVAILABLE = 102.3
-ROT_UNAVAILABLE = (-128, -127)
+# ⚠ Rate of turn is decoded by `rot_to_dps` in base.py and has NO sentinel
+# constant here, deliberately. Four private copies of that list held three
+# different values - SSOT.md items 18 and 20. Do not add one back.
 NAV_STATUS_UNDEFINED = 15
 SHIP_TYPE_UNAVAILABLE = 0
 
@@ -211,7 +213,7 @@ class BarentsWatchSource:
             course_deg=_clean(row.get("courseOverGround"), COG_UNAVAILABLE),
             heading_deg=_clean(row.get("trueHeading"), HEADING_UNAVAILABLE),
             speed_kmh=None if sog is None else sog * KNOTS_TO_KMH,
-            rate_of_turn_dps=_clean(row.get("rateOfTurn"), ROT_UNAVAILABLE),
+            rate_of_turn_dps=rot_to_dps(row.get("rateOfTurn")),
             # ⚠ NO STATIC JOIN. name and shipType arrive with the position.
             name=(row.get("name") or "").strip() or None,
             ship_type=_clean(row.get("shipType"), SHIP_TYPE_UNAVAILABLE),

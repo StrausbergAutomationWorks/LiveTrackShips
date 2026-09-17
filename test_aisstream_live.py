@@ -83,8 +83,14 @@ async def main():
     check("no heading of 511", any(o.heading_deg == 511 for o in obs), False)
     check("no nav_status 15", any(o.nav_status == 15 for o in obs), False)
     check("no ship_type 0", any(o.ship_type == 0 for o in obs), False)
-    check("no RoT sentinel",
-          any(o.rate_of_turn_dps in (-128, -127) for o in obs), False)
+    # ⚠ THIS ASSERTION USED TO ENCODE THE BUG IT WAS MEANT TO CATCH. It tested
+    # `in (-128, -127)` - the same asymmetric list the adapter carried - so it
+    # passed while +127 was published as a reading. Rate of turn is now DECODED
+    # to degrees per second, so no raw byte should survive at all: the decoded
+    # value is bounded by the encoding's ceiling of ~11.8 deg/s.
+    check("no raw RoT byte survives the decode",
+          any(o.rate_of_turn_dps is not None and abs(o.rate_of_turn_dps) > 12
+              for o in obs), False)
 
     print("\n=== ⚠ units and plausibility ===")
     sp = [o.speed_kmh for o in obs if o.speed_kmh is not None]

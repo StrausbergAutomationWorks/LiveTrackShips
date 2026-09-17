@@ -34,7 +34,7 @@ import json
 import logging
 import random
 
-from .base import KNOTS_TO_KMH, Observation
+from .base import KNOTS_TO_KMH, Observation, rot_to_dps
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,7 +64,9 @@ STATIC_TYPES = frozenset({"ShipStaticData", "StaticDataReport"})
 COG_UNAVAILABLE = 360.0
 HEADING_UNAVAILABLE = 511
 SOG_UNAVAILABLE = 102.3
-ROT_UNAVAILABLE = (-128, -127)
+# ⚠ Rate of turn is decoded by `rot_to_dps` in base.py and has NO sentinel
+# constant here, deliberately. Four private copies of that list held three
+# different values - SSOT.md items 18 and 20. Do not add one back.
 NAV_STATUS_UNDEFINED = 15
 SHIP_TYPE_UNAVAILABLE = 0
 
@@ -215,7 +217,7 @@ class AisStreamSource:
             course_deg=_clean(body.get("Cog"), COG_UNAVAILABLE),
             heading_deg=_clean(body.get("TrueHeading"), HEADING_UNAVAILABLE),
             speed_kmh=None if sog is None else sog * KNOTS_TO_KMH,
-            rate_of_turn_dps=_clean(body.get("RateOfTurn"), ROT_UNAVAILABLE),
+            rate_of_turn_dps=rot_to_dps(body.get("RateOfTurn")),
             name=name,
             ship_type=static.get("type"),
             call_sign=static.get("call_sign"),
