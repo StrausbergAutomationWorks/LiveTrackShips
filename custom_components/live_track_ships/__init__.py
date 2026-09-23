@@ -50,6 +50,7 @@ class ShipFeed:
         self._prune: asyncio.Task | None = None
         self._source = None
         self._listeners: list = []
+        self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
 
     def add_listener(self, cb):
         self._listeners.append(cb)

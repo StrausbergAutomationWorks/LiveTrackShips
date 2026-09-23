@@ -46,7 +46,7 @@ from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
 
-from .const_flow import DOMAIN
+from .const_flow import DOMAIN, INSTANCE_MAX_VESSELS
 from .ship_types import label_for as ship_type_label
 from .sources.base import Observation
 
@@ -77,6 +77,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         published = feed.store.published()
         seen = set()
         new = []
+        held = 0
         for obs in published:
             identity = obs.identity
             # ⚠ ONE vessel, ONE entity, across ALL config entries. Two entries
@@ -84,6 +85,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
             # until it departs from that entry. See the module docstring.
             owner = owners.get(identity)
             if owner is not None and owner != me:
+                continue
+            # ⛔ THE INSTANCE CEILING (item 246): a NEW vessel is not added
+            # while the map already holds INSTANCE_MAX_VESSELS across every
+            # entry. Vessels already shown keep their place.
+            if owner is None and len(owners) >= INSTANCE_MAX_VESSELS:
+                held += 1
                 continue
             owners[identity] = me
             seen.add(identity)
@@ -106,6 +113,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
         if new:
             async_add_entities(new)
+
+        # Read by sensor.ships_in_range: a ceiling that bites silently looks
+        # exactly like missing coverage.
+        feed.held_by_instance_cap = held
 
         # ⚠ SAY SO when the cap bites. A quietly clipped list looks exactly
         # like missing coverage - measured: 50 truncated 36% of samples on
@@ -278,9 +289,13 @@ class ShipEvent(GeolocationEvent):
     def marker_label(self) -> str:
         """⚠ ShipName is space-padded inconsistently and MANGLED to fit 20
         characters - `ODYSSEY CHICAGO_IVER` is real data. Strip it, never
-        repair it, and fall back to the MMSI rather than to an empty string."""
+        repair it.
+
+        With no name, the type label ("Pleasure craft", "Tug"); with neither,
+        "?". Never the MMSI - nine digits on a dot tell a user nothing (Lee,
+        2026-09-23). The MMSI stays in `identity` and the entity id."""
         name = (self._obs.name or "").strip()
-        return name or self._obs.identity
+        return name or ship_type_label(self._obs.ship_type) or "?"
 
     # -- lifecycle ---------------------------------------------------------
     @callback

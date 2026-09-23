@@ -84,7 +84,19 @@ sp = ShipEvent(SPARSE, 5.0).extra_state_attributes
 for k in ("course_deg", "heading_deg", "speed_kmh", "ship_type", "name",
           "destination", "imo", "draught_m", "nav_status"):
     check(f"{k} absent, not None", k in sp, False)
-check("marker_label falls back to MMSI", sp["marker_label"], "338999111")
+check("⚠ nameless, no type: marker_label is '?', never the MMSI",
+      sp["marker_label"], "?")
+typed = Observation(identity="338999112", source="live_track_ships",
+                    observed_at=T0, latitude=41.95, longitude=-87.7,
+                    ship_type=37)
+check("nameless with a type: marker_label is the type label",
+      ShipEvent(typed, 5.0).extra_state_attributes["marker_label"],
+      "Pleasure craft")
+check("an all-blank name counts as no name",
+      ShipEvent(Observation(identity="338999113", source="live_track_ships",
+                            observed_at=T0, latitude=41.95, longitude=-87.7,
+                            name="                    ", ship_type=52),
+                5.0).marker_label, "Tug")
 
 print("\n=== ⚠ ships must never be movable ===")
 check("max_extrapolation_s absent when full", "max_extrapolation_s" in a,

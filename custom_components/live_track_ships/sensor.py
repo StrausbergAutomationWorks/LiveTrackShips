@@ -21,6 +21,7 @@ import logging
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 
 from .const_flow import DOMAIN
+from .geo_location import OWNERS_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class VesselCountSensor(SensorEntity):
 
     def __init__(self, entry, feed):
         self._feed = feed
+        self._entry_id = entry.entry_id
         # ⚠ Namespaced and tied to the config entry, so a second area gets its
         # own sensor rather than colliding.
         self._attr_unique_id = f"{DOMAIN}:{entry.entry_id}:vessel_count"
@@ -55,8 +57,17 @@ class VesselCountSensor(SensorEntity):
 
     @property
     def native_value(self) -> int:
-        # ⚠ len(published()) not len(store): the number on the map.
-        return len(self._feed.store.published())
+        # ⚠ published() MUST still be called here: it is what sets
+        # store.truncated_from, which extra_state_attributes reads next
+        # (SSOT item 14, the latent ordering dependency).
+        published = self._feed.store.published()
+        # ⚠ COUNT ONLY WHAT THIS ENTRY OWNS (Lee, 2026-09-23). Two entries
+        # over the same water both hear a vessel; geo_location gives it to one
+        # of them. Counting published() would put it on both integration
+        # cards. Owners are keyed MMSI -> entry_id by geo_location._sync.
+        owners = self.hass.data.get(OWNERS_KEY, {}) if self.hass else {}
+        me = self._entry_id
+        return sum(1 for o in published if owners.get(o.identity) == me)
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -70,4 +81,9 @@ class VesselCountSensor(SensorEntity):
         if store.truncated_from:
             attrs["truncated_from"] = store.truncated_from
             attrs["showing_nearest"] = len(store.published())
+        # ⛔ Item 246: new vessels this entry could not add because the map
+        # already holds INSTANCE_MAX_VESSELS across every entry.
+        held = getattr(self._feed, "held_by_instance_cap", 0)
+        if held:
+            attrs["held_by_instance_cap"] = held
         return attrs
