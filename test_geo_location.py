@@ -133,9 +133,9 @@ print("\n=== the full-entity case ===")
 check("⚠ entity id from MMSI", e.suggested_object_id, "vessel_367148850")
 check("name is the ship, not the number", e.name, "FINNBREEZE")
 
-print("\n=== a vessel with NO name falls back to the MMSI ===")
+print("\n=== a vessel with NO name and NO type is shown as '?' (2026-09-23) ===")
 sp_e = ShipEvent(SPARSE, 5.0)
-check("name falls back to the identity", sp_e.name, "338999111")
+check("name is '?', never the MMSI", sp_e.name, "?")
 check("⚠ the id is unaffected by the fallback", sp_e.suggested_object_id,
       "vessel_338999111")
 
