@@ -167,5 +167,11 @@ class VesselStore:
     def distance_to(self, obs: Observation) -> float:
         return distance_km(self._lat, self._lon, obs.latitude, obs.longitude)
 
+    @property
+    def max_vessels(self) -> int:
+        """The per-entry cap. When `truncated_from` is set, published()
+        returned exactly this many."""
+        return self._max
+
     def __len__(self) -> int:
         return len(self._tracks)

@@ -118,6 +118,15 @@ async def main():
     check("older fix -> False", s.add(obs("d1", 0.02, -10)), False)
     check("newer fix -> True", s.add(obs("d1", 0.02, 10)), True)
 
+    print("\n=== a truncated store published exactly max_vessels ===")
+    from live_track_ships.store import VesselStore
+    st = VesselStore(LAT, LON, 50, 5)
+    for i in range(9):
+        st.add(obs(f"t{i}", 0.001 * (i + 1)))
+    check("published() length is the cap", len(st.published()), 5)
+    check("max_vessels is the cap", st.max_vessels, 5)
+    check("truncated_from is the total", st.truncated_from, 9)
+
     print("\n=== changed-only writes, on the entity ===")
     e = ShipEvent(obs("u1", 0.01), 1.1)
     same = dataclasses.replace(obs("u1", 0.01))

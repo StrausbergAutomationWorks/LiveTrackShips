@@ -80,7 +80,11 @@ class VesselCountSensor(SensorEntity):
         # looks like missing coverage - say so rather than hide it.
         if store.truncated_from:
             attrs["truncated_from"] = store.truncated_from
-            attrs["showing_nearest"] = len(store.published())
+            # ⚠ When truncated, published() returned exactly the cap. Do not
+            # call it a second time to count it: measured 57 ms median on
+            # 3,000 tracks in the HA container, and native_value already
+            # called it once this write (item 246).
+            attrs["showing_nearest"] = store.max_vessels
         # ⛔ Item 246: new vessels this entry could not add because the map
         # already holds INSTANCE_MAX_VESSELS across every entry.
         held = getattr(self._feed, "held_by_instance_cap", 0)
