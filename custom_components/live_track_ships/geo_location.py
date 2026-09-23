@@ -78,6 +78,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         seen = set()
         new = []
         held = 0
+        written = 0
         for obs in published:
             identity = obs.identity
             # ⚠ ONE vessel, ONE entity, across ALL config entries. Two entries
@@ -100,13 +101,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 entity = ShipEvent(obs, distance)
                 known[identity] = entity
                 new.append(entity)
-            else:
-                existing.update_from(obs, distance)
+            elif existing.update_from(obs, distance):
+                written += 1
 
         # ⚠ A vessel that fell out of the published set must be REMOVED, not
         # left stale. It has either departed, gone quiet past the retention
         # window, or been pushed out by the cap.
-        for identity in [k for k in known if k not in seen]:
+        gone = [k for k in known if k not in seen]
+        for identity in gone:
             entity = known.pop(identity)
             hass.async_create_task(
                 _remove_vessel(entity, _releaser(identity)))
@@ -117,6 +119,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
         # Read by sensor.ships_in_range: a ceiling that bites silently looks
         # exactly like missing coverage.
         feed.held_by_instance_cap = held
+
+        # Item 246: one line per pass, at debug, so the pass rate and the
+        # write count can be read off the log without a code change.
+        _LOGGER.debug("pass: %d published, %d new, %d written, %d removed, "
+                      "%d held", len(published), len(new), written,
+                      len(gone), held)
 
         # ⚠ SAY SO when the cap bites. A quietly clipped list looks exactly
         # like missing coverage - measured: 50 truncated 36% of samples on
@@ -299,11 +307,22 @@ class ShipEvent(GeolocationEvent):
 
     # -- lifecycle ---------------------------------------------------------
     @callback
-    def update_from(self, obs: Observation, distance_km: float) -> None:
+    def update_from(self, obs: Observation, distance_km: float) -> bool:
+        """Write state only if the observation changed. Returns whether it did.
+
+        ⛔ Item 246: every pass used to write EVERY vessel. HA drops an
+        identical write without a state_changed event - read on the box,
+        core.py async_set_internal - but still builds the attributes, compares
+        them and fires state_reported, for each vessel, each pass. Compared by
+        VALUE, not by fix time, so static data arriving on its own (name,
+        type, size) still reaches the entity."""
+        if obs == self._obs and distance_km == self._attr_distance:
+            return False
         self._obs = obs
         self._attr_distance = distance_km
         if self.hass is not None:
             self.async_write_ha_state()
+        return True
 
     async def async_added_to_hass(self) -> None:
         """⚠ The vessel may have departed between async_add_entities and this

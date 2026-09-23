@@ -23,8 +23,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const_flow import (
     CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_LATITUDE,
     CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
-    DEFAULT_MAX_VESSELS, DOMAIN, PLATFORMS, SOURCE_BARENTSWATCH,
-    SOURCE_DIGITRAFFIC,
+    DEFAULT_MAX_VESSELS, DOMAIN, NOTIFY_WINDOW_S, PLATFORMS,
+    SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
 )
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
@@ -51,14 +51,40 @@ class ShipFeed:
         self._source = None
         self._listeners: list = []
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
+        # ⛔ Item 246: at most one listener pass per window. Instance
+        # attribute so a test can shorten it.
+        self.notify_window_s = NOTIFY_WINDOW_S
+        self._pending: asyncio.TimerHandle | None = None
+        self.passes = 0                 # listener passes run; for tests
 
     def add_listener(self, cb):
         self._listeners.append(cb)
         return lambda: self._listeners.remove(cb)
 
     def _notify(self):
+        """⛔ COALESCED (item 246). The first change after a pass schedules one
+        pass `notify_window_s` later; later changes fold into it. This used to
+        run every listener on every message, and each run wrote state for
+        every vessel the entry showed.
+
+        ⚠ EVERY caller goes through here, the prune loop included, so
+        departures, expiries, the instance ceiling and ownership handoff all
+        still happen - at most one window late."""
+        if self._pending is not None:
+            return
+        self._pending = self.hass.loop.call_later(
+            self.notify_window_s, self._flush)
+
+    def _flush(self):
+        self._pending = None
+        self.passes += 1
         for cb in list(self._listeners):
-            cb()
+            # ⚠ One listener raising must not starve the others. Before the
+            # window this propagated into _run and killed the feed.
+            try:
+                cb()
+            except Exception:                      # noqa: BLE001
+                _LOGGER.exception("Live Track Ships listener failed")
 
     def _build_source(self):
         session = async_get_clientsession(self.hass)
@@ -114,6 +140,10 @@ class ShipFeed:
         for task in (self._task, self._prune):
             if task is not None:
                 task.cancel()
+        # A pass scheduled after the platforms unloaded has nothing to run.
+        if self._pending is not None:
+            self._pending.cancel()
+            self._pending = None
         if self._source is not None:
             await self._source.close()
 

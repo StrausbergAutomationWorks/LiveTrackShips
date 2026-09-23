@@ -89,17 +89,21 @@ class Track:
         self._previous: Observation | None = None
         self._latest: Observation | None = None
 
-    def add(self, obs: Observation) -> None:
+    def add(self, obs: Observation) -> bool:
         """⚠ Ignores duplicates and out-of-order fixes. Sources re-send the
         same fix - measured on aisstream, where sub-second gaps were the same
         broadcast relayed by two receivers. Treating those as a segment would
-        produce a zero-duration jump."""
+        produce a zero-duration jump.
+
+        Returns False when the fix was ignored, so the store does not wake
+        the entities for a message that changed nothing (SSOT item 246)."""
         if self._latest is not None:
             if obs.observed_at < self._latest.observed_at:
-                return
+                return False
             if obs.observed_at == self._latest.observed_at:
-                return
+                return False
         self._previous, self._latest = self._latest, obs
+        return True
 
     @property
     def current(self) -> Observation | None:

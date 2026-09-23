@@ -66,3 +66,13 @@ DEFAULT_MAX_VESSELS = 1000
 # instance stalled - a stall measured while every vessel also wrote a registry
 # row, which vessels no longer do (item 247). Raise it only on a measurement.
 INSTANCE_MAX_VESSELS = 1500
+
+# ⛔ ONE PASS PER WINDOW, PER ENTRY (SSOT item 246, Lee 2026-09-23).
+# Every message used to rebuild the published set and write state for every
+# vessel the entry showed. At 1,500 vessels, with aisstream over Danish water,
+# that stalled Home Assistant at a FLAT entity count. Now the first change
+# after a pass schedules ONE pass this many seconds later; everything arriving
+# in between folds into it. Nothing arrives, nothing runs.
+# ⚠ A WINDOW, NOT A CLOCK, and the delay is FIXED from the first arrival - so a
+# Digitraffic poll (~1,000 fixes at once) always lands in a single pass.
+NOTIFY_WINDOW_S = 5.0

@@ -105,7 +105,9 @@ class VesselStore:
 
     # -- ingest ------------------------------------------------------------
     def add(self, obs: Observation) -> bool:
-        """Accept an observation. Returns True if it was kept.
+        """Accept an observation. Returns True if it was kept AND changed the
+        track - a duplicate relay or an out-of-order fix returns False, so it
+        does not wake the entities (SSOT item 246).
 
         ⚠ The service filters by BOUNDING BOX; we asked for a CIRCLE. A box
         corner is 1.41x the radius away, so without this check the integration
@@ -119,8 +121,7 @@ class VesselStore:
         track = self._tracks.get(obs.identity)
         if track is None:
             track = self._tracks[obs.identity] = Track(obs.identity)
-        track.add(obs)
-        return True
+        return track.add(obs)
 
     # -- eviction ----------------------------------------------------------
     def prune(self, now: _dt.datetime | None = None) -> int:
