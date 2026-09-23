@@ -13,19 +13,29 @@ Four platform facts that are easy to get wrong and produce silent failures:
   4. `_attr_should_poll = False`, or the component polls on a 60 s
      SCAN_INTERVAL against a push source.
 
-⚠ TWO removal mechanisms exist in the shipped code. GDACS removes the registry
-row in async_will_remove_from_hass; geo_json_events calls
-async_remove(force_remove=True). Either works. Neither is automatic - omit both
-and every departed vessel lingers forever as an unavailable entity.
+⚠⚠ VESSEL ENTITIES CARRY NO unique_id - since 2026-09-23 (Lee's decision).
+Measured that day: 3,684 live and 2,807 deleted registry rows belonged to this
+integration, about 5.7 MB of a 7.0 MB core.entity_registry - 78% of every
+entity on the instance. Removing a row on departure did not shrink anything:
+Home Assistant moves it to deleted_entities and keeps it for 30 days. Live
+Track Aircraft and Brightline already emit no per-object unique_id.
 
-⚠⚠ THE ENTITY_ID IS BUILT FROM THE NAME, and a correct unique_id does NOT
-prevent it. Measured: geo_location.m_1_1_10_km_n_of_big_bear_city_ca. AIS
-ShipName is a hard 20-character field operators MANGLE to fit - `ODYSSEY
-CHICAGO_IVER` is real data, not corruption. Left alone that becomes
-geo_location.odyssey_chicago_iver, PERMANENTLY. So _attr_name is built from the
-MMSI, which is stable, and the readable name is an attribute.
+With no unique_id there is no registry row, so there is nothing to drift: HA
+2026.9.3 (helpers/entity_platform.py, the `unique_id is None` branch) takes the
+id from `suggested_object_id` and appends a suffix only if that id is held by
+a live state or a registered entity. Hence two rules:
+  - the old registry rows MUST be purged in the same restart that loads this
+    code, or every vessel with a leftover row comes up as vessel_<MMSI>_2;
+  - two config entries must never publish the same vessel at once, or the
+    second copy becomes vessel_<MMSI>_2 - a second marker for one ship. The
+    OWNERS map below prevents that (SSOT item 247b).
 
-See 10_SEED/05_SHARED_LESSONS.md sections A3, A4, D1, D6b.
+⚠ The entity_id is still keyed on MMSI through `suggested_object_id`; the
+friendly name and the map label are the ship's name. AIS ShipName is a hard
+20-character field operators MANGLE to fit - `ODYSSEY CHICAGO_IVER` is real
+data and must never become an entity id.
+
+See 10_SEED/06_MAP_CONTRACT.md D1, D6a-0b and D6b.
 """
 
 from __future__ import annotations
@@ -35,7 +45,6 @@ import logging
 from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
-from homeassistant.helpers import entity_registry as er
 
 from .const_flow import DOMAIN
 from .ship_types import label_for as ship_type_label
@@ -43,11 +52,25 @@ from .sources.base import Observation
 
 _LOGGER = logging.getLogger(__name__)
 
+# MMSI -> entry_id of the config entry currently publishing that vessel.
+# ⚠ Kept OUTSIDE hass.data[DOMAIN], which maps entry_id -> feed and is read by
+# key elsewhere.
+OWNERS_KEY = f"{DOMAIN}_owners"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Create and retire entities as vessels arrive and depart."""
     feed = hass.data[DOMAIN][entry.entry_id]
+    owners: dict[str, str] = hass.data.setdefault(OWNERS_KEY, {})
+    me = entry.entry_id
     known: dict[str, ShipEvent] = {}
+
+    def _releaser(identity: str):
+        @callback
+        def _release() -> None:
+            if owners.get(identity) == me:
+                del owners[identity]
+        return _release
 
     @callback
     def _sync():
@@ -55,12 +78,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
         seen = set()
         new = []
         for obs in published:
-            seen.add(obs.identity)
+            identity = obs.identity
+            # ⚠ ONE vessel, ONE entity, across ALL config entries. Two entries
+            # over the same water both hear it; the first to publish owns it
+            # until it departs from that entry. See the module docstring.
+            owner = owners.get(identity)
+            if owner is not None and owner != me:
+                continue
+            owners[identity] = me
+            seen.add(identity)
             distance = feed.store.distance_to(obs)
-            existing = known.get(obs.identity)
+            existing = known.get(identity)
             if existing is None:
                 entity = ShipEvent(obs, distance)
-                known[obs.identity] = entity
+                known[identity] = entity
                 new.append(entity)
             else:
                 existing.update_from(obs, distance)
@@ -70,22 +101,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         # window, or been pushed out by the cap.
         for identity in [k for k in known if k not in seen]:
             entity = known.pop(identity)
-            # ⚠⚠ THE REGISTRY ROW IS REMOVED *HERE*, ON DEPARTURE - never in
-            # async_will_remove_from_hass.
-            #
-            # `async_remove(force_remove=True)` removes the STATE, NOT the
-            # registry row. Its own docstring says so, and it was measured:
-            # registry rows rose monotonically 46 -> 49 while live vessels
-            # oscillated 38-46, a gap climbing 0 -> 11 in 65 minutes. That is
-            # a leak, and the union of distinct vessels does not converge.
-            #
-            # ⚠ Removing it in async_will_remove_from_hass instead is what
-            # caused `vessel_367152790_4`: that hook fires on SHUTDOWN too, so
-            # the row was deleted every restart and re-registration collided
-            # with the id still in the state machine.
-            #
-            # ⚠ Only this call site can tell a DEPARTURE from a SHUTDOWN.
-            hass.async_create_task(_remove_vessel(hass, entity))
+            hass.async_create_task(
+                _remove_vessel(entity, _releaser(identity)))
 
         if new:
             async_add_entities(new)
@@ -97,22 +114,42 @@ async def async_setup_entry(hass, entry, async_add_entities):
             _LOGGER.debug("showing the nearest %d of %d vessels",
                           len(published), feed.store.truncated_from)
 
+    @callback
+    def _release_all() -> None:
+        """On unload the platform removes the entities; give up ownership so
+        another entry can take the vessels over.
+
+        ⚠ Known race, accepted: if another entry claims a vessel before this
+        entry's state for it is gone, the newcomer is vessel_<MMSI>_2 until it
+        departs. Only at unload or disable, never in normal running."""
+        for identity in list(known):
+            _releaser(identity)()
+        known.clear()
+
     entry.async_on_unload(feed.add_listener(_sync))
+    entry.async_on_unload(_release_all)
     _sync()
 
 
-async def _remove_vessel(hass, entity) -> None:
-    """Remove a departed vessel's state AND its registry row.
+async def _remove_vessel(entity: "ShipEvent", release) -> None:
+    """Remove a departed vessel's state, THEN release its MMSI.
 
-    ⚠ Order matters: the state goes first, then the row. Removing the row
-    while the state is still present leaves the id occupied, which is what
-    produces a `_2` suffix on the next registration.
+    ⚠ Release comes after the state is gone. Releasing first lets another
+    entry claim the vessel while vessel_<MMSI> is still in the state machine,
+    and the newcomer becomes vessel_<MMSI>_2.
+
+    ⚠ `entity.hass is None` means Home Assistant never added it, or has not
+    YET. Calling async_remove then raises AttributeError 'NoneType' has no
+    attribute 'loop' (SSOT item 247a, measured 2026-09-23). Mark it retired
+    instead; async_added_to_hass removes it if the add lands later.
     """
-    entity_id = entity.entity_id
-    await entity.async_remove(force_remove=True)
-    registry = er.async_get(hass)
-    if entity_id and entity_id in registry.entities:
-        registry.async_remove(entity_id)
+    try:
+        if entity.hass is None:
+            entity.retired = True
+            return
+        await entity.async_remove(force_remove=True)
+    finally:
+        release()
 
 
 class ShipEvent(GeolocationEvent):
@@ -124,27 +161,24 @@ class ShipEvent(GeolocationEvent):
     _attr_icon = "mdi:ferry"
 
     def __init__(self, obs: Observation, distance_km: float):
-        # ⚠ NAMESPACED, and built from MMSI - never from a name.
-        self._attr_unique_id = f"{DOMAIN}:{obs.identity}"
+        # ⚠ NO unique_id - see the module docstring. Identity lives in the
+        # entity_id (suggested_object_id) and in the `identity` attribute.
         self._obs = obs
         self._attr_distance = distance_km
+        self.retired = False
 
     @property
     def suggested_object_id(self) -> str:
         """⚠ THE ENTITY_ID COMES FROM HERE, NOT FROM THE NAME.
 
         Home Assistant derives the object id from `suggested_object_id` when it
-        is set, falling back to the name otherwise
-        (helpers/entity_platform.py:1311). That separation is what lets the
-        friendly name be the ship's name while the id stays keyed on MMSI.
+        is set, falling back to the name otherwise. With no unique_id this is
+        consulted on EVERY add, so the id is vessel_<MMSI> each time the vessel
+        appears - provided nothing else holds that id (module docstring).
 
         ⚠ WITHOUT THIS the id would come from `name`, and AIS ShipName is a
         hard 20-character field operators MANGLE to fit - `ODYSSEY
-        CHICAGO_IVER` is real data. That string would become a PERMANENT
-        entity id.
-
-        ⚠ Only consulted at FIRST registration. Existing entities keep the ids
-        they already have.
+        CHICAGO_IVER` is real data.
         """
         return f"vessel_{self._obs.identity}"
 
@@ -256,38 +290,14 @@ class ShipEvent(GeolocationEvent):
         if self.hass is not None:
             self.async_write_ha_state()
 
+    async def async_added_to_hass(self) -> None:
+        """⚠ The vessel may have departed between async_add_entities and this
+        call; _remove_vessel then found hass None and marked it retired."""
+        if self.retired:
+            self.hass.async_create_task(self.async_remove(force_remove=True))
+
     async def async_will_remove_from_hass(self) -> None:
-        """⚠⚠ NOTHING HAPPENS HERE, DELIBERATELY. Read before changing.
-
-        This hook fires on DEPARTURE **and on SHUTDOWN**, and cannot tell them
-        apart. Removing the registry row here deleted it on every restart, and
-        re-registration then collided with the id still in the state machine -
-        producing `vessel_367152790_4`, drifting upward forever.
-
-        ⚠ The row IS removed on departure, in `_remove_vessel` at the `_sync`
-        call site, which knows the difference.
-
-        The original reasoning, kept because it is still true of the mechanism:
-
-        An earlier version removed it here, copying GDACS. **That is wrong for
-        this integration**, and it was measured going wrong: entity ids came
-        back as `vessel_367152790_4`.
-
-        GDACS reports EARTHQUAKES - one-shot events that never recur. A vessel
-        recurs constantly: every reload, every expiry of the retention window,
-        every flicker at the edge of the radius. Deleting the row and then
-        re-registering the same `unique_id` makes Home Assistant find the base
-        id still occupied and append a number, so ids drift upward forever -
-        `_2`, `_3`, `_4` - breaking automations, history and dashboards.
-
-        ⚠ THE COST OF KEEPING IT: registry rows accumulate. The distinct-vessel
-        union does NOT converge - 30-37 new per day, 291 over five days - so a
-        busy location will collect rows for every vessel ever seen. They are
-        harmless, and Home Assistant offers a UI for deleting unavailable
-        entities.
-
-        ⚠ STABLE IDENTITY BEATS A TIDY REGISTRY. `05_SHARED_LESSONS.md` D6b
-        records that two removal mechanisms exist in the shipped code; this is
-        the choice between them, and it turns on whether the object RECURS.
-        """
+        """Nothing to do: with no unique_id there is no registry row to keep
+        or delete. The history of why the row was once kept on departure and
+        shutdown (vessel_367152790_4) is in 06_MAP_CONTRACT.md D6a-0b."""
         return None

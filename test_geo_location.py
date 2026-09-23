@@ -101,8 +101,8 @@ check("⚠ absent on a first sighting", "previous_latitude" in sp, False)
 
 print("\n=== ⚠⚠ a MANGLED ShipName must not reach the entity_id ===")
 m = ShipEvent(MANGLED, 3.0)
-check("unique_id is namespaced on MMSI", m.unique_id,
-      "live_track_ships:367700010")
+check("⚠ NO unique_id - no registry row per vessel (2026-09-23)",
+      m.unique_id, None)
 # ⚠ THE SPLIT: the ID is keyed on MMSI, the NAME is not.
 check("the readable name IS the mangled ShipName", m.name,
       "ODYSSEY CHICAGO_IVER")
