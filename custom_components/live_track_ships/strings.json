@@ -42,7 +42,13 @@
         "description": "Changing these reloads the connection.",
         "data": {
           "radius_km": "Radius (km)",
-          "max_vessels": "Maximum vessels to track"
+          "max_vessels": "Maximum vessels to track",
+          "card_rotation": "Let the map card rotate the icons",
+          "silhouette_only": "Draw icons without a background disc"
+        },
+        "data_description": {
+          "card_rotation": "Off: icons arrive already rotated and work on any map card. On: icons arrive unrotated for a card that turns markers itself, which lets it animate the turn.",
+          "silhouette_only": "Off: each vessel sits on its own dark disc and reads on any map card. On: the vessel outline alone, for a card that draws markers without a background."
         }
       }
     }

@@ -17,10 +17,11 @@ from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 
 from .const_flow import (
-    CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_LATITUDE,
-    CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
-    DEFAULT_MAX_VESSELS, DOMAIN, SOURCE_AISSTREAM, SOURCE_BARENTSWATCH,
-    SOURCES,
+    CONF_API_KEY, CONF_CARD_ROTATION, CONF_CLIENT_ID, CONF_CLIENT_SECRET,
+    CONF_LATITUDE, CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM,
+    CONF_SILHOUETTE_ONLY, CONF_SOURCE, DEFAULT_CARD_ROTATION,
+    DEFAULT_MAX_VESSELS, DEFAULT_SILHOUETTE_ONLY, DOMAIN, SOURCE_AISSTREAM,
+    SOURCE_BARENTSWATCH, SOURCES,
 )
 from .geo import (
     DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MAX_VESSELS, MIN_RADIUS_KM,
@@ -172,5 +173,15 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                     default=current.get(CONF_MAX_VESSELS,
                                         DEFAULT_MAX_VESSELS)):
                     vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_VESSELS)),
+                # ⚠ Icon options (SSOT item 254). Both default OFF, which
+                # works on any card; see const_flow.py.
+                vol.Required(
+                    CONF_CARD_ROTATION,
+                    default=current.get(CONF_CARD_ROTATION,
+                                        DEFAULT_CARD_ROTATION)): bool,
+                vol.Required(
+                    CONF_SILHOUETTE_ONLY,
+                    default=current.get(CONF_SILHOUETTE_ONLY,
+                                        DEFAULT_SILHOUETTE_ONLY)): bool,
             }),
         )

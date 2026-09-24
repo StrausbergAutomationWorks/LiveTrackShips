@@ -80,10 +80,18 @@ print("\n=== ITU type: the sentinel and the reserved ranges are UNLABELLED ===")
 # ⚠ 147 of 255 reported types are 0. A label here would be a placeholder
 # indistinguishable from a reading.
 check("0 unavailable -> None", label_for(0), None)
-check("5 reserved -> None", label_for(5), None)
-check("19 reserved -> None", label_for(19), None)
-check("38 reserved -> None", label_for(38), None)
-check("39 reserved -> None", label_for(39), None)
+# ⚠ 2026-09-24: 5, 19, 38 and 39 were "reserved -> None" here. The USCG AIS
+# Encoding Guide (26-07-01) defines them; codes it leaves out stay unlabelled.
+check("5 USCG -> Buoy tender", label_for(5), "Buoy tender")
+check("19 USCG -> Support vessel", label_for(19), "Support vessel")
+check("38 USCG -> Trawler", label_for(38), "Trawler")
+check("39 USCG -> Patrol vessel", label_for(39), "Patrol vessel")
+check("86 USCG -> ATB", label_for(86), "Articulated tug and barge")
+check("8 undefined -> None", label_for(8), None)
+check("10 undefined -> None", label_for(10), None)
+check("15 undefined -> None", label_for(15), None)
+check("16 undefined -> None", label_for(16), None)
+check("81 hazard digit -> decade only", label_for(81), "Tanker")
 check("None -> None", label_for(None), None)
 check("100 out of range -> None", label_for(100), None)
 check("-1 out of range -> None", label_for(-1), None)

@@ -1,0 +1,168 @@
+"""Tests for the vessel icons (SSOT item 254).
+
+Run: python test_icons.py   (here, or in the HA container via lts_boxtest.py)
+
+Loaded by file path, like test_rot_and_types.py: icons.py imports only the
+standard library. The raster checks need resvg_py and are skipped where it is
+absent (the HA container); the XML checks run everywhere.
+"""
+import importlib.util
+import pathlib
+import sys
+import xml.etree.ElementTree as ET
+
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+_PKG = pathlib.Path(__file__).parent / "custom_components" / "live_track_ships"
+
+
+def _load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+icons = _load("lts_icons", _PKG / "icons.py")
+passed = failed = 0
+
+
+def check(label, got, want):
+    global passed, failed
+    ok = got == want
+    passed, failed = passed + ok, failed + (not ok)
+    print(f"  {'ok  ' if ok else 'FAIL'} {label}"
+          + ("" if ok else f"\n         got {got!r}\n         want {want!r}"))
+
+
+print("=== pick: USCG specifics, decade fallbacks, hazard digits select nothing ===")
+for code, length, want in (
+        (0, None, "generic"), (None, None, "generic"), ("x", None, "generic"),
+        (100, None, "generic"), (8, None, "generic"), (10, None, "generic"),
+        (15, None, "generic"), (16, None, "generic"), (90, None, "generic"),
+        (99, None, "generic"), (1, None, "workboat"), (3, None, "generic"),
+        (6, None, "offshore"), (11, None, "offshore"), (12, None, "fishing"),
+        (14, None, "offshore"), (18, None, "workboat"),
+        (20, None, "highspeed"), (25, None, "highspeed"), (29, None, "highspeed"),
+        (30, None, "fishing"), (33, None, "dredger"), (35, None, "military"),
+        (36, None, "sailing"), (37, None, "pleasure"), (38, None, "fishing"),
+        (39, None, "military"), (40, None, "highspeed"), (45, None, "highspeed"),
+        (51, None, "sar"), (55, None, "police"), (58, None, "medical"),
+        (60, None, "passenger"), (61, None, "passenger"), (64, None, "passenger"),
+        (65, None, "cruise"), (66, None, "ferry"), (67, None, "passenger"),
+        (69, None, "passenger"), (70, None, "cargo"), (71, None, "cargo"),
+        (74, None, "cargo"), (75, None, "bulk"), (76, None, "container"),
+        (77, None, "carcarrier"), (78, None, "cargo"), (79, None, "cargo"),
+        (80, None, "tanker"), (81, None, "tanker"), (84, None, "tanker"),
+        (85, None, "tanker"), (86, None, "atb"), (89, None, "tanker"),
+        ("70", None, "cargo")):
+    check(f"type {code!r} -> {want}", icons.pick(code, length), want)
+
+print("\n=== pick: a tug broadcasting the combined unit is an ATB ===")
+check("52 at 164 m (SEA EAGLE II) -> atb", icons.pick(52, 164), "atb")
+check("52 at 30 m -> tug", icons.pick(52, 30), "tug")
+check("52 at exactly 60 m -> tug", icons.pick(52, 60), "tug")
+check("31 at 90 m -> atb", icons.pick(31, 90), "atb")
+check("32 at 61 m -> atb", icons.pick(32, 61), "atb")
+check("57 at 120 m -> atb (USCG: 57 where 86 is unsupported)", icons.pick(57, 120), "atb")
+check("57 at 20 m -> generic", icons.pick(57, 20), "generic")
+check("52 with no length -> tug", icons.pick(52, None), "tug")
+check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
+
+print("\n=== every icon exists; nothing else is servable ===")
+files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
+check("22 keys", len(icons.ICON_KEYS), 22)
+check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
+check("lng dropped", "lng" in icons.ICON_KEYS, False)
+every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
+check("every pick() result is a key", sorted(every_pick - icons.ICON_KEYS), [])
+for bad in ("_star_of_life", "../icons/tug", "lng", "", "Tug", "tug.svg"):
+    check(f"valid_key({bad!r}) is False", icons.valid_key(bad), False)
+check("icon_path('tug') exists", icons.icon_path("tug") is not None, True)
+
+print("\n=== tone ===")
+for code, want in ((55, "police"), (3, "gov"), (35, "military"), (39, "military"),
+                   (58, "white"), (51, "default"), (70, "default"), (None, "default")):
+    check(f"type {code!r} -> {want}", icons.tone_for(code), want)
+check("police blue", icons.TONES["police"], "#3D8BFF")
+check("olive", icons.TONES["military"], "#8C9A4B")
+
+print("\n=== length ramp (approved 2026-09-24) ===")
+for L, want in ((12, 0.51), (60, 0.76), (190, 0.93), (300, 1.0), (500, 1.0),
+                (4, 0.45), (8, 0.45)):
+    check(f"{L} m -> {want}", icons.weight_for("cargo", L), want)
+check("no length, pleasure -> 0.50", icons.weight_for("pleasure", None), 0.50)
+check("no length, cargo -> 0.90", icons.weight_for("cargo", 0), 0.90)
+check("junk length -> default", icons.weight_for("tug", "x"), 0.60)
+
+print("\n=== bearing: heading, else course when moving, else HELD ===")
+SLOW = icons.SLOW_KMH
+check("heading wins, even at rest", icons.bearing(90, 180, 0.0, 10.0), (90.0, "heading"))
+check("course when moving", icons.bearing(None, 180, SLOW, None), (180.0, "course"))
+check("course just below 2 kn -> held", icons.bearing(None, 180, SLOW - 0.01, 45.0), (45.0, "held"))
+check("slow, nothing held -> none", icons.bearing(None, 180, 0.5, None), (None, None))
+check("no speed -> held, not course", icons.bearing(None, 180, None, 30.0), (30.0, "held"))
+check("moving, no course -> held", icons.bearing(None, None, 20.0, 30.0), (30.0, "held"))
+check("heading 360 wraps", icons.bearing(360, None, None, None), (0.0, "heading"))
+check("quantise 357.6 -> 0", icons.quantise(357.6), 0)
+check("quantise 2.4 -> 0", icons.quantise(2.4), 0)
+check("quantise 47.6 -> 50", icons.quantise(47.6), 50)
+check("quantise None", icons.quantise(None), None)
+
+print("\n=== render: strict XML for every icon, angle, tone and mode ===")
+bad = []
+n = 0
+for key in sorted(icons.ICON_KEYS):
+    path = icons.icon_path(key)
+    for deg in (None, 0, 45, 200):
+        for tone in icons.TONES:
+            for badge in (True, False):
+                for counter in (None, 90):
+                    s = icons.render(path, key, deg, 64, tone, 0.8, badge, counter)
+                    n += 1
+                    try:
+                        ET.fromstring(s)
+                    except ET.ParseError as ex:
+                        bad.append((key, deg, tone, badge, str(ex)))
+check(f"{n} renders parse", bad, [])
+med = icons.render(icons.icon_path("medical"), "medical", 45, 64, "white", 0.8, False)
+check("medical carries the red cross", icons.CROSS_RED in med, True)
+check("the cross is NOT rotated with the hull",
+      med.count("rotate(45 100 100)"), 1)
+sar = icons.render(icons.icon_path("sar"), "sar", 45, 64, "default", 0.8, False)
+check("sar carries the orange star", icons.SOL_ORANGE in sar, True)
+check("sar carries rod and snake", sar.count('fill="#FFFFFF"') >= 2, True)
+turned = icons.render(icons.icon_path("sar"), "sar", None, 64, "default", 0.8, False, 90)
+check("card rotation: symbol counter-rotated by -90", "rotate(270 100 100)" in turned, True)
+check("card rotation: hull NOT rotated", "rotate(90 100 100)" in turned, False)
+plain = icons.render(icons.icon_path("cargo"), "cargo", 45, 64, "default", 0.8, False, 90)
+check("no symbol on cargo, counter ignored", "rotate(270" in plain, False)
+check("police drawn blue", 'fill="#3D8BFF"' in icons.render(
+    icons.icon_path("police"), "police", 0, 64, "police", 0.8, False), True)
+
+print("\n=== raster: no rotation clips, badge-free has no disc ===")
+try:
+    import io
+    import resvg_py
+    from PIL import Image
+except ImportError:
+    print("  skip resvg_py/PIL not installed here")
+else:
+    clipped = []
+    for key in sorted(icons.ICON_KEYS):
+        for deg in range(0, 360, 15):
+            s = icons.render(icons.icon_path(key), key, deg, 128, "default", 1.0, False)
+            im = Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(
+                svg_string=s, width=128, height=128)))).convert("RGBA")
+            a = im.getchannel("A")
+            w, h = im.size
+            edge = [a.getpixel((x, 0)) for x in range(w)] + \
+                   [a.getpixel((x, h - 1)) for x in range(w)] + \
+                   [a.getpixel((0, y)) for y in range(h)] + \
+                   [a.getpixel((w - 1, y)) for y in range(h)]
+            if max(edge) > 0:
+                clipped.append((key, deg))
+    check("22 icons x 24 angles at full weight touch no edge", clipped, [])
+
+print(f"\n{passed} passed, {failed} failed")
+sys.exit(1 if failed else 0)

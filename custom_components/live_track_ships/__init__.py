@@ -149,6 +149,9 @@ class ShipFeed:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    # The vessel icons (SSOT item 254). Registered once per HA run.
+    from .web import register as register_views
+    register_views(hass)
     feed = ShipFeed(hass, entry)
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed

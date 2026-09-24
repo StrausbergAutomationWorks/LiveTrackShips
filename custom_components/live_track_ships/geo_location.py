@@ -46,9 +46,14 @@ from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
 
-from .const_flow import DOMAIN, INSTANCE_MAX_VESSELS
+from . import icons
+from .const_flow import (
+    CONF_CARD_ROTATION, CONF_SILHOUETTE_ONLY, DEFAULT_CARD_ROTATION,
+    DEFAULT_SILHOUETTE_ONLY, DOMAIN, INSTANCE_MAX_VESSELS,
+)
 from .ship_types import label_for as ship_type_label
 from .sources.base import Observation
+from .web import picture_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +69,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     owners: dict[str, str] = hass.data.setdefault(OWNERS_KEY, {})
     me = entry.entry_id
     known: dict[str, ShipEvent] = {}
+    cfg = {**entry.data, **entry.options}
+    icon_opts = (bool(cfg.get(CONF_CARD_ROTATION, DEFAULT_CARD_ROTATION)),
+                 bool(cfg.get(CONF_SILHOUETTE_ONLY, DEFAULT_SILHOUETTE_ONLY)))
 
     def _releaser(identity: str):
         @callback
@@ -98,7 +106,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             distance = feed.store.distance_to(obs)
             existing = known.get(identity)
             if existing is None:
-                entity = ShipEvent(obs, distance)
+                entity = ShipEvent(obs, distance, icon_opts)
                 known[identity] = entity
                 new.append(entity)
             elif existing.update_from(obs, distance):
@@ -179,12 +187,55 @@ class ShipEvent(GeolocationEvent):
     _attr_unit_of_measurement = UnitOfLength.KILOMETERS
     _attr_icon = "mdi:ferry"
 
-    def __init__(self, obs: Observation, distance_km: float):
+    def __init__(self, obs: Observation, distance_km: float,
+                 icon_opts: tuple[bool, bool] = (False, False)):
         # ⚠ NO unique_id - see the module docstring. Identity lives in the
         # entity_id (suggested_object_id) and in the `identity` attribute.
         self._obs = obs
         self._attr_distance = distance_km
         self.retired = False
+        self._card_rotation, self._silhouette_only = icon_opts
+        # The last COURSE-derived bearing, held while the vessel is at rest.
+        # Never a heading: heading stays meaningful at rest and is published
+        # as it is (06_MAP_CONTRACT.md D4).
+        self._held: float | None = None
+        self._icon: dict = {}
+        self._refresh_icon()
+
+    @callback
+    def _refresh_icon(self) -> None:
+        """Silhouette, colour, size and rotation for the current observation.
+
+        ⚠ THE ANGLE GOES INTO THE IMAGE OR INTO THE ATTRIBUTE'S JOB, NEVER
+        BOTH. icon_rotation_deg is published either way; with card_rotation
+        the image is unrotated and the card turns it, and the upright symbol
+        of medical and SAR is counter-rotated inside the image so that turn
+        stands it up again (Lee, 2026-09-24)."""
+        o = self._obs
+        key = icons.pick(o.ship_type, o.length_m)
+        bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
+                                       o.speed_kmh, self._held)
+        if basis == "course":
+            self._held = bearing
+        angle = icons.quantise(bearing)
+        out: dict = {"icon_key": key}
+        if angle is not None:
+            out["icon_rotation_deg"] = angle
+            out["icon_rotation_basis"] = basis
+        symbol = key in icons.SYMBOL_FOR
+        out["entity_picture"] = picture_url(
+            key,
+            None if self._card_rotation else angle,
+            icons.tone_for(o.ship_type),
+            icons.weight_for(key, o.length_m),
+            badge=not self._silhouette_only,
+            counter=angle if (self._card_rotation and symbol) else None)
+        self._icon = out
+
+    @property
+    def entity_picture(self) -> str | None:
+        """The rendered silhouette; LiveTrackMapCard draws it as the marker."""
+        return self._icon.get("entity_picture")
 
     @property
     def suggested_object_id(self) -> str:
@@ -290,7 +341,13 @@ class ShipEvent(GeolocationEvent):
         # require them. They exist only because ha-map-card cannot compute on
         # attributes. z_index puts vessels below aircraft on the shared map.
         attrs["z_index_offset"] = 20
-        attrs["icon_category"] = "vessel"
+        # ⚠ icon_category was "vessel" on every entity until 2026-09-24; it is
+        # now the silhouette drawn (SSOT item 254). Nothing on the dashboard
+        # filtered on it (read that day, lts_dash_read.txt).
+        attrs["icon_category"] = self._icon["icon_key"]
+        for key in ("icon_rotation_deg", "icon_rotation_basis"):
+            if key in self._icon:
+                attrs[key] = self._icon[key]
         return attrs
 
     @property
@@ -320,6 +377,7 @@ class ShipEvent(GeolocationEvent):
             return False
         self._obs = obs
         self._attr_distance = distance_km
+        self._refresh_icon()
         if self.hass is not None:
             self.async_write_ha_state()
         return True

@@ -86,6 +86,20 @@ def _clean(value, unavailable):
     return None if value == unavailable else value
 
 
+# Same ceiling as the aisstream and Digitraffic adapters: a bad record exists
+# on every source (VIRGINIABORG, 644 m on Digitraffic), and a length past the
+# longest ship ever built is dropped rather than published.
+MAX_PLAUSIBLE_LENGTH_M = 500.0
+
+
+def _dimension(value) -> float | None:
+    """A size in metres, or None for absent, zero or implausible (item 249)."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return None
+    if value <= 0 or value > MAX_PLAUSIBLE_LENGTH_M:
+        return None
+    return float(value)
+
 def circle_geometry(lat: float, lon: float, radius_km: float,
                     points: int = CIRCLE_POINTS) -> dict:
     """A GeoJSON Polygon approximating the requested circle.
@@ -220,7 +234,15 @@ class BarentsWatchSource:
             call_sign=(row.get("callSign") or "").strip() or None,
             destination=(row.get("destination") or "").strip() or None,
             imo=row.get("imoNumber") or None,
-            draught_m=row.get("draught") or None,
+            # ⚠ UNITS, MEASURED 2026-09-24 over 617 rows (bin\lts_bw_dims.txt):
+            # shipLength and shipWidth are METRES and shipLength equals
+            # dimensionA + dimensionB on all 586 rows carrying both (BRITANNIA
+            # 330 m, a real cruise ship). draught is DECIMETRES - BRITANNIA 85,
+            # YUE AN 76 - and was published raw as draught_m until this fix,
+            # ten times too deep. Digitraffic has the same split (its adapter).
+            length_m=_dimension(row.get("shipLength")),
+            beam_m=_dimension(row.get("shipWidth")),
+            draught_m=(row["draught"] / 10.0) if row.get("draught") else None,
             nav_status=_clean(row.get("navigationalStatus"),
                               NAV_STATUS_UNDEFINED),
             position_source=position_source,

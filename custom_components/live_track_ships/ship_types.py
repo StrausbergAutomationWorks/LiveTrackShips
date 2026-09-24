@@ -26,6 +26,43 @@ reliable; the unit digit is not. Do not "improve" this without evidence.
 
 from __future__ import annotations
 
+# ⚠ THE USCG EXTENSION (added 2026-09-24, SSOT item 254). USCG AIS Encoding
+# Guide 26-07-01, navcen.uscg.gov: codes 01-19, 38-39, and unit digits 5-8 in
+# the 40s, 60s, 70s and 80s. Every one sits in digits ITU marks RESERVED - never
+# in the hazard digits 1-4 - so labelling them decodes nothing the note above
+# forbids. Older sets may show them as reserved or not at all. Codes the guide
+# leaves out (08, 10, 15, 16) stay unlabelled.
+_USCG = {
+    1: "Research vessel",
+    2: "Training vessel",
+    3: "Government vessel",
+    4: "Icebreaker",
+    5: "Buoy tender",
+    6: "Cable layer",
+    7: "Pipe layer",
+    9: "Special purpose ship",
+    11: "FPSO",
+    12: "Fish factory ship",
+    13: "Fish farm support vessel",
+    14: "Offshore support vessel",
+    17: "Construction vessel",
+    18: "Crew boat",
+    19: "Support vessel",
+    38: "Trawler",
+    39: "Patrol vessel",
+    45: "High speed passenger craft",
+    46: "High speed ro-ro craft",
+    65: "Cruise ship",
+    66: "Ferry",
+    67: "Excursion vessel",
+    75: "Bulk carrier",
+    76: "Container ship",
+    77: "Ro-ro cargo ship",
+    78: "Landing craft",
+    85: "Tanker, non-hazardous cargo",
+    86: "Articulated tug and barge",
+}
+
 # Codes 30-59 stand alone - each number means one thing, with no decade rule.
 _EXACT = {
     30: "Fishing",
@@ -62,10 +99,11 @@ _DECADE = {
 def label_for(code) -> str | None:
     """ITU vessel type code -> label, or None when there is nothing to say.
 
-    ⚠ None is returned for 0 (unavailable), for 1-19 and 38-39 (reserved, so
-    the code carries no meaning to report), for anything outside 0-99, and for
-    anything that is not an integer. OMIT the attribute rather than publishing
-    "Unknown" - D0: a placeholder is indistinguishable from a reading.
+    ⚠ None is returned for 0 (unavailable), for the codes neither ITU nor the
+    USCG extension defines (08, 10, 15, 16), for anything outside 0-99, and
+    for anything that is not an integer. OMIT the attribute rather than
+    publishing "Unknown" - D0: a placeholder is indistinguishable from a
+    reading. Until 2026-09-24 all of 1-19 and 38-39 returned None here.
     """
     try:
         value = int(code)
@@ -73,6 +111,8 @@ def label_for(code) -> str | None:
         return None
     if not 0 <= value <= 99:
         return None
+    if value in _USCG:
+        return _USCG[value]
     if value in _EXACT:
         return _EXACT[value]
     decade = _DECADE.get(value // 10)
