@@ -51,6 +51,7 @@ from .const_flow import (
     CONF_CARD_ROTATION, CONF_SILHOUETTE_ONLY, DEFAULT_CARD_ROTATION,
     DEFAULT_SILHOUETTE_ONLY, DOMAIN, INSTANCE_MAX_VESSELS,
 )
+from .quota import allocate
 from .ship_types import label_for as ship_type_label
 from .sources.base import Observation
 from .web import picture_url
@@ -61,12 +62,15 @@ _LOGGER = logging.getLogger(__name__)
 # ⚠ Kept OUTSIDE hass.data[DOMAIN], which maps entry_id -> feed and is read by
 # key elsewhere.
 OWNERS_KEY = f"{DOMAIN}_owners"
+# entry_id -> how many vessels that entry could show, for the quota (item 253).
+DEMANDS_KEY = f"{DOMAIN}_demands"
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Create and retire entities as vessels arrive and depart."""
     feed = hass.data[DOMAIN][entry.entry_id]
     owners: dict[str, str] = hass.data.setdefault(OWNERS_KEY, {})
+    demands: dict[str, int] = hass.data.setdefault(DEMANDS_KEY, {})
     me = entry.entry_id
     known: dict[str, ShipEvent] = {}
     cfg = {**entry.data, **entry.options}
@@ -87,17 +91,29 @@ async def async_setup_entry(hass, entry, async_add_entities):
         new = []
         held = 0
         written = 0
-        for obs in published:
+        # ⚠ ONE vessel, ONE entity, across ALL config entries. Two entries
+        # over the same water both hear it; the first to publish owns it
+        # until it departs from that entry. See the module docstring.
+        candidates = [o for o in published
+                      if owners.get(o.identity) in (None, me)]
+        # ⛔ THE INSTANCE CEILING IS SHARED BY QUOTA (item 253, Lee
+        # 2026-09-24), no longer first-come (item 246). Each entry reports
+        # how many it could show; quota.allocate() gives each an equal share,
+        # and what a quiet entry leaves goes to the others.
+        # ⚠ REVERSES 246's "vessels already shown are never evicted": an
+        # entry over its quota drops its FARTHEST vessels (published() is
+        # nearest first), because a quota nobody gives back is first-come
+        # again. They leave through the normal departure path below.
+        demands[me] = len(candidates)
+        quota = allocate(demands, INSTANCE_MAX_VESSELS).get(me, 0)
+        for rank, obs in enumerate(candidates):
             identity = obs.identity
-            # ⚠ ONE vessel, ONE entity, across ALL config entries. Two entries
-            # over the same water both hear it; the first to publish owns it
-            # until it departs from that entry. See the module docstring.
             owner = owners.get(identity)
-            if owner is not None and owner != me:
+            if rank >= quota:
+                held += 1
                 continue
-            # ⛔ THE INSTANCE CEILING (item 246): a NEW vessel is not added
-            # while the map already holds INSTANCE_MAX_VESSELS across every
-            # entry. Vessels already shown keep their place.
+            # Safety net, not the policy: another entry may not have shed
+            # its surplus yet, so never let the instance exceed the ceiling.
             if owner is None and len(owners) >= INSTANCE_MAX_VESSELS:
                 held += 1
                 continue
@@ -152,6 +168,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         for identity in list(known):
             _releaser(identity)()
         known.clear()
+        # An unloaded entry claims no share of the ceiling (item 253).
+        demands.pop(me, None)
 
     entry.async_on_unload(feed.add_listener(_sync))
     entry.async_on_unload(_release_all)

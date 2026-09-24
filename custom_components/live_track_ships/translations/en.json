@@ -22,6 +22,10 @@
           "client_id": "BarentsWatch only. Register a free AIS-client at barentswatch.no/minside — the ID looks like your.email@example.com:live_track_ships. Enter it exactly as shown.",
           "client_secret": "BarentsWatch only. Shown once when the client is created; generate a new one if you did not keep it."
         }
+      },
+      "coverage": {
+        "title": "Part of this area has no coverage",
+        "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to use this circle anyway, or close this dialog and choose a smaller radius or another source."
       }
     },
     "error": {
@@ -50,6 +54,10 @@
           "card_rotation": "Off: icons arrive already rotated and work on any map card. On: icons arrive unrotated for a card that turns markers itself, which lets it animate the turn.",
           "silhouette_only": "Off: each vessel sits on its own dark disc and reads on any map card. On: the vessel outline alone, for a card that draws markers without a background."
         }
+      },
+      "coverage": {
+        "title": "Part of this area has no coverage",
+        "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to save this radius anyway, or close this dialog to keep the current one."
       }
     }
   },

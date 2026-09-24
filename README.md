@@ -31,9 +31,9 @@ setting to hide a category.
 | Cargo ships, tankers, tugs, ferries, passenger vessels | yes |
 | Fishing, pilot, law-enforcement and other working craft | yes |
 | **Private pleasure craft and sailboats** | **yes — with name and position** |
-| Aids to navigation — buoys, beacons, lighthouses | if your source sends them |
-| AIS shore base stations | if your source sends them |
-| Search-and-rescue (SAR) aircraft | if your source sends them |
+| Aids to navigation — buoys, beacons, lighthouses | no |
+| AIS shore base stations | no |
+| Search-and-rescue (SAR) aircraft | no |
 
 ### Private boats are shown, and you should know what that means
 
@@ -65,13 +65,14 @@ not a fault.
 
 ### Buoys, shore stations and SAR aircraft
 
-The integration passes through whatever the source publishes, so if a source
-starts sending aids to navigation or shore stations they simply appear — no
-update, no setting to find.
+Only vessels are shown. Aids to navigation (buoys, beacons, lighthouses),
+shore base stations and search-and-rescue aircraft are not displayed.
 
-In practice aisstream.io sends only vessels. Measured over 11 captures,
-including 15 minutes covering the whole Great Lakes, **only five message types
-ever arrived**, all of them vessel positions and vessel details.
+From aisstream.io the integration reads vessel position and vessel detail
+messages only, and over 11 captures, including 15 minutes covering the whole
+Great Lakes, nothing else arrived. A BarentsWatch snapshot of 1,681 rows held
+no aid-to-navigation or base-station identity. The Digitraffic data used here
+is its vessel-location feed.
 
 ## Sources
 

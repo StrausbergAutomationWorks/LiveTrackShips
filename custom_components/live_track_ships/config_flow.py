@@ -11,6 +11,8 @@ CONNECTION. Options are applied on submit, by reloading the entry.
 
 from __future__ import annotations
 
+import logging
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -27,6 +29,42 @@ from .geo import (
     DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MAX_VESSELS, MIN_RADIUS_KM,
     RadiusError, validate_centre, validate_radius,
 )
+
+_LOGGER = logging.getLogger(__name__)
+
+# Warn when at least this share of the circle is outside what the source can
+# show. Below it the gap is an edge sliver, not a surprise.
+COVERAGE_WARN_SHARE = 0.05
+
+
+async def outside_share_for(hass, cfg) -> float | None:
+    """Share of the configured circle outside the source's published area, or
+    None when there is nothing to say (item 249).
+
+    ⚠ ONLY BarentsWatch publishes its area, so only it is checked. Any failure
+    - bad credentials, no network, a changed response - is None, never a
+    warning: an unknown area is not a gap, and the flow must not be blocked by
+    a check that is advice. The credentials the user just typed are used
+    once, for one token and one request, and are not logged."""
+    if cfg.get(CONF_SOURCE) != SOURCE_BARENTSWATCH:
+        return None
+    try:
+        from homeassistant.helpers.aiohttp_client import async_get_clientsession
+        from .coverage import outside_share
+        from .sources.barentswatch import BarentsWatchSource
+        src = BarentsWatchSource(
+            async_get_clientsession(hass), cfg[CONF_CLIENT_ID],
+            cfg[CONF_CLIENT_SECRET], cfg[CONF_LATITUDE], cfg[CONF_LONGITUDE],
+            cfg[CONF_RADIUS_KM])
+        area = await src.open_area()
+        if not area:
+            return None
+        return await hass.async_add_executor_job(
+            outside_share, cfg[CONF_LATITUDE], cfg[CONF_LONGITUDE],
+            cfg[CONF_RADIUS_KM], area)
+    except Exception:                              # noqa: BLE001
+        _LOGGER.debug("coverage check skipped", exc_info=True)
+        return None
 
 
 class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -67,10 +105,14 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                        f"{user_input[CONF_LONGITUDE]:.4f}")
                 await self.async_set_unique_id(uid)
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=f"Ships near {user_input[CONF_LATITUDE]:.3f}, "
-                          f"{user_input[CONF_LONGITUDE]:.3f}",
-                    data=user_input)
+                self._pending = user_input
+                # ⚠ Item 249: say so BEFORE creating the entry when part of
+                # the circle lies outside what the source can ever show.
+                share = await outside_share_for(self.hass, user_input)
+                if share is not None and share >= COVERAGE_WARN_SHARE:
+                    self._share = share
+                    return await self.async_step_coverage()
+                return self._create()
 
         return self.async_show_form(
             step_id="user",
@@ -81,6 +123,23 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 "radius_max": str(int(MAX_RADIUS_KM)),
             },
         )
+
+    def _create(self):
+        data = self._pending
+        return self.async_create_entry(
+            title=f"Ships near {data[CONF_LATITUDE]:.3f}, "
+                  f"{data[CONF_LONGITUDE]:.3f}",
+            data=data)
+
+    async def async_step_coverage(self, user_input=None):
+        """A warning, not an error: the user may want exactly that circle.
+        Submitting creates the entry as entered; closing the dialog creates
+        nothing."""
+        if user_input is not None:
+            return self._create()
+        return self.async_show_form(
+            step_id="coverage", data_schema=vol.Schema({}),
+            description_placeholders={"percent": str(round(self._share * 100))})
 
     def _existing(self, key: str) -> str:
         """The key from an entry the user already configured, if any.
@@ -157,6 +216,15 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         if user_input is not None:
+            # ⚠ Item 249: a larger radius can push the circle past what
+            # BarentsWatch shows. Checked only when the radius changed.
+            data = {**self.config_entry.data, **self.config_entry.options}
+            if user_input.get(CONF_RADIUS_KM) != data.get(CONF_RADIUS_KM):
+                share = await outside_share_for(
+                    self.hass, {**data, **user_input})
+                if share is not None and share >= COVERAGE_WARN_SHARE:
+                    self._pending, self._share = user_input, share
+                    return await self.async_step_coverage()
             return self.async_create_entry(data=user_input)
 
         current = {**self.config_entry.data, **self.config_entry.options}
@@ -185,3 +253,12 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                                         DEFAULT_SILHOUETTE_ONLY)): bool,
             }),
         )
+
+    async def async_step_coverage(self, user_input=None):
+        """The same warning as at setup; submitting saves the options as
+        entered."""
+        if user_input is not None:
+            return self.async_create_entry(data=self._pending)
+        return self.async_show_form(
+            step_id="coverage", data_schema=vol.Schema({}),
+            description_placeholders={"percent": str(round(self._share * 100))})

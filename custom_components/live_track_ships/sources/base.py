@@ -107,13 +107,12 @@ class Observation:
     raw_message_type: str | None = None
     extra: dict = field(default_factory=dict)
 
-    @property
-    def is_vessel(self) -> bool:
-        """Not every AIS message describes a ship. An aid to navigation is a
-        fixed object and a base station is a building; neither has speed,
-        course or a vessel type."""
-        return self.raw_message_type not in (
-            "AidsToNavigationReport", "BaseStationReport")
+    # ⚠ is_vessel() WAS HERE and was DELETED 2026-09-24 (Lee; SSOT item 248).
+    # Nothing ever called it, and no source delivers anything but vessels: the
+    # aisstream adapter reads position and detail messages only, and a
+    # BarentsWatch snapshot of 1,681 rows held no 99 (AtoN) or 00 (base
+    # station) MMSI. Re-add a guard only together with a source that sends
+    # non-vessel objects, and wire it where observations enter the store.
 
 
 class Source(Protocol):
