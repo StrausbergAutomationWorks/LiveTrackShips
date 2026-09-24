@@ -93,5 +93,23 @@ for deg in (None, 0, 45, 185):
 svg = icons.render(icons.icon_path("cargo"), "cargo", 30, 64, "police", 0.9, True)
 check("vessel still toned", icons.TONES["police"] in svg, True)
 
+# SAR aircraft: ITU-R M.585-8 seventh digit, 1 fixed-wing, 5 helicopter, optional
+check("111265103 fixed-wing", icons.pick_sar("111265103"), "sarplane")
+check("111265583 helicopter", icons.pick_sar("111265583"), "sarheli")
+check("111257001 unmarked -> helicopter (NOR-002 is one)", icons.pick_sar("111257001"), "sarheli")
+check("sar tone", icons.tone_for_kind("sar_aircraft"), "sar")
+check("net buoy tone", icons.tone_for_kind("net_buoy"), "default")
+check("sar weight", icons.weight_for("sarheli", None), icons.SMALLEST_AIRCRAFT_WEIGHT)
+for deg in (None, 90):
+    for badge in (True, False):
+        h = icons.render(icons.icon_path("sarheli"), "sarheli", deg, 64, "sar", 0.47, badge)
+        ET.fromstring(h)
+        check("rotor animation survives render deg=%s badge=%s" % (deg, badge),
+              '<animateTransform attributeName="transform" type="rotate" from="0 100 100"' in h, True)
+        check("heli drawn orange deg=%s badge=%s" % (deg, badge), icons.TONES["sar"] in h, True)
+        p = icons.render(icons.icon_path("sarplane"), "sarplane", deg, 64, "sar", 0.47, badge)
+        ET.fromstring(p)
+        check("plane has no animation deg=%s badge=%s" % (deg, badge), "animate" in p, False)
+
 print("%d passed, %d failed" % (passed, failed))
 sys.exit(1 if failed else 0)

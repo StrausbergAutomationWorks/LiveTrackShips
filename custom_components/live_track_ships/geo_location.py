@@ -240,6 +240,8 @@ class ShipEvent(GeolocationEvent):
         kind = o.kind
         if kind == "net_buoy":
             key = "netbuoy"
+        elif kind == "sar_aircraft":
+            key = icons.pick_sar(o.identity)
         elif kind != "vessel":
             key = "generic"
         else:
@@ -260,7 +262,8 @@ class ShipEvent(GeolocationEvent):
         out["entity_picture"] = picture_url(
             key,
             None if self._card_rotation else angle,
-            icons.tone_for(o.ship_type) if kind == "vessel" else "default",
+            icons.tone_for(o.ship_type) if kind == "vessel"
+            else icons.tone_for_kind(kind),
             icons.weight_for(key, o.length_m),
             badge=not self._silhouette_only,
             counter=angle if (self._card_rotation and symbol) else None)

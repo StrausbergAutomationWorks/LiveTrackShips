@@ -34,7 +34,7 @@ ICON_KEYS = frozenset((
     "generic", "cargo", "tanker", "passenger", "fishing", "tug", "sailing",
     "pleasure", "highspeed", "workboat", "military", "container", "bulk",
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
-    "medical", "atb", "sar", "netbuoy"))
+    "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -43,7 +43,22 @@ ICON_KEYS = frozenset((
 # Live Track Aircraft's light-aircraft icons at weight 0.62 span 31 px of a
 # 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
 PAINTED = frozenset(("netbuoy",))
-NETBUOY_WEIGHT = 0.47
+SMALLEST_AIRCRAFT_WEIGHT = 0.47
+NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
+
+# ! NOT A VESSEL: an aircraft in search and rescue, 111MIDxxx. AIS carries no
+# aircraft type; ITU-R M.585-8 Annex 1 section 3 lets an administration mark
+# the SEVENTH digit, 1 fixed-wing and 5 helicopter. Optional: Sweden marks,
+# Norway's NOR-002 (111257001) does not and is a helicopter. So 1 is a plane
+# and everything else a helicopter. The helicopter's rotor spins: its own
+# group, hub at the image centre, SMIL in the artwork. SAR orange, the same
+# orange as the Star of Life on SAR boats.
+SAR_ICON_KEYS = frozenset(("sarheli", "sarplane"))
+
+
+def pick_sar(identity) -> str:
+    mmsi = str(identity or "")
+    return "sarplane" if len(mmsi) == 9 and mmsi[6] == "1" else "sarheli"
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.
@@ -131,7 +146,13 @@ TONES = {
     "gov": "#EF9F27",       # amber: Live Track Aircraft's government tone
     "military": "#8C9A4B",  # olive; haze grey read as "disabled" on a map
     "white": "#FFFFFF",     # the medical hull, under the red cross
+    "sar": "#F26A1B",       # SAR orange: SAR aircraft, and 51's Star of Life
 }
+
+
+def tone_for_kind(kind: str) -> str:
+    """Tone for an object that is not a vessel."""
+    return "sar" if kind == "sar_aircraft" else "default"
 
 
 def tone_for(ship_type) -> str:
@@ -168,8 +189,8 @@ _DEFAULT_WEIGHT = {
 
 
 def weight_for(key: str, length_m=None) -> float:
-    if key == "netbuoy":
-        return NETBUOY_WEIGHT
+    if key == "netbuoy" or key in SAR_ICON_KEYS:
+        return SMALLEST_AIRCRAFT_WEIGHT
     try:
         L = float(length_m) if length_m else 0.0
     except (TypeError, ValueError):

@@ -71,7 +71,7 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("23 keys (22 vessels + netbuoy)", len(icons.ICON_KEYS), 23)
+check("25 keys (22 vessels + netbuoy + sarheli + sarplane)", len(icons.ICON_KEYS), 25)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
