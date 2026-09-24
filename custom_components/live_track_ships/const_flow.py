@@ -62,9 +62,12 @@ DEFAULT_MAX_VESSELS = 1000
 # once this many vessels are on the map, no entry adds another until one
 # leaves. Vessels already shown are never evicted to make room.
 #
-# ⚠ PROVISIONAL, NOT MEASURED AS A LIMIT. Chosen below the ~1,830 at which the
-# instance stalled - a stall measured while every vessel also wrote a registry
-# row, which vessels no longer do (item 247). Raise it only on a measurement.
+# ✅ MEASURED SAFE, KEPT (Lee, 2026-09-23). After the throttle fix below, all
+# four entries ran at this ceiling with /api/ at 0.00-0.04 s, including through
+# a full restart. That shows 1,500 is safe on the development VM (4 GB). It does
+# NOT show that anything higher is, and it is not a limit found by pushing
+# until something broke. Raise it only on a new measurement, re-run the same
+# way (SSOT item 246).
 INSTANCE_MAX_VESSELS = 1500
 
 # ⛔ ONE PASS PER WINDOW, PER ENTRY (SSOT item 246, Lee 2026-09-23).
