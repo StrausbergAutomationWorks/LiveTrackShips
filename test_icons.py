@@ -71,7 +71,7 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("22 keys", len(icons.ICON_KEYS), 22)
+check("23 keys (22 vessels + netbuoy)", len(icons.ICON_KEYS), 23)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -162,7 +162,7 @@ else:
                    [a.getpixel((w - 1, y)) for y in range(h)]
             if max(edge) > 0:
                 clipped.append((key, deg))
-    check("22 icons x 24 angles at full weight touch no edge", clipped, [])
+    check("every icon x 24 angles at full weight touches no edge", clipped, [])
 
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

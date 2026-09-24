@@ -65,6 +65,13 @@ OWNERS_KEY = f"{DOMAIN}_owners"
 # entry_id -> how many vessels that entry could show, for the quota (item 253).
 DEMANDS_KEY = f"{DOMAIN}_demands"
 
+# Omitted for anything that is not a vessel (sources/base.py object_kind).
+_VESSEL_ONLY = ("ship_type", "ship_type_label", "call_sign", "destination",
+                "imo", "length_m", "beam_m", "draught_m", "nav_status")
+# Objects that do not move: no course, speed or turn, and no rotation.
+_FIXED_KINDS = frozenset(("aton", "base_station"))
+_MOTION = ("course_deg", "heading_deg", "speed_kmh", "rate_of_turn_dps")
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Create and retire entities as vessels arrive and depart."""
@@ -230,9 +237,18 @@ class ShipEvent(GeolocationEvent):
         of medical and SAR is counter-rotated inside the image so that turn
         stands it up again (Lee, 2026-09-24)."""
         o = self._obs
-        key = icons.pick(o.ship_type, o.length_m)
-        bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
-                                       o.speed_kmh, self._held)
+        kind = o.kind
+        if kind == "net_buoy":
+            key = "netbuoy"
+        elif kind != "vessel":
+            key = "generic"
+        else:
+            key = icons.pick(o.ship_type, o.length_m)
+        if kind in _FIXED_KINDS:
+            bearing, basis = None, None
+        else:
+            bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
+                                           o.speed_kmh, self._held)
         if basis == "course":
             self._held = bearing
         angle = icons.quantise(bearing)
@@ -244,7 +260,7 @@ class ShipEvent(GeolocationEvent):
         out["entity_picture"] = picture_url(
             key,
             None if self._card_rotation else angle,
-            icons.tone_for(o.ship_type),
+            icons.tone_for(o.ship_type) if kind == "vessel" else "default",
             icons.weight_for(key, o.length_m),
             badge=not self._silhouette_only,
             counter=angle if (self._card_rotation and symbol) else None)
@@ -337,6 +353,20 @@ class ShipEvent(GeolocationEvent):
         ):
             if value is not None:
                 attrs[key] = value
+
+        # ⚠ NOT A VESSEL (sources/base.py object_kind): no vessel type, size,
+        # voyage or navigational status - a net buoy sends nav_status 0,
+        # "under way using engine", as a default. A fixed object has no motion
+        # either; a net buoy drifts with its line, so its course and speed are
+        # real and it keeps them.
+        kind = o.kind
+        attrs["object_kind"] = kind
+        if kind != "vessel":
+            for key in _VESSEL_ONLY:
+                attrs.pop(key, None)
+            if kind in _FIXED_KINDS:
+                for key in _MOTION:
+                    attrs.pop(key, None)
 
         # ⚠ max_extrapolation_s is DELIBERATELY ABSENT for ships. No field, no
         # motion. Vessels have course and speed on 76% of messages and still

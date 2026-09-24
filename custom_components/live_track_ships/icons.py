@@ -34,7 +34,16 @@ ICON_KEYS = frozenset((
     "generic", "cargo", "tanker", "passenger", "fishing", "tug", "sailing",
     "pleasure", "highspeed", "workboat", "military", "container", "bulk",
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
-    "medical", "atb", "sar"))
+    "medical", "atb", "sar", "netbuoy"))
+
+# ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
+# seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
+# black scales, white head outlined black - so the renderer keeps its paint
+# instead of filling it with a tone. Sized as the smallest aircraft draws:
+# Live Track Aircraft's light-aircraft icons at weight 0.62 span 31 px of a
+# 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
+PAINTED = frozenset(("netbuoy",))
+NETBUOY_WEIGHT = 0.47
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.
@@ -159,6 +168,8 @@ _DEFAULT_WEIGHT = {
 
 
 def weight_for(key: str, length_m=None) -> float:
+    if key == "netbuoy":
+        return NETBUOY_WEIGHT
     try:
         L = float(length_m) if length_m else 0.0
     except (TypeError, ValueError):
@@ -294,16 +305,20 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
     m = _SVG_OPEN.search(src)
     if not m:
         raise ValueError("no <svg> element")
-    body = decolour(src[m.end():src.rfind("</svg>")])
+    body = src[m.end():src.rfind("</svg>")]
     k = max(0.1, min(1.0, weight))
     parts = ["translate(%.4f %.4f)" % (100 - 100 * k, 100 - 100 * k),
              "scale(%.6f)" % k]
     if degrees:
         parts.append("rotate(%d 100 100)" % degrees)
-    fill = TONES.get(tone, TONES["default"])
     head = ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
             'viewBox="0 0 200 200">' % (size, size))
-    art = '<g transform="%s" fill="%s">%s</g>' % (" ".join(parts), fill, body)
+    if key in PAINTED:
+        art = '<g transform="%s">%s</g>' % (" ".join(parts), body)
+    else:
+        fill = TONES.get(tone, TONES["default"])
+        art = '<g transform="%s" fill="%s">%s</g>' % (
+            " ".join(parts), fill, decolour(body))
     sym = _symbol(SYMBOL_FOR.get(key, ""), k, counter)
     if badge:
         return (head + '<circle cx="100" cy="100" r="100" fill="%s"/>' % BADGE
@@ -318,7 +333,7 @@ def icon_dir() -> str:
 
 
 def valid_key(key: str) -> bool:
-    """Guard for the HTTP view: only the 22 named icons, never a path."""
+    """Guard for the HTTP view: only the named icons, never a path."""
     return bool(_SAFE.match(key or "")) and key in ICON_KEYS
 
 

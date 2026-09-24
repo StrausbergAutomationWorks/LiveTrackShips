@@ -15,6 +15,7 @@ Contract fields follow 10_SEED/05_SHARED_LESSONS.md section D:
 from __future__ import annotations
 
 import datetime as _dt
+import re
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -107,12 +108,66 @@ class Observation:
     raw_message_type: str | None = None
     extra: dict = field(default_factory=dict)
 
-    # ⚠ is_vessel() WAS HERE and was DELETED 2026-09-24 (Lee; SSOT item 248).
-    # Nothing ever called it, and no source delivers anything but vessels: the
-    # aisstream adapter reads position and detail messages only, and a
-    # BarentsWatch snapshot of 1,681 rows held no 99 (AtoN) or 00 (base
-    # station) MMSI. Re-add a guard only together with a source that sends
-    # non-vessel objects, and wire it where observations enter the store.
+    @property
+    def kind(self) -> str:
+        """What the object is: one of OBJECT_KINDS. See object_kind()."""
+        return object_kind(self.identity, self.name, self.length_m,
+                           self.raw_message_type)
+
+    @property
+    def is_vessel(self) -> bool:
+        """Not every AIS transmitter is on a ship. An aid to navigation is a
+        fixed object, a base station is a building, and a net buoy is a float
+        on a fishing line; none has a vessel type, a size or a voyage."""
+        return self.kind == "vessel"
+
+
+# ---------------------------------------------------------------------------
+# What an AIS transmitter is, from what it sends. ITU-R M.585 fixes the MMSI
+# formats for everything that is not a ship station; the net buoys are the
+# exception below.
+OBJECT_KINDS = ("vessel", "net_buoy", "aton", "base_station", "sar_aircraft",
+                "distress_beacon")
+
+NON_VESSEL_MESSAGES = {
+    "AidsToNavigationReport": "aton",
+    "BaseStationReport": "base_station",
+    "StandardSearchAndRescueAircraftReport": "sar_aircraft",
+}
+
+# ⚠ A NET BUOY IS KNOWN BY ITS NAME. ITU gives fishing-gear devices 979xxxxxx
+# on channel 2006 only, never the AIS channels; the ones on the AIS channels
+# carry ship-shaped MMSIs (5867xxxxx off southern Norway), no type, no size
+# and no call sign. The factory name is the tell - FISHING BOUY, NET
+# MARK, BUOY - and it is also how Global Fishing Watch flags "likely gear".
+# A real vessel with such a word in its name (a BUOY TENDER) broadcasts its
+# length, so a broadcast length rules the name out.
+_GEAR_NAME = re.compile(
+    r"\b(BUOY|BOUY|BOYA|BOUE|NET\s*MARK(ER)?|NET\s*BUOY|FISHING\s*NET|"
+    r"FISH(ING)?\s*GEAR)\b", re.I)
+
+
+def object_kind(identity, name=None, length_m=None,
+                raw_message_type=None) -> str:
+    """vessel, net_buoy, aton, base_station, sar_aircraft or distress_beacon."""
+    kind = NON_VESSEL_MESSAGES.get(raw_message_type or "")
+    if kind:
+        return kind
+    mmsi = str(identity or "")
+    if len(mmsi) == 9 and mmsi.isdigit():
+        if mmsi.startswith("979"):
+            return "net_buoy"
+        if mmsi.startswith(("970", "972", "974")):
+            return "distress_beacon"
+        if mmsi.startswith("99"):
+            return "aton"
+        if mmsi.startswith("00"):
+            return "base_station"
+        if mmsi.startswith("111"):
+            return "sar_aircraft"
+    if name and not length_m and _GEAR_NAME.search(name):
+        return "net_buoy"
+    return "vessel"
 
 
 class Source(Protocol):

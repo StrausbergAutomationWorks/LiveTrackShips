@@ -24,7 +24,7 @@ URL_BASE = "/api/live_track_ships/icon"
 # ! Bumped whenever the ARTWORK or the renderer changes. Responses are cached
 # for a day as immutable, so without this a browser keeps yesterday's picture
 # and a fix looks like it did nothing (06_MAP_CONTRACT.md D6a-0a, one level down).
-ARTWORK_VERSION = "1"
+ARTWORK_VERSION = "2"
 
 
 def picture_url(key: str, degrees: int | None, tone: str = "default",
@@ -64,7 +64,7 @@ class ShipIconView(HomeAssistantView):
                   angle: str) -> web.Response:
         path = icons.icon_path(key)
         if path is None:
-            # valid_key() admits only the 22 named icons.
+            # valid_key() admits only the named icons.
             return web.Response(status=404, text="unknown icon")
         if angle == "fixed":
             degrees: int | None = None

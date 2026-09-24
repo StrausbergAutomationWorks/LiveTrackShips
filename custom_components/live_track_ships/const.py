@@ -60,14 +60,8 @@ OBSERVED_TYPES = (
     "StaticDataReport",
 )
 
-# ⚠ Never seen from the cloud feed. If one arrives it must NOT be treated as a
-# vessel - an aid to navigation is a fixed object and a base station is a
-# building. Neither has speed, course or a vessel type.
-NON_VESSEL_TYPES = (
-    "AidsToNavigationReport",
-    "BaseStationReport",
-    "StandardSearchAndRescueAircraftReport",
-)
+# What is and is not a vessel - message types, MMSI formats and net buoys -
+# is decided in ONE place: object_kind() in sources/base.py.
 
 # --------------------------------------------------------------------------
 # ⚠ AIS sentinel values. NONE of these are real readings. Map to None; never

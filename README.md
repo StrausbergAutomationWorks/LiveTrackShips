@@ -31,9 +31,10 @@ setting to hide a category.
 | Cargo ships, tankers, tugs, ferries, passenger vessels | yes |
 | Fishing, pilot, law-enforcement and other working craft | yes |
 | **Private pleasure craft and sailboats** | **yes — with name and position** |
-| Aids to navigation — buoys, beacons, lighthouses | no |
-| AIS shore base stations | no |
-| Search-and-rescue (SAR) aircraft | no |
+| **Fishing-gear buoys** that transmit AIS | **yes — drawn as a fish** |
+| Search-and-rescue (SAR) aircraft | when the source sends them |
+| Aids to navigation — buoys, beacons, lighthouses | when the source sends them |
+| AIS shore base stations | when the source sends them |
 
 ### Private boats are shown, and you should know what that means
 
@@ -63,16 +64,30 @@ among them — to show no type or dimensions, and expect all vessels to be
 sparse for several minutes after Home Assistant restarts. That is the data,
 not a fault.
 
-### Buoys, shore stations and SAR aircraft
+### Not everything on AIS is a ship
 
-Only vessels are shown. Aids to navigation (buoys, beacons, lighthouses),
-shore base stations and search-and-rescue aircraft are not displayed.
+Each entity carries `object_kind`: `vessel`, `net_buoy`, `aton` (aid to
+navigation), `base_station`, `sar_aircraft` or `distress_beacon`. Most are
+told apart by the identity format the ITU assigns them. Fishing-gear buoys
+are not: they transmit with ship-style identities, so they are recognised by
+their factory names (FISHING BOUY, NET MARK, BUOY) together with the absence
+of a broadcast length.
 
-From aisstream.io the integration reads vessel position and vessel detail
-messages only, and over 11 captures, including 15 minutes covering the whole
-Great Lakes, nothing else arrived. A BarentsWatch snapshot of 1,681 rows held
-no aid-to-navigation or base-station identity. The Digitraffic data used here
-is its vessel-location feed.
+Anything that is not a vessel is shown without a vessel type, size or
+navigational status. Fishing-gear buoys drift with their lines, so they keep
+their speed and course and are drawn as a salmon pointing the way they drift.
+
+Which of these appear depends on the source. Measured on one evening:
+
+| Source | Fishing-gear buoys | SAR aircraft | Aids to navigation, base stations |
+|---|---|---|---|
+| BarentsWatch | yes | yes | none seen |
+| Digitraffic | none seen | yes | none seen |
+| aisstream.io | none seen | none seen | none seen |
+
+aisstream.io delivered only vessel position and vessel detail messages, both
+over the Great Lakes and over the same Norwegian and Danish waters where
+BarentsWatch shows the buoys.
 
 ## Sources
 
