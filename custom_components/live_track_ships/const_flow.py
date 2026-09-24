@@ -69,9 +69,12 @@ DEFAULT_MAX_VESSELS = 1000
 
 # ⛔ THE PER-ENTRY CAP ABOVE DOES NOT BOUND THE INSTANCE (SSOT item 246).
 # 2026-09-23: four entries, ~1,830 Ships entities rebuilding at once, two
-# watchdog restarts of Home Assistant. This ceiling applies across ALL entries:
-# once this many vessels are on the map, no entry adds another until one
-# leaves. Vessels already shown are never evicted to make room.
+# watchdog restarts of Home Assistant. This ceiling applies across ALL entries.
+# ⚠ HOW IT IS SHARED changed 2026-09-24 (SSOT item 253, Lee): no longer
+# first-come. quota.allocate() gives each loaded entry an equal share, passing
+# what a quiet entry leaves to the others, and an entry over its share drops its
+# FARTHEST vessels. Measured the same day with three entries at the ceiling:
+# Digitraffic Finland gave back 857 -> 852 and Chicagoland rose 8 -> 13.
 #
 # ✅ MEASURED SAFE, KEPT (Lee, 2026-09-23). After the throttle fix below, all
 # four entries ran at this ceiling with /api/ at 0.00-0.04 s, including through
