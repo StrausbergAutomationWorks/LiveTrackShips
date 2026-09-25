@@ -231,6 +231,24 @@ def bearing(heading_deg, course_deg, speed_kmh, held):
     return None, None
 
 
+# A FISHING-GEAR BUOY (object_kind net_buoy, SSOT item 257) is not a vessel
+# and the 2 kn rule is not for it (Lee, 2026-09-25): a buoy drifts slowly on
+# its line and whatever heading or course it sends is the only direction it
+# has. Heading first, then course at ANY speed, never held. With neither it is
+# drawn pointing EAST - into the IMAGE, with no icon_rotation_deg, because D4
+# allows only heading, course or held as a basis and "east" is none of them.
+BUOY_REST_DEG = 90
+
+
+def buoy_bearing(heading_deg, course_deg):
+    """(bearing, basis) or (None, None) for a net buoy."""
+    if heading_deg is not None:
+        return float(heading_deg) % 360, "heading"
+    if course_deg is not None:
+        return float(course_deg) % 360, "course"
+    return None, None
+
+
 # Quantised so the browser can cache: 72 variants per icon.
 ROTATION_STEP = 5
 

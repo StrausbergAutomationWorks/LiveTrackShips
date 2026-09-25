@@ -243,10 +243,13 @@ class ShipEvent(GeolocationEvent):
             key = icons.pick(o.ship_type, o.length_m)
         if kind in _FIXED_KINDS:
             bearing, basis = None, None
+        elif kind == "net_buoy":
+            # Any heading or course, at any speed; none -> east (icons.py).
+            bearing, basis = icons.buoy_bearing(o.heading_deg, o.course_deg)
         else:
             bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
                                            o.speed_kmh, self._held)
-        if basis == "course":
+        if basis == "course" and kind != "net_buoy":
             self._held = bearing
         angle = icons.quantise(bearing)
         out: dict = {"icon_key": key}
@@ -254,9 +257,14 @@ class ShipEvent(GeolocationEvent):
             out["icon_rotation_deg"] = angle
             out["icon_rotation_basis"] = basis
         symbol = key in icons.SYMBOL_FOR
+        # The one picture drawn rotated: a net buoy with nothing to go on
+        # points EAST in the image, and publishes no icon_rotation_deg, so
+        # the card leaves it as drawn and nothing doubles.
+        baked = (icons.BUOY_REST_DEG
+                 if kind == "net_buoy" and angle is None else None)
         out["entity_picture"] = picture_url(
             key,
-            None,
+            baked,
             icons.tone_for(o.ship_type) if kind == "vessel"
             else icons.tone_for_kind(kind),
             icons.weight_for(key, o.length_m),
