@@ -53,7 +53,8 @@ from .const_flow import (
 )
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
-from .sources.base import Observation, map_layer, object_ids, sar_airframe
+from .sources.base import (Observation, map_layer, object_ids, sar_airframe,
+                           valid_imo)
 from .web import picture_url
 
 _LOGGER = logging.getLogger(__name__)
@@ -348,7 +349,9 @@ class ShipEvent(GeolocationEvent):
             ("ship_type_label", ship_type_label(o.ship_type)),
             ("call_sign", o.call_sign),
             ("destination", o.destination),
-            ("imo", o.imo),
+            # Only a valid IMO, as its 7-digit string (Lee 2026-09-25): a live
+            # entity carried a nine-digit one. Same test as object_ids.
+            ("imo", valid_imo(o.imo)),
             ("length_m", o.length_m),
             ("beam_m", o.beam_m),
             ("draught_m", o.draught_m),

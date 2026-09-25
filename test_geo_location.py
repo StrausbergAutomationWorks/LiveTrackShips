@@ -142,6 +142,7 @@ check("⚠ the id is unaffected by the fallback", sp_e.suggested_object_id,
 print("\n=== backlog 258: map_layer and object_ids (D10, D11) ===")
 check("z_index_offset attribute retired", "z_index_offset" in a, False)
 check("vessel map_layer water", a.get("map_layer"), "water")
+check("imo attribute is the validated string", a.get("imo"), "9543756")
 check("object_ids, exact form", a.get("object_ids"),
       {"mmsi": "367148850", "imo": "9543756"})
 check("sparse: mmsi only", sp.get("object_ids"), {"mmsi": "338999111"})
@@ -158,9 +159,15 @@ def attrs_of(ident, **kw):
 x, _ = attrs_of("367148851", imo=101210706)
 check("nine-digit IMO kept out of object_ids", x.get("object_ids"),
       {"mmsi": "367148851"})
+check("nine-digit IMO dropped from the imo attribute", "imo" in x, False)
 x, _ = attrs_of("367148852", imo=9074728)
 check("bad check digit kept out of object_ids", x.get("object_ids"),
       {"mmsi": "367148852"})
+check("bad check digit dropped from the imo attribute", "imo" in x, False)
+x, _ = attrs_of("367148853", imo=9074729)
+check("valid IMO attribute is the 7-digit string", x.get("imo"), "9074729")
+x, _ = attrs_of("367148854", imo=0)
+check("IMO 0 dropped from the attribute", "imo" in x, False)
 x, _ = attrs_of("586707076", name="FISHING BOUY")
 check("net buoy fixed", x.get("map_layer"), "fixed")
 x, p = attrs_of("111257001", name="NOR-002", speed_kmh=0.0)
