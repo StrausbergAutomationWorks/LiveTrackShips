@@ -19,16 +19,12 @@ CONF_MAX_VESSELS = "max_vessels"
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
 
-# ⚠ ICON OPTIONS, the Live Track Aircraft pattern (SSOT item 254). Both default
-# OFF: off, the picture arrives already rotated on its own dark disc and reads
-# correctly on ANY map card. On is for a card that turns markers itself and
-# fills them itself - LiveTrackMapCard does both.
-# ⚠ card_rotation ON: the image is unrotated and icon_rotation_deg is the
-# instruction. Never both, or the rotation doubles (06_MAP_CONTRACT.md D4).
-CONF_CARD_ROTATION = "card_rotation"
-DEFAULT_CARD_ROTATION = False
-CONF_SILHOUETTE_ONLY = "silhouette_only"
-DEFAULT_SILHOUETTE_ONLY = False
+# ⚠ NO ICON OPTIONS (Lee, 2026-09-25). card_rotation and silhouette_only were
+# per-entry options, both default OFF, so an entry created without them drew
+# every vessel pre-rotated on a dark disc. Deleted: every entry draws the same
+# icon - UNROTATED, no disc, the card turns it by icon_rotation_deg (never both,
+# or the rotation doubles: 06_MAP_CONTRACT.md D4). Strangers get LiveTrackMapCard
+# too, so there is no "card that cannot rotate" to serve.
 
 SOURCE_AISSTREAM = "aisstream"
 SOURCE_DIGITRAFFIC = "digitraffic"

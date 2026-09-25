@@ -152,7 +152,7 @@ check("sparse: water", sp.get("map_layer"), "water")
 def attrs_of(ident, **kw):
     ob = Observation(identity=ident, source="live_track_ships", observed_at=T0,
                      latitude=59.4, longitude=10.7, **kw)
-    ev = ShipEvent(ob, 1.0, (True, True))
+    ev = ShipEvent(ob, 1.0)
     return ev.extra_state_attributes, ev.entity_picture
 
 
@@ -181,6 +181,26 @@ check("SAR plane icon", x.get("icon_category"), "sarplane")
 x, _ = attrs_of("257123450", name="RS 161", ship_type=51, length_m=16.0)
 check("SAR BOAT is a vessel", x.get("object_kind"), "vessel")
 check("SAR BOAT stays on the water", x.get("map_layer"), "water")
+
+print("\n=== ONE icon form for every entry, no options (Lee 2026-09-25) ===")
+import live_track_ships.const_flow as cf                            # noqa: E402
+check("no card_rotation option exists", hasattr(cf, "CONF_CARD_ROTATION"), False)
+check("no silhouette_only option exists", hasattr(cf, "CONF_SILHOUETTE_ONLY"), False)
+x, p = attrs_of("367148860", heading_deg=90, course_deg=90, speed_kmh=20.0,
+                ship_type=70, length_m=180.0)
+check("vessel picture has no disc (b=0)", "b=0" in (p or ""), True)
+check("vessel picture is UNROTATED", (p or "").split("?")[0].endswith("/fixed.svg"), True)
+check("the card is told the angle", x.get("icon_rotation_deg"), 90)
+x, p = attrs_of("111257001", name="NOR-002", heading_deg=45, speed_kmh=150.0)
+check("SAR heli picture unrotated, no disc",
+      ("/sarheli/fixed.svg" in (p or ""), "b=0" in (p or "")), (True, True))
+x, p = attrs_of("258028670", name="KV MOB 2259", ship_type=51, heading_deg=200,
+                speed_kmh=30.0)
+check("SAR boat picture unrotated, no disc",
+      ((p or "").split("?")[0].endswith("/fixed.svg"), "b=0" in (p or "")), (True, True))
+ev = ShipEvent(Observation(identity="367148861", source="live_track_ships", observed_at=T0,
+                           latitude=59.4, longitude=10.7, heading_deg=30), 1.0)
+check("ShipEvent takes no icon options", ev.entity_picture is not None, True)
 
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

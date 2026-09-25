@@ -47,10 +47,7 @@ from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
 
 from . import icons
-from .const_flow import (
-    CONF_CARD_ROTATION, CONF_SILHOUETTE_ONLY, DEFAULT_CARD_ROTATION,
-    DEFAULT_SILHOUETTE_ONLY, DOMAIN, INSTANCE_MAX_VESSELS,
-)
+from .const_flow import DOMAIN, INSTANCE_MAX_VESSELS
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
 from .sources.base import (Observation, map_layer, object_ids, sar_airframe,
@@ -81,9 +78,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
     demands: dict[str, int] = hass.data.setdefault(DEMANDS_KEY, {})
     me = entry.entry_id
     known: dict[str, ShipEvent] = {}
-    cfg = {**entry.data, **entry.options}
-    icon_opts = (bool(cfg.get(CONF_CARD_ROTATION, DEFAULT_CARD_ROTATION)),
-                 bool(cfg.get(CONF_SILHOUETTE_ONLY, DEFAULT_SILHOUETTE_ONLY)))
 
     def _releaser(identity: str):
         @callback
@@ -130,7 +124,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             distance = feed.store.distance_to(obs)
             existing = known.get(identity)
             if existing is None:
-                entity = ShipEvent(obs, distance, icon_opts)
+                entity = ShipEvent(obs, distance)
                 known[identity] = entity
                 new.append(entity)
             elif existing.update_from(obs, distance):
@@ -213,14 +207,12 @@ class ShipEvent(GeolocationEvent):
     _attr_unit_of_measurement = UnitOfLength.KILOMETERS
     _attr_icon = "mdi:ferry"
 
-    def __init__(self, obs: Observation, distance_km: float,
-                 icon_opts: tuple[bool, bool] = (False, False)):
+    def __init__(self, obs: Observation, distance_km: float):
         # ⚠ NO unique_id - see the module docstring. Identity lives in the
         # entity_id (suggested_object_id) and in the `identity` attribute.
         self._obs = obs
         self._attr_distance = distance_km
         self.retired = False
-        self._card_rotation, self._silhouette_only = icon_opts
         # The last COURSE-derived bearing, held while the vessel is at rest.
         # Never a heading: heading stays meaningful at rest and is published
         # as it is (06_MAP_CONTRACT.md D4).
@@ -232,11 +224,13 @@ class ShipEvent(GeolocationEvent):
     def _refresh_icon(self) -> None:
         """Silhouette, colour, size and rotation for the current observation.
 
-        ⚠ THE ANGLE GOES INTO THE IMAGE OR INTO THE ATTRIBUTE'S JOB, NEVER
-        BOTH. icon_rotation_deg is published either way; with card_rotation
-        the image is unrotated and the card turns it, and the upright symbol
-        of medical and SAR is counter-rotated inside the image so that turn
-        stands it up again (Lee, 2026-09-24)."""
+        ⚠ ONE FORM FOR EVERY ENTRY (Lee, 2026-09-25): the image is
+        UNROTATED and has no disc; LiveTrackMapCard turns the marker by
+        icon_rotation_deg (the angle goes into the attribute, never also into
+        the image, or it doubles). The upright symbol of medical and SAR is
+        counter-rotated inside the image so the card's turn stands it up
+        again. The rotor of a SAR helicopter spins inside the image either
+        way."""
         o = self._obs
         kind = o.kind
         if kind == "net_buoy":
@@ -262,12 +256,12 @@ class ShipEvent(GeolocationEvent):
         symbol = key in icons.SYMBOL_FOR
         out["entity_picture"] = picture_url(
             key,
-            None if self._card_rotation else angle,
+            None,
             icons.tone_for(o.ship_type) if kind == "vessel"
             else icons.tone_for_kind(kind),
             icons.weight_for(key, o.length_m),
-            badge=not self._silhouette_only,
-            counter=angle if (self._card_rotation and symbol) else None)
+            badge=False,
+            counter=angle if symbol else None)
         self._icon = out
 
     @property

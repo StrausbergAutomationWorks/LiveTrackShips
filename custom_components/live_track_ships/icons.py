@@ -19,7 +19,7 @@ the 40s, 60s, 70s and 80s. The two never collide.
 ! Two icons carry a SYMBOL that must stay UPRIGHT at any heading - a tilted
 red cross reads as an X. decolour() strips every paint attribute from the
 artwork, so the symbol cannot live in the icon file; the renderer adds it as
-a second layer. When the CARD does the rotating (card_rotation), the symbol
+a second layer. When the CARD does the rotating (it always does, since 2026-09-25), the symbol
 is counter-rotated inside the served image so the card's turn stands it up.
 """
 
@@ -276,7 +276,7 @@ def _sol_paths() -> dict[str, str]:
 
 def _symbol(kind: str, k: float, counter: int | None) -> str:
     """The symbol layer, scaled with the hull and centred, never rotated with
-    it. `counter` turns it back by the card's rotation (card_rotation mode)."""
+    it. `counter` turns it back by the card's rotation (the card does the rotating)."""
     rot = " rotate(%d 100 100)" % (-counter % 360) if counter else ""
     if kind == "cross":
         t = "translate(%.4f %.4f) scale(%.6f)%s" % (100 - 100 * k, 100 - 100 * k, k, rot)
