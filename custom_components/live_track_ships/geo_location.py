@@ -53,7 +53,7 @@ from .const_flow import (
 )
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
-from .sources.base import Observation
+from .sources.base import Observation, map_layer, object_ids, sar_airframe
 from .web import picture_url
 
 _LOGGER = logging.getLogger(__name__)
@@ -241,7 +241,7 @@ class ShipEvent(GeolocationEvent):
         if kind == "net_buoy":
             key = "netbuoy"
         elif kind == "sar_aircraft":
-            key = icons.pick_sar(o.identity)
+            key = icons.pick_sar(sar_airframe(o.identity))
         elif kind != "vessel":
             key = "generic"
         else:
@@ -390,8 +390,16 @@ class ShipEvent(GeolocationEvent):
 
         # ⚠ Display helpers: an integration MAY emit them, a consumer MUST NOT
         # require them. They exist only because ha-map-card cannot compute on
-        # attributes. z_index puts vessels below aircraft on the shared map.
-        attrs["z_index_offset"] = 20
+        # attributes.
+        # 06_MAP_CONTRACT.md D10/D11 (backlog 258): the layer NAME, which the
+        # card maps to its stacking, and the identifiers the card merges
+        # duplicates on. The numeric z_index_offset attribute is retired: the
+        # card never read it (measured 2026-09-24). A non-vessel publishes no
+        # imo attribute, so it offers none here either.
+        attrs["map_layer"] = map_layer(kind, o.identity)
+        ids = object_ids(o.identity, o.imo if kind == "vessel" else None)
+        if ids:
+            attrs["object_ids"] = ids
         # ⚠ icon_category was "vessel" on every entity until 2026-09-24; it is
         # now the silhouette drawn (SSOT item 254). Nothing on the dashboard
         # filtered on it (read that day, lts_dash_read.txt).

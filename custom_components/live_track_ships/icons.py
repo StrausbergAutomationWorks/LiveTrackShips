@@ -56,9 +56,14 @@ NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 SAR_ICON_KEYS = frozenset(("sarheli", "sarplane"))
 
 
-def pick_sar(identity) -> str:
-    mmsi = str(identity or "")
-    return "sarplane" if len(mmsi) == 9 and mmsi[6] == "1" else "sarheli"
+# ⚠ The airframe is decided in sources/base.py sar_airframe() and NOWHERE
+# else (backlog 258); the map layer takes it from there too, so the icon and
+# the layer cannot disagree. This only maps it to artwork.
+SAR_KEY_FOR = {"fixed_wing": "sarplane", "rotorcraft": "sarheli"}
+
+
+def pick_sar(airframe) -> str:
+    return SAR_KEY_FOR.get(airframe, "sarheli")
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.

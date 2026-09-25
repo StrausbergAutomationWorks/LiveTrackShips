@@ -71,7 +71,7 @@ a = e.extra_state_attributes
 for k, v in (("identity", "367148850"), ("marker_label", "FINNBREEZE"),
              ("course_deg", 130.6), ("heading_deg", 204),
              ("speed_kmh", 30.0), ("ship_type", 70),
-             ("position_source", "observed"), ("z_index_offset", 20)):
+             ("position_source", "observed")):
     check(k, a.get(k), v)
 check("last_seen is ISO", a["last_seen"], T0.isoformat())
 
@@ -138,6 +138,42 @@ sp_e = ShipEvent(SPARSE, 5.0)
 check("name is '?', never the MMSI", sp_e.name, "?")
 check("⚠ the id is unaffected by the fallback", sp_e.suggested_object_id,
       "vessel_338999111")
+
+print("\n=== backlog 258: map_layer and object_ids (D10, D11) ===")
+check("z_index_offset attribute retired", "z_index_offset" in a, False)
+check("vessel map_layer water", a.get("map_layer"), "water")
+check("object_ids, exact form", a.get("object_ids"),
+      {"mmsi": "367148850", "imo": "9543756"})
+check("sparse: mmsi only", sp.get("object_ids"), {"mmsi": "338999111"})
+check("sparse: water", sp.get("map_layer"), "water")
+
+
+def attrs_of(ident, **kw):
+    ob = Observation(identity=ident, source="live_track_ships", observed_at=T0,
+                     latitude=59.4, longitude=10.7, **kw)
+    ev = ShipEvent(ob, 1.0, (True, True))
+    return ev.extra_state_attributes, ev.entity_picture
+
+
+x, _ = attrs_of("367148851", imo=101210706)
+check("nine-digit IMO kept out of object_ids", x.get("object_ids"),
+      {"mmsi": "367148851"})
+x, _ = attrs_of("367148852", imo=9074728)
+check("bad check digit kept out of object_ids", x.get("object_ids"),
+      {"mmsi": "367148852"})
+x, _ = attrs_of("586707076", name="FISHING BOUY")
+check("net buoy fixed", x.get("map_layer"), "fixed")
+x, p = attrs_of("111257001", name="NOR-002", speed_kmh=0.0)
+check("SAR helicopter air_low", x.get("map_layer"), "air_low")
+check("SAR helicopter icon", x.get("icon_category"), "sarheli")
+check("SAR helicopter picture", "/sarheli/" in (p or ""), True)
+check("SAR helicopter ids", x.get("object_ids"), {"mmsi": "111257001"})
+x, p = attrs_of("111265103", name="SAR PLANE")
+check("SAR plane air", x.get("map_layer"), "air")
+check("SAR plane icon", x.get("icon_category"), "sarplane")
+x, _ = attrs_of("257123450", name="RS 161", ship_type=51, length_m=16.0)
+check("SAR BOAT is a vessel", x.get("object_kind"), "vessel")
+check("SAR BOAT stays on the water", x.get("map_layer"), "water")
 
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

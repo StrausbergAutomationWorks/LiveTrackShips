@@ -94,9 +94,10 @@ svg = icons.render(icons.icon_path("cargo"), "cargo", 30, 64, "police", 0.9, Tru
 check("vessel still toned", icons.TONES["police"] in svg, True)
 
 # SAR aircraft: ITU-R M.585-8 seventh digit, 1 fixed-wing, 5 helicopter, optional
-check("111265103 fixed-wing", icons.pick_sar("111265103"), "sarplane")
-check("111265583 helicopter", icons.pick_sar("111265583"), "sarheli")
-check("111257001 unmarked -> helicopter (NOR-002 is one)", icons.pick_sar("111257001"), "sarheli")
+# the airframe is decided ONCE, in base.sar_airframe; the icon maps it (backlog 258)
+check("111265103 fixed-wing", icons.pick_sar(base.sar_airframe("111265103")), "sarplane")
+check("111265583 helicopter", icons.pick_sar(base.sar_airframe("111265583")), "sarheli")
+check("111257001 unmarked -> helicopter (NOR-002 is one)", icons.pick_sar(base.sar_airframe("111257001")), "sarheli")
 check("sar tone", icons.tone_for_kind("sar_aircraft"), "sar")
 check("net buoy tone", icons.tone_for_kind("net_buoy"), "default")
 check("sar weight", icons.weight_for("sarheli", None), icons.SMALLEST_AIRCRAFT_WEIGHT)
@@ -110,6 +111,60 @@ for deg in (None, 90):
         p = icons.render(icons.icon_path("sarplane"), "sarplane", deg, 64, "sar", 0.47, badge)
         ET.fromstring(p)
         check("plane has no animation deg=%s badge=%s" % (deg, badge), "animate" in p, False)
+
+# --- backlog 258: map_layer (D10), object_ids (D11), one airframe decision ---
+af = base.sar_airframe
+check("airframe 111265103 fixed_wing", af("111265103"), "fixed_wing")
+check("airframe 111265583 rotorcraft", af("111265583"), "rotorcraft")
+check("airframe 111257001 unmarked rotorcraft", af("111257001"), "rotorcraft")
+ml = base.map_layer
+check("layer vessel water", ml("vessel", "257047800"), "water")
+# a SAR BOAT has a ship MMSI: kind vessel, so it stays on the water (Lee)
+check("SAR boat is a vessel", k("257123450", "RS 161 SAR"), "vessel")
+check("SAR boat layer water", ml(k("257123450", "RS 161 SAR"), "257123450"), "water")
+for kd in ("net_buoy", "aton", "base_station", "distress_beacon"):
+    check("layer %s fixed" % kd, ml(kd, "979123456"), "fixed")
+check("layer unknown kind fixed", ml("something_new", "1"), "fixed")
+check("layer SAR heli air_low", ml("sar_aircraft", "111257001"), "air_low")
+check("layer SAR plane air", ml("sar_aircraft", "111265103"), "air")
+check("layer SAR message, ship MMSI -> heli", ml(k("257000000", None, None,
+      "StandardSearchAndRescueAircraftReport"), "257000000"), "air_low")
+for m in ("111265103", "111265583", "111257001", "111000000", "11126510", None):
+    pair = (icons.pick_sar(af(m)), ml("sar_aircraft", m))
+    check("icon and layer agree for %s" % m, pair in
+          (("sarplane", "air"), ("sarheli", "air_low")), True)
+# the rotor survives the new path
+h = icons.render(icons.icon_path(icons.pick_sar(af("111257001"))), "sarheli",
+                 None, 64, "sar", 0.47, False)
+check("NOR-002 still gets the spinning rotor", "animateTransform" in h, True)
+
+vi = base.valid_imo
+check("imo valid int", vi(9543756), "9543756")
+check("imo valid str", vi("9074729"), "9074729")
+check("imo check digit fails", vi("9074728"), None)
+check("imo nine digits (seen live 2026-09-24)", vi("101210706"), None)
+check("imo six digits", vi(123456), None)
+check("imo 0", vi(0), None)
+check("imo 0000000", vi("0000000"), None)
+check("imo None", vi(None), None)
+check("imo bool", vi(True), None)
+check("imo float", vi(9074729.0), None)
+check("imo prefixed", vi("IMO9074729"), None)
+check("imo padded", vi(" 9074729"), None)
+check("imo non-ASCII digits", vi("\u0669\u0660\u0667\u0664\u0667\u0662\u0669"), None)
+
+oi = base.object_ids
+check("ids mmsi only", oi("257047800"), {"mmsi": "257047800"})
+check("ids mmsi and imo", oi("257047800", 9074729),
+      {"mmsi": "257047800", "imo": "9074729"})
+check("ids bad imo dropped", oi("257047800", "101210706"), {"mmsi": "257047800"})
+check("ids mmsi is a str", type(oi("257047800")["mmsi"]), str)
+check("ids imo is a str", type(oi("257047800", 9074729)["imo"]), str)
+check("ids int identity", oi(257047800), {"mmsi": "257047800"})
+check("ids base station keeps its zeros", oi("002570000"), {"mmsi": "002570000"})
+check("ids 8 digits dropped", oi("25704780"), {})
+check("ids no identity", oi(None), {})
+check("ids never registration", "registration" in oi("111265583", 9074729), False)
 
 print("%d passed, %d failed" % (passed, failed))
 sys.exit(1 if failed else 0)
