@@ -78,7 +78,12 @@ DEFAULT_MAX_VESSELS = 1000
 # NOT show that anything higher is, and it is not a limit found by pushing
 # until something broke. Raise it only on a new measurement, re-run the same
 # way (SSOT item 246).
-INSTANCE_MAX_VESSELS = 1500
+# ⚠ RAISED TO 2,500 ON 2026-09-26 (Lee; SSOT item 264), UNDER TEST: five
+# loaded entries wanted about 2,235 and Denmark showed its nearest ~455 of 1,600,
+# its outer ring flickering as nearer vessels arrived. 1,500 measured at
+# /api/ 0.02 s median, HA CPU 10% median of 3 vCPUs, 1.15 GiB. Kept only if the
+# item 246 sequence measures clean at 2,500; else back to 1,500.
+INSTANCE_MAX_VESSELS = 2500
 
 # ⛔ ONE PASS PER WINDOW, PER ENTRY (SSOT item 246, Lee 2026-09-23).
 # Every message used to rebuild the published set and write state for every
