@@ -20,6 +20,7 @@ import logging
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 
+from . import instance_ceiling
 from .const_flow import DOMAIN
 from .geo_location import OWNERS_KEY
 
@@ -90,4 +91,7 @@ class VesselCountSensor(SensorEntity):
         held = getattr(self._feed, "held_by_instance_cap", 0)
         if held:
             attrs["held_by_instance_cap"] = held
+        # Item 264: the ceiling in force, after the users' sliders, so a held
+        # count can be read against it.
+        attrs["instance_ceiling"] = instance_ceiling(self.hass)
         return attrs

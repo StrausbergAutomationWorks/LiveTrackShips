@@ -17,10 +17,12 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 
 from .const_flow import (
-    CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET,
+    CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_INSTANCE_MAX,
     CONF_LATITUDE, CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM,
+    INSTANCE_MAX_STEP, INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS,
     CONF_SOURCE, DEFAULT_MAX_VESSELS, DOMAIN, SOURCE_AISSTREAM,
     SOURCE_BARENTSWATCH, SOURCES,
 )
@@ -240,6 +242,16 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                     default=current.get(CONF_MAX_VESSELS,
                                         DEFAULT_MAX_VESSELS)):
                     vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_VESSELS)),
+                # ⚠ Item 264: ALL Ships entries together, and it can only
+                # LOWER INSTANCE_MAX_VESSELS; the lowest enabled setting wins.
+                vol.Required(
+                    CONF_INSTANCE_MAX,
+                    default=current.get(CONF_INSTANCE_MAX,
+                                        INSTANCE_MAX_VESSELS)):
+                    selector.NumberSelector(selector.NumberSelectorConfig(
+                        min=MIN_INSTANCE_MAX_VESSELS, max=INSTANCE_MAX_VESSELS,
+                        step=INSTANCE_MAX_STEP,
+                        mode=selector.NumberSelectorMode.SLIDER)),
                 # No icon options: one icon form for every entry (const_flow.py).
             }),
         )

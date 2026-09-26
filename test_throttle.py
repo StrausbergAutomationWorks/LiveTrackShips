@@ -55,16 +55,26 @@ class FakeEntry:
                      CONF_LONGITUDE: LON, CONF_RADIUS_KM: 50,
                      CONF_MAX_VESSELS: 1000}
         self.options = {}
+        self.disabled_by = None
         self.unloads = []
 
     def async_on_unload(self, cb):
         self.unloads.append(cb)
 
 
+class FakeConfigEntries:
+    def __init__(self):
+        self.entries = []
+
+    def async_entries(self, domain):
+        return list(self.entries)
+
+
 class FakeHass:
     def __init__(self, loop):
         self.loop = loop
         self.data = {}
+        self.config_entries = FakeConfigEntries()
 
     def async_create_task(self, coro):
         return self.loop.create_task(coro)
@@ -195,6 +205,25 @@ async def main():
     finally:
         ShipEvent.async_write_ha_state = orig_write
         ShipEvent.async_remove = orig_remove
+
+    # -- item 264: the slider, read through HA's entry list ---------------
+    from live_track_ships import instance_ceiling
+    from live_track_ships.const_flow import (
+        CONF_INSTANCE_MAX, INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS)
+    h = FakeHass(loop)
+    check("264: no entries -> the constant", instance_ceiling(h), INSTANCE_MAX_VESSELS)
+    a, b, c = FakeEntry("A"), FakeEntry("B"), FakeEntry("C")
+    h.config_entries.entries = [a, b, c]
+    check("264: nobody moved the slider -> the constant", instance_ceiling(h), INSTANCE_MAX_VESSELS)
+    a.options = {CONF_INSTANCE_MAX: 1200.0}
+    b.options = {CONF_INSTANCE_MAX: 300.0}
+    check("264: the lowest enabled setting wins", instance_ceiling(h), 300)
+    c.options = {CONF_INSTANCE_MAX: 100.0}
+    c.disabled_by = "user"
+    check("264: a DISABLED entry's setting is ignored", instance_ceiling(h), 300)
+    b.options = {CONF_INSTANCE_MAX: 10}
+    check("264: never below the floor", instance_ceiling(h), MIN_INSTANCE_MAX_VESSELS)
+    check("264: the shipped constant is 2,500", INSTANCE_MAX_VESSELS, 2500)
 
     print(f"\n{passed} passed, {failed} failed")
     return failed

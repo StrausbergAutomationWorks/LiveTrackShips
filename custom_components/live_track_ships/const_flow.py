@@ -87,6 +87,14 @@ DEFAULT_MAX_VESSELS = 1000
 # not this ceiling. ⚠ ONE MACHINE. What a Pi or an HA Green tolerates is NOT
 # measured, and this constant ships to every user.
 INSTANCE_MAX_VESSELS = 2500
+# ⚠ THE USER'S SLIDER (Lee, 2026-09-26, item 264): 2,500 ships to everyone, and
+# anyone on smaller hardware LOWERS it from any entry's settings. With several
+# entries the LOWEST setting on an enabled entry applies: a reduce-only control
+# that no other entry can override upward, with nothing copied between entries.
+# Read on every pass (__init__.instance_ceiling), never above the constant.
+CONF_INSTANCE_MAX = "instance_max_vessels"
+MIN_INSTANCE_MAX_VESSELS = 100
+INSTANCE_MAX_STEP = 100
 
 # ⛔ ONE PASS PER WINDOW, PER ENTRY (SSOT item 246, Lee 2026-09-23).
 # Every message used to rebuild the published set and write state for every

@@ -82,5 +82,16 @@ if os.path.exists(real):
 else:
     print("  skip real BarentsWatch area not on this machine")
 
+# -- item 264: the user's slider can only LOWER the instance ceiling ---------
+eff = _load("lts_quota_eff", _PKG / "quota.py").effective_ceiling
+check("264: nobody set it -> the constant", eff([], 2500, 100), 2500)
+check("264: None ignored", eff([None, None], 2500, 100), 2500)
+check("264: the LOWEST setting wins", eff([1200, 300, 2500], 2500, 100), 300)
+check("264: never above the constant", eff([9999], 2500, 100), 2500)
+check("264: never below the floor", eff([5], 2500, 100), 100)
+check("264: a slider float is taken as int", eff([700.0], 2500, 100), 700)
+check("264: junk ignored, not read as zero", eff(["abc", 800], 2500, 100), 800)
+check("264: a bool is not a number here", eff([True, 900], 2500, 100), 900)
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

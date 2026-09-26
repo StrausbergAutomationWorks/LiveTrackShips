@@ -47,7 +47,8 @@ from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
 
 from . import icons
-from .const_flow import DOMAIN, INSTANCE_MAX_VESSELS
+from . import instance_ceiling
+from .const_flow import DOMAIN
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
 from .sources.base import (Observation, map_layer, object_ids, sar_airframe,
@@ -107,7 +108,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
         # nearest first), because a quota nobody gives back is first-come
         # again. They leave through the normal departure path below.
         demands[me] = len(candidates)
-        quota = allocate(demands, INSTANCE_MAX_VESSELS).get(me, 0)
+        # The users' slider can only LOWER the constant (item 264).
+        ceiling = instance_ceiling(hass)
+        quota = allocate(demands, ceiling).get(me, 0)
         for rank, obs in enumerate(candidates):
             identity = obs.identity
             owner = owners.get(identity)
@@ -116,7 +119,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 continue
             # Safety net, not the policy: another entry may not have shed
             # its surplus yet, so never let the instance exceed the ceiling.
-            if owner is None and len(owners) >= INSTANCE_MAX_VESSELS:
+            if owner is None and len(owners) >= ceiling:
                 held += 1
                 continue
             owners[identity] = me

@@ -21,6 +21,23 @@ Pure standard library, deterministic, testable without Home Assistant.
 from __future__ import annotations
 
 
+def effective_ceiling(settings, ceiling: int, floor: int = 1) -> int:
+    """The instance ceiling in force (item 264): the LOWEST valid user setting,
+    never above `ceiling` nor below `floor`; `ceiling` when nobody set one.
+    A value that is not a number is ignored, never read as zero."""
+    values = []
+    for v in settings:
+        if v is None or isinstance(v, bool):
+            continue
+        try:
+            values.append(int(float(v)))
+        except (TypeError, ValueError):
+            continue
+    if not values:
+        return int(ceiling)
+    return max(int(floor), min(int(ceiling), min(values)))
+
+
 def allocate(demands: dict[str, int], total: int) -> dict[str, int]:
     """entry_id -> number of vessels it may show. Sum never exceeds total.
 

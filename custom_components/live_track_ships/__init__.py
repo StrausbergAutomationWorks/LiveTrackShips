@@ -22,16 +22,28 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const_flow import (
-    CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_LATITUDE,
+    CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_INSTANCE_MAX,
+    CONF_LATITUDE, INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS,
     CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
     DEFAULT_MAX_VESSELS, DOMAIN, NOTIFY_WINDOW_S, PLATFORMS,
     SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
 )
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
 from .sources import statics as _statics
+from .quota import effective_ceiling
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
 
 _LOGGER = logging.getLogger(__name__)
+
+def instance_ceiling(hass) -> int:
+    """INSTANCE_MAX_VESSELS as lowered by the users' sliders (item 264): the
+    lowest setting on any enabled Ships entry. Cheap enough to read per pass."""
+    return effective_ceiling(
+        (e.options.get(CONF_INSTANCE_MAX)
+         for e in hass.config_entries.async_entries(DOMAIN)
+         if e.disabled_by is None),
+        INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS)
+
 
 # ⚠ NOT under hass.data[DOMAIN], which maps entry ids to feeds.
 STATICS_KEY = f"{DOMAIN}_statics"

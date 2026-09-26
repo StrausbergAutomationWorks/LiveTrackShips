@@ -46,7 +46,11 @@
         "description": "Changing these reloads the connection.",
         "data": {
           "radius_km": "Radius (km)",
-          "max_vessels": "Maximum vessels to track"
+          "max_vessels": "Maximum vessels to track",
+          "instance_max_vessels": "Maximum vessels on the map, all Live Track Ships entries together"
+        },
+        "data_description": {
+          "instance_max_vessels": "Lower this on a small machine. It counts every Live Track Ships entry, whatever its source. With more than one entry, the lowest setting applies."
         }
       },
       "coverage": {
