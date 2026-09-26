@@ -17,6 +17,7 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EVENT_HOMEASSISTANT_FINAL_WRITE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -27,9 +28,72 @@ from .const_flow import (
     SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
 )
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
+from .sources import statics as _statics
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
 
 _LOGGER = logging.getLogger(__name__)
+
+# ⚠ NOT under hass.data[DOMAIN], which maps entry ids to feeds.
+STATICS_KEY = f"{DOMAIN}_statics"
+
+
+class StaticsHolder:
+    """The one vessel-statics cache for this Home Assistant (SSOT item 262):
+    loaded once, shared by every aisstream entry, flushed to SQLite by each
+    entry's prune pass, at unload, and at shutdown."""
+
+    def __init__(self, hass):
+        self.hass = hass
+        self.path = hass.config.path(".storage", _statics.FILE_NAME)
+        self.cache = _statics.StaticCache()
+        self._loaded: asyncio.Future | None = None
+        self._lock = asyncio.Lock()
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_FINAL_WRITE,
+                                   self._final_write)
+
+    async def async_load(self):
+        if self._loaded is None:
+            self._loaded = self.hass.loop.create_future()
+            try:
+                rows = await self.hass.async_add_executor_job(
+                    _statics.load, self.path)
+                taken = self.cache.load_rows(rows)
+                _LOGGER.debug("Vessel statics: %d read back from disk", taken)
+            except Exception as exc:                   # noqa: BLE001
+                # ⚠ Never block setup on the cache: start empty.
+                _LOGGER.warning("Vessel statics not read back: %s", exc)
+            finally:
+                self._loaded.set_result(True)
+        await self._loaded
+
+    async def async_flush(self):
+        """Evict, then write what changed. A failed write is logged and its
+        rows kept for the next flush - statics never stop positions."""
+        async with self._lock:
+            deleted = self.cache.evict()
+            rows = self.cache.take_dirty()
+            if not rows and not deleted:
+                return
+            try:
+                await self.hass.async_add_executor_job(
+                    _statics.save, self.path, rows, deleted)
+            except Exception as exc:                   # noqa: BLE001
+                self.cache.mark_dirty(r[0] for r in rows)
+                _LOGGER.warning("Vessel statics not saved: %s", exc)
+                return
+            _LOGGER.debug("Vessel statics: %d written, %d dropped, %d held",
+                          len(rows), len(deleted), len(self.cache))
+
+    async def _final_write(self, _event):
+        await self.async_flush()
+
+
+async def _statics_holder(hass) -> StaticsHolder:
+    holder = hass.data.get(STATICS_KEY)
+    if holder is None:
+        holder = hass.data[STATICS_KEY] = StaticsHolder(hass)
+    await holder.async_load()
+    return holder
 
 
 class ShipFeed:
@@ -49,6 +113,7 @@ class ShipFeed:
         self._task: asyncio.Task | None = None
         self._prune: asyncio.Task | None = None
         self._source = None
+        self._statics: StaticsHolder | None = None   # aisstream only
         self._listeners: list = []
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
         # ⛔ Item 246: at most one listener pass per window. Instance
@@ -105,9 +170,17 @@ class ShipFeed:
         # the circumscribing box and the store enforces the circle - a corner
         # is 1.41x the radius out.
         return AisStreamSource(session, self._cfg[CONF_API_KEY],
-                               bounding_boxes(self.lat, self.lon, self.radius))
+                               bounding_boxes(self.lat, self.lon, self.radius),
+                               statics=(self._statics.cache
+                                        if self._statics else None))
 
     async def start(self):
+        # ⚠ Only aisstream learns statics from the air. BarentsWatch sends
+        # them with every position and Digitraffic's server keeps them, so a
+        # restart costs those two nothing (SSOT item 262, read 2026-09-26).
+        if self._cfg[CONF_SOURCE] not in (SOURCE_DIGITRAFFIC,
+                                          SOURCE_BARENTSWATCH):
+            self._statics = await _statics_holder(self.hass)
         self._source = self._build_source()
         self._task = self.entry.async_create_background_task(
             self.hass, self._run(), f"{DOMAIN}_feed")
@@ -132,6 +205,8 @@ class ShipFeed:
             await asyncio.sleep(DEFAULT_PRUNE_INTERVAL_S)
             if self.store.prune():
                 self._notify()
+            if self._statics is not None:
+                await self._statics.async_flush()
 
     async def stop(self):
         """⚠ TEAR DOWN CLEANLY. Only THREE connections exist per account and
@@ -146,6 +221,9 @@ class ShipFeed:
             self._pending = None
         if self._source is not None:
             await self._source.close()
+        # What this entry learned since the last prune pass (item 262).
+        if self._statics is not None:
+            await self._statics.async_flush()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

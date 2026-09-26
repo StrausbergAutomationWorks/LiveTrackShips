@@ -35,6 +35,7 @@ import logging
 import random
 
 from .base import KNOTS_TO_KMH, Observation, rot_to_dps
+from .statics import StaticCache
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,7 +76,9 @@ MAX_PLAUSIBLE_LENGTH_M = 500.0
 
 # Static data is broadcast every ~6 minutes and arrives for a small minority of
 # vessels at any moment - 13 of 114 in three minutes. Cache it generously.
-STATIC_CACHE_MAX = 5000
+# ⛔ STATIC_CACHE_MAX (5000, then a wholesale clear) is GONE since 2026-09-26:
+# the join table is statics.StaticCache, kept across restarts, shared by every
+# aisstream entry and evicted by last heard. SSOT item 262.
 
 
 def _clean(value, unavailable):
@@ -109,11 +112,14 @@ class AisStreamSource:
 
     domain = "live_track_ships"
 
-    def __init__(self, session, api_key, boxes):
+    def __init__(self, session, api_key, boxes, statics=None):
         self._session = session
         self._key = api_key
         self._boxes = boxes
-        self._static: dict[str, dict] = {}
+        # ⚠ SHARED with every other aisstream entry and persisted by the
+        # integration (SSOT item 262). A private one only when none is given.
+        self._static: StaticCache = (statics if statics is not None
+                                     else StaticCache())
         self._closing = False
         self.compression_enabled: bool | None = None
 
@@ -134,32 +140,37 @@ class AisStreamSource:
         Part B is the TYPE - and units transmit Part A far more reliably.
         Measured: 42% of Class B sent static, only 1 in 5 of those carried a
         usable type. Type-driven features must degrade to unknown."""
-        if len(self._static) > STATIC_CACHE_MAX:
-            self._static.clear()          # bounded; cheapest correct eviction
-        entry = self._static.setdefault(mmsi, {})
+        # ⛔ This used to clear the whole dict past 5,000 MMSIs, and every
+        # learned type with it. The cache evicts by last heard (item 262).
         if mt == "ShipStaticData":
-            entry.update({
+            fields = {
+                "name": (body.get("Name") or "").strip() or None,
                 "type": _clean(body.get("Type"), SHIP_TYPE_UNAVAILABLE),
                 "call_sign": (body.get("CallSign") or "").strip() or None,
                 "destination": (body.get("Destination") or "").strip() or None,
                 "imo": body.get("ImoNumber") or None,
                 "draught_m": body.get("MaximumStaticDraught") or None,
-            })
-            dim = body.get("Dimension") or {}
-            entry.update(self._dimensions(dim))
+            }
+            fields.update(self._dimensions(body.get("Dimension") or {}))
+            self._static.update(mmsi, fields)
         elif mt == "StaticDataReport":
+            ra = body.get("ReportA") or {}
+            if ra.get("Valid"):
+                self._static.set_name(mmsi, (ra.get("Name") or "").strip())
             rb = body.get("ReportB") or {}
             # ⚠ ReportB.Valid is false with all-zero dimensions on real
             # traffic. PRESENCE OF A MESSAGE IS NOT PRESENCE OF ITS PAYLOAD.
             if rb.get("Valid"):
+                fields = {}
                 t = _clean(rb.get("ShipType", rb.get("Type")),
                            SHIP_TYPE_UNAVAILABLE)
                 if t is not None:
-                    entry["type"] = t
-                entry.update(self._dimensions(rb.get("Dimension") or {}))
+                    fields["type"] = t
+                fields.update(self._dimensions(rb.get("Dimension") or {}))
                 cs = (rb.get("CallSign") or "").strip()
                 if cs:
-                    entry["call_sign"] = cs
+                    fields["call_sign"] = cs
+                self._static.update(mmsi, fields)
 
     @staticmethod
     def _dimensions(dim):
@@ -200,12 +211,16 @@ class AisStreamSource:
             return None
 
         sog = _clean(body.get("Sog"), SOG_UNAVAILABLE)
-        static = self._static.get(mmsi, {})
         # ⚠ ShipName is space-padded INCONSISTENTLY - 'SEADOG IV           '
         # padded to 20, plain 'ODYSSEY' at length 7. And operators MANGLE names
         # to fit: 'ODYSSEY CHICAGO_IVER' is real data with a literal 0x5F, not
         # corruption. Strip it; NEVER try to repair it.
         name = (meta.get("ShipName") or "").strip() or None
+        # ⚠ The name goes in so a record read back from disk under a
+        # reassigned MMSI is refused (statics.StaticCache.lookup).
+        rec = self._static.lookup(mmsi, name)
+        static = ({k: getattr(rec, k) for k in rec.__slots__}
+                  if rec is not None else {})
 
         return Observation(
             identity=mmsi,
