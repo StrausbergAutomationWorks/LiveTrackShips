@@ -118,6 +118,32 @@ check("limit larger than input is safe",
       len(G.nearest(HOME_LAT, HOME_LON, vessels, 99)), 3)
 check("empty input is safe", G.nearest(HOME_LAT, HOME_LON, [], 5), [])
 
+print("\n=== item 267: the edge hold ===")
+KM = 1 / 111.195                       # degrees of latitude per km
+inc = ("inc", HOME_LAT + 10.0 * KM, HOME_LON, None)
+close = ("close", HOME_LAT + 9.5 * KM, HOME_LON, None)
+clear = ("clear", HOME_LAT + 8.5 * KM, HOME_LON, None)
+check("HOLD_FRACTION is 5%", G.HOLD_FRACTION, 0.05)
+check("no hold: the nearer newcomer wins",
+      [v[1] for v in G.nearest(HOME_LAT, HOME_LON, [inc, close], 1)], ["close"])
+check("hold 1 km: a newcomer 0.5 km nearer does NOT displace",
+      [v[1] for v in G.nearest(HOME_LAT, HOME_LON, [inc, close], 1,
+                               held={"inc"}, hold_km=1.0)], ["inc"])
+check("hold 1 km: a newcomer 1.5 km nearer DOES",
+      [v[1] for v in G.nearest(HOME_LAT, HOME_LON, [inc, clear], 1,
+                               held={"inc"}, hold_km=1.0)], ["clear"])
+got = G.nearest(HOME_LAT, HOME_LON, [inc, close], 1, held={"inc"}, hold_km=1.0)
+check("the returned distance is the TRUE one", round(got[0][0], 2), 10.0)
+check("hold never changes the count",
+      len(G.nearest(HOME_LAT, HOME_LON, [inc, close, clear], 2,
+                    held={"inc"}, hold_km=5.0)), 2)
+check("hold 0 is the old ordering",
+      [v[1] for v in G.nearest(HOME_LAT, HOME_LON, [inc, close, clear], 3,
+                               held={"inc"}, hold_km=0.0)],
+      ["clear", "close", "inc"])
+check("hold_rank: held", G.hold_rank(10.0, "a", {"a"}, 2.0), 8.0)
+check("hold_rank: not held", G.hold_rank(10.0, "b", {"a"}, 2.0), 10.0)
+
 print("\n=== ceiling is not a count ===")
 check("MAX_VESSELS is a ceiling above the default",
       G.MAX_VESSELS > G.DEFAULT_MAX_VESSELS, True)

@@ -206,6 +206,63 @@ async def main():
         ShipEvent.async_write_ha_state = orig_write
         ShipEvent.async_remove = orig_remove
 
+    # -- item 267: the edge hold at the QUOTA cut -------------------------
+    print("\n=== item 267: the edge hold at the quota cut ===")
+    from live_track_ships.const_flow import CONF_INSTANCE_MAX as _CIM
+    writes.clear()
+    removed.clear()
+    ShipEvent.async_write_ha_state = lambda self: writes.append(
+        self._obs.identity)
+    ShipEvent.async_remove = fake_remove
+    try:
+        h2 = FakeHass(loop)
+        e2 = FakeEntry("Q")
+        e2.options = {_CIM: 100}        # the slider's floor: ceiling 100
+        h2.config_entries.entries = [e2]
+        fq = ShipFeed(h2, e2)
+        fq.notify_window_s = W
+        h2.data.setdefault(DOMAIN, {})["Q"] = fq
+        km = 1 / 111.195
+        for i in range(100):            # q0..q99 at 0.2..20.0 km
+            fq.store.add(obs(f"q{i:02d}", km * 0.2 * (i + 1)))
+        shown = []
+
+        def add2(ents):
+            for ent in ents:
+                ent.hass = h2
+            shown.extend(e.name for e in ents)
+        await gl.async_setup_entry(h2, e2, add2)
+        check("267: 100 shown at a ceiling of 100", len(shown), 100)
+        check("267: hold is 2.5 km (radius 50)", fq.store.hold_km, 2.5)
+        # A newcomer 1 km nearer than the farthest shown (q99 at 20 km).
+        fq.store.add(obs("near1", km * 19.0))
+        fq._notify()
+        await asyncio.sleep(W * 1.5)
+        await asyncio.sleep(0)
+        check("267: 1 km nearer -> nobody removed", removed, [])
+        check("267: ... and the newcomer is held back",
+              fq.held_by_instance_cap, 1)
+        # A newcomer clearly nearer: 5 km out, 15 km inside the ring.
+        fq.store.add(obs("near2", km * 5.0))
+        fq._notify()
+        await asyncio.sleep(W * 1.5)
+        await asyncio.sleep(0)
+        check("267: clearly nearer -> the farthest shown (q99) leaves",
+              removed, ["q99"])
+        fq._notify()                    # next pass: its freed slot is taken
+        await asyncio.sleep(W * 1.5)
+        await asyncio.sleep(0)
+        owners = h2.data[gl.OWNERS_KEY]
+        check("267: near2 shown after the swap", owners.get("near2"), "Q")
+        check("267: near1 still held back", "near1" in owners, False)
+        check("267: never above the ceiling", len(owners), 100)
+        for cb in e2.unloads:
+            cb()
+        await fq.stop()
+    finally:
+        ShipEvent.async_write_ha_state = orig_write
+        ShipEvent.async_remove = orig_remove
+
     # -- item 264: the slider, read through HA's entry list ---------------
     from live_track_ships import instance_ceiling
     from live_track_ships.const_flow import (

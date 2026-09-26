@@ -134,5 +134,31 @@ for i in range(200):
 check("200 vessels are all published", len(s10.published()), 200)
 check("no truncation reported", s10.truncated_from, None)
 
+print("\n=== item 267: the edge hold at the max_vessels cut ===")
+KM = 1 / 111.195
+s11 = VesselStore(LAT, LON, 50, max_vessels=2)   # hold = 2.5 km
+check("hold_km is 5% of the radius", s11.hold_km, 2.5)
+s11.add(obs("a", LAT + 5 * KM, LON))
+s11.add(obs("b", LAT + 20 * KM, LON))
+check("first pass: a, b", [o.identity for o in s11.published()], ["a", "b"])
+s11.add(obs("c", LAT + 19 * KM, LON))          # 1 km nearer than b
+check("c 1 km nearer than b: b KEEPS its place",
+      [o.identity for o in s11.published()], ["a", "b"])
+check("a second call gives the same list (the sensor calls it too)",
+      [o.identity for o in s11.published()], ["a", "b"])
+check("truncation still reported", s11.truncated_from, 3)
+s11.add(obs("d", LAT + 16 * KM, LON))          # 4 km nearer than b
+check("d 4 km nearer: b goes, d comes in",
+      [o.identity for o in s11.published()], ["a", "d"])
+s11.add(obs("b", LAT + 20 * KM, LON, 30))      # b heard again, same place
+check("b, no longer shown, gets no hold back: c and b stay out",
+      [o.identity for o in s11.published()], ["a", "d"])
+s12 = VesselStore(LAT, LON, 50, max_vessels=2)
+s12.add(obs("a", LAT + 5 * KM, LON))
+s12.add(obs("b", LAT + 20 * KM, LON))
+s12.add(obs("c", LAT + 19 * KM, LON))
+check("⚠ a FRESH store holds nothing: nearest two",
+      [o.identity for o in s12.published()], ["a", "c"])
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

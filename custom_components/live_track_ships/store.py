@@ -17,7 +17,7 @@ import asyncio
 import datetime as _dt
 import logging
 
-from .geo import distance_km, nearest, within_radius
+from .geo import HOLD_FRACTION, distance_km, nearest, within_radius
 from .playback import Track
 from .sources.base import Observation
 
@@ -83,6 +83,11 @@ class VesselStore:
         self._berthed_stale_after = berthed_stale_after_s
         self._tracks: dict[str, Track] = {}
         self.truncated_from: int | None = None
+        # Item 267: what published() returned last time, and the margin a
+        # newcomer must beat it by. published() is called by the sensor too;
+        # with the same tracks a second call returns the same list.
+        self._held: frozenset[str] = frozenset()
+        self._hold_km = HOLD_FRACTION * radius_km
 
     @staticmethod
     def is_berthed(obs) -> bool:
@@ -160,9 +165,17 @@ class VesselStore:
                 continue
             rows.append((obs.identity, obs.latitude, obs.longitude, obs))
         total = len(rows)
-        picked = nearest(self._lat, self._lon, rows, self._max)
+        picked = nearest(self._lat, self._lon, rows, self._max,
+                         held=self._held, hold_km=self._hold_km)
+        self._held = frozenset(k for _d, k, _la, _lo, _p in picked)
         self.truncated_from = total if total > self._max else None
         return [payload for _d, _k, _la, _lo, payload in picked]
+
+    @property
+    def hold_km(self) -> float:
+        """How much nearer a newcomer must be to displace a shown vessel
+        (item 267)."""
+        return self._hold_km
 
     def distance_to(self, obs: Observation) -> float:
         return distance_km(self._lat, self._lon, obs.latitude, obs.longitude)

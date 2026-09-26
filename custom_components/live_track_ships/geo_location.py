@@ -49,6 +49,7 @@ from homeassistant.core import callback
 from . import icons
 from . import instance_ceiling
 from .const_flow import DOMAIN
+from .geo import hold_rank
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
 from .sources.base import (Observation, map_layer, object_ids, sar_airframe,
@@ -104,14 +105,23 @@ async def async_setup_entry(hass, entry, async_add_entities):
         # how many it could show; quota.allocate() gives each an equal share,
         # and what a quiet entry leaves goes to the others.
         # ⚠ REVERSES 246's "vessels already shown are never evicted": an
-        # entry over its quota drops its FARTHEST vessels (published() is
-        # nearest first), because a quota nobody gives back is first-come
-        # again. They leave through the normal departure path below.
+        # entry over its quota drops its FARTHEST vessels, because a quota
+        # nobody gives back is first-come again. They leave through the
+        # normal departure path below.
+        # ⚠ Item 267: ranked with the EDGE HOLD - a vessel this entry already
+        # shows counts as store.hold_km nearer - so a quota that moves by a
+        # few does not trade the ring back and forth. Same rule as the
+        # store's max_vessels cut (geo.hold_rank).
+        hold = feed.store.hold_km
+        ranked = sorted(
+            ((feed.store.distance_to(o), o) for o in candidates),
+            key=lambda t: (hold_rank(t[0], t[1].identity, known, hold),
+                           t[1].identity))
         demands[me] = len(candidates)
         # The users' slider can only LOWER the constant (item 264).
         ceiling = instance_ceiling(hass)
         quota = allocate(demands, ceiling).get(me, 0)
-        for rank, obs in enumerate(candidates):
+        for rank, (distance, obs) in enumerate(ranked):
             identity = obs.identity
             owner = owners.get(identity)
             if rank >= quota:
@@ -124,7 +134,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 continue
             owners[identity] = me
             seen.add(identity)
-            distance = feed.store.distance_to(obs)
             existing = known.get(identity)
             if existing is None:
                 entity = ShipEvent(obs, distance)

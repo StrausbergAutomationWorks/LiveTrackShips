@@ -132,7 +132,24 @@ def within_radius(centre_lat: float, centre_lon: float, radius_km: float,
     return distance_km(centre_lat, centre_lon, lat, lon) <= radius_km
 
 
-def nearest(centre_lat: float, centre_lon: float, vessels, limit: int):
+# ⚠ THE EDGE HOLD (Ships item 267, Lee 2026-09-26: "fix it in code"). A vessel
+# already on the map keeps its place until a newcomer is CLEARLY nearer: its
+# distance counts as HOLD_FRACTION x radius less when ranking. Without it the
+# ring at the cap traded places whenever a vessel a few hundred metres nearer
+# was heard, and some came straight back (6 in 10 min on the Denmark entry,
+# 2026-09-26). A FRACTION of the radius, not kilometres: radius runs 1-500 km
+# worldwide. Chosen, not measured. The count is unchanged - only which vessels.
+HOLD_FRACTION = 0.05
+
+
+def hold_rank(distance: float, key, held, hold_km: float) -> float:
+    """Distance as used for ranking: less by hold_km for a vessel in `held`.
+    The ONE place the rule lives; nearest() and geo_location._sync use it."""
+    return distance - hold_km if key in held else distance
+
+
+def nearest(centre_lat: float, centre_lon: float, vessels, limit: int,
+            held=(), hold_km: float = 0.0):
     """The `limit` nearest vessels, closest first.
 
     ⚠ When more vessels are in range than the cap allows, WHICH ones we drop
@@ -140,11 +157,13 @@ def nearest(centre_lat: float, centre_lon: float, vessels, limit: int):
     does both. Dropping arbitrarily would make the entity set flap between
     updates for no visible reason.
 
-    `vessels` is an iterable of (key, lat, lon, payload).
+    `vessels` is an iterable of (key, lat, lon, payload). Keys in `held` rank
+    as if hold_km nearer (item 267); the distance RETURNED is always the true
+    one. Ties break on key, so the same input gives the same output.
     """
     scored = [
         (distance_km(centre_lat, centre_lon, lat, lon), key, lat, lon, payload)
         for key, lat, lon, payload in vessels
     ]
-    scored.sort(key=lambda t: (t[0], t[1]))
+    scored.sort(key=lambda t: (hold_rank(t[0], t[1], held, hold_km), t[1]))
     return scored[:limit]
