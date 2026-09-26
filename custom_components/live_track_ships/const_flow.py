@@ -78,11 +78,14 @@ DEFAULT_MAX_VESSELS = 1000
 # NOT show that anything higher is, and it is not a limit found by pushing
 # until something broke. Raise it only on a new measurement, re-run the same
 # way (SSOT item 246).
-# ⚠ RAISED TO 2,500 ON 2026-09-26 (Lee; SSOT item 264), UNDER TEST: five
-# loaded entries wanted about 2,235 and Denmark showed its nearest ~455 of 1,600,
-# its outer ring flickering as nearer vessels arrived. 1,500 measured at
-# /api/ 0.02 s median, HA CPU 10% median of 3 vCPUs, 1.15 GiB. Kept only if the
-# item 246 sequence measures clean at 2,500; else back to 1,500.
+# ✅ RAISED TO 2,500 ON 2026-09-26 (Lee; SSOT item 264), MEASURED on the
+# development VM (3 vCPU, 4 GB): five entries wanted about 2,235 and Denmark
+# showed its nearest ~455 of 1,600, its outer ring flickering. At 2,500, steady
+# at 2,440 Ships entities: /api/ 0.02 s median, 0.04 s max; HA CPU median 15%
+# (10% at 1,500); 1.04 GiB. A full restart spikes /api/ to 7.5 s in its first
+# minute, and so does a control restart at ~1,450 (6.5 s): HA's own startup,
+# not this ceiling. ⚠ ONE MACHINE. What a Pi or an HA Green tolerates is NOT
+# measured, and this constant ships to every user.
 INSTANCE_MAX_VESSELS = 2500
 
 # ⛔ ONE PASS PER WINDOW, PER ENTRY (SSOT item 246, Lee 2026-09-23).
