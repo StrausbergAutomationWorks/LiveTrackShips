@@ -71,8 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("37 keys (22 vessels + netbuoy + sarheli + sarplane + 12 state)",
-      len(icons.ICON_KEYS), 37)
+check("39 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state)",
+      len(icons.ICON_KEYS), 39)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -124,6 +124,15 @@ check("GRACEFUL by IMO", icons.special_for(None, "1011551"), "russia")
 check("GRACEFUL by MMSI", icons.special_for("273294110", None), "russia")
 check("VICTORIA by IMO", icons.special_for(None, "1009663"), "russia")
 check("VICTORIA by MMSI", icons.special_for("273216780", None), "russia")
+check("GALKYNYSH by IMO", icons.special_for(None, "9445435"), "turkmenistan")
+check("MMSI 434113600 is NOT listed", icons.special_for("434113600", None), None)
+check("UCKA by MMSI", icons.special_for("238122040", None), "croatia")
+_t = icons.render(icons.icon_path("turkmenistan"), "turkmenistan", None, 64, "military", 0.9, False)
+check("turkmenistan: green and red, not olive", all(c in _t for c in
+      ("#00853A", "#D22630")) and "#8C9A4B" not in _t, True)
+_h = icons.render(icons.icon_path("croatia"), "croatia", None, 64, "military", 0.9, False)
+check("croatia: red, white and blue, not olive", all(c in _h for c in
+      ("#FF0000", "#FFFFFF", "#171796")) and "#8C9A4B" not in _h, True)
 for imo in ("1006960", "9544619"):
     check(f"IMO {imo} -> russia", icons.special_for(None, imo), "russia")
 for gone in ("378374000", "319766000", "273352710"):

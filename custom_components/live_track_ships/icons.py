@@ -36,7 +36,8 @@ ICON_KEYS = frozenset((
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
     "dannebrog", "norge", "savarona", "oman", "qatar", "indonesia",
-    "philippines", "saudi", "uae", "bahrain", "morocco", "russia"))
+    "philippines", "saudi", "uae", "bahrain", "morocco", "russia",
+    "turkmenistan", "croatia"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -47,7 +48,8 @@ ICON_KEYS = frozenset((
 # The state-vessel icons below are painted too: their colours ARE the icon.
 PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
                      "qatar", "indonesia", "philippines", "saudi", "uae",
-                     "bahrain", "morocco", "russia"))
+                     "bahrain", "morocco", "russia", "turkmenistan",
+                     "croatia"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -118,6 +120,8 @@ STATE_BY_IMO = {
     "1006960": "russia",      # OLYMPIA, US Treasury: Putin's; Cayman flag
     "9544619": "russia",      # CHAYKA ex SIRIUS, bought for the President 2011
     "1009663": "russia",      # VICTORIA, 71 m, linked to Putin (Maritime Executive)
+    "9445435": "turkmenistan",  # GALKYNYSH ex WIND, presidential; IMO only (MMSI
+                                # 434113600 last update 2025-08-23)
 }
 STATE_BY_MMSI = {
     "219517000": "dannebrog",  # call sign OUDA
@@ -138,6 +142,7 @@ STATE_BY_MMSI = {
     "319150300": "bahrain",    # AL RAYA (NOT 319526000: her MMSI as DILBAR)
     "273294110": "russia",     # GRACEFUL (NOT 378374000: her BVI MMSI to 2021)
     "273216780": "russia",     # VICTORIA, call sign UBZU3
+    "238122040": "croatia",    # UCKA ex PODGORKA, Croatian Navy state yacht; no IMO
 }
 
 
@@ -280,6 +285,7 @@ _DEFAULT_WEIGHT = {
     "norge": 0.80, "savarona": 0.95, "oman": 0.95, "qatar": 0.90,
     "indonesia": 0.80, "philippines": 0.80, "saudi": 0.95, "uae": 0.95,
     "bahrain": 0.90, "morocco": 0.80, "russia": 0.85,
+    "turkmenistan": 0.80, "croatia": 0.75,
 }
 
 
