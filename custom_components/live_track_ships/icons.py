@@ -399,6 +399,9 @@ _SVG_OPEN = re.compile(r"<svg\b[^>]*>", re.I)
 _PAINT_ATTR = re.compile(r'\s(?:fill|stroke)\s*=\s*"(?!none\s*")[^"]*"', re.I)
 _PAINT_STYLE = re.compile(r"(?:fill|stroke)\s*:\s*[^;\"']*;?", re.I)
 EDGE = "#1F2327"
+# A painted icon whose flag carries black loses its edge in EDGE on dark
+# tiles; it gets its own outline colour (Lee, 2026-09-27: uae grey).
+EDGE_FOR = {"uae": "#9AA0A6"}
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
 _SAFE = re.compile(r"^[a-z0-9]+$")
@@ -450,7 +453,7 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
         return (head + '<circle cx="100" cy="100" r="100" fill="%s"/>' % BADGE
                 + art + sym + '</svg>')
     radius = OUTLINE_PX * 200.0 / size
-    return (head + _OUTLINE_FILTER % (radius, EDGE)
+    return (head + _OUTLINE_FILTER % (radius, EDGE_FOR.get(key, EDGE))
             + '<g filter="url(#e)">' + art + '</g>' + sym + '</svg>')
 
 

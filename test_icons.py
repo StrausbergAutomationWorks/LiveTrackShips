@@ -115,6 +115,11 @@ for imo, mmsi, want in (("9463774", "461001000", "oman"),
     check(f"IMO {imo} -> {want}", icons.special_for(None, imo), want)
     check(f"MMSI {mmsi} -> {want}", icons.special_for(mmsi, None), want)
 check("Ang Pangulo by IMO alone", icons.special_for("548000000", "4608410"), "philippines")
+_u = icons.render(icons.icon_path("uae"), "uae", None, 64, "default", 0.9, False)
+check("uae: outline grey, not EDGE", "#9AA0A6" in _u and 'flood-color="#1F2327"' not in _u, True)
+_q = icons.render(icons.icon_path("qatar"), "qatar", None, 64, "default", 0.9, False)
+check("qatar: outline EDGE", 'flood-color="#1F2327"' in _q and "#9AA0A6" not in _q, True)
+check("every EDGE_FOR key is PAINTED", sorted(set(icons.EDGE_FOR) - icons.PAINTED), [])
 for imo, mmsi, want in (("1007043", "403003000", "saudi"),
                         ("9234240", "461006000", "oman"),
                         ("9803601", "242822300", "morocco"),
