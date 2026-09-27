@@ -71,8 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("36 keys (22 vessels + netbuoy + sarheli + sarplane + 11 state)",
-      len(icons.ICON_KEYS), 36)
+check("37 keys (22 vessels + netbuoy + sarheli + sarplane + 12 state)",
+      len(icons.ICON_KEYS), 37)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -120,6 +120,15 @@ check("uae: outline grey, not EDGE", "#9AA0A6" in _u and 'flood-color="#1F2327"'
 _q = icons.render(icons.icon_path("qatar"), "qatar", None, 64, "default", 0.9, False)
 check("qatar: outline EDGE", 'flood-color="#1F2327"' in _q and "#9AA0A6" not in _q, True)
 check("every EDGE_FOR key is PAINTED", sorted(set(icons.EDGE_FOR) - icons.PAINTED), [])
+check("GRACEFUL by IMO", icons.special_for(None, "1011551"), "russia")
+check("GRACEFUL by MMSI", icons.special_for("273294110", None), "russia")
+for imo in ("1006960", "9544619"):
+    check(f"IMO {imo} -> russia", icons.special_for(None, imo), "russia")
+for gone in ("378374000", "319766000", "273352710"):
+    check(f"MMSI {gone} is NOT listed", icons.special_for(gone, None), None)
+_r = icons.render(icons.icon_path("russia"), "russia", None, 64, "military", 0.9, False)
+check("russia: its own colours, not olive", all(c in _r for c in
+      ("#FFFFFF", "#0039A6", "#D52B1E")) and "#8C9A4B" not in _r, True)
 for imo, mmsi, want in (("1007043", "403003000", "saudi"),
                         ("9234240", "461006000", "oman"),
                         ("9803601", "242822300", "morocco"),

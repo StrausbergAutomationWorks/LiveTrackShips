@@ -24,7 +24,7 @@ URL_BASE = "/api/live_track_ships/icon"
 # ! Bumped whenever the ARTWORK or the renderer changes. Responses are cached
 # for a day as immutable, so without this a browser keeps yesterday's picture
 # and a fix looks like it did nothing (06_MAP_CONTRACT.md D6a-0a, one level down).
-ARTWORK_VERSION = "8"
+ARTWORK_VERSION = "9"
 
 
 def picture_url(key: str, degrees: int | None, tone: str = "default",

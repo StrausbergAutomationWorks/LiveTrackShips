@@ -36,7 +36,7 @@ ICON_KEYS = frozenset((
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
     "dannebrog", "norge", "savarona", "oman", "qatar", "indonesia",
-    "philippines", "saudi", "uae", "bahrain", "morocco"))
+    "philippines", "saudi", "uae", "bahrain", "morocco", "russia"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -47,7 +47,7 @@ ICON_KEYS = frozenset((
 # The state-vessel icons below are painted too: their colours ARE the icon.
 PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
                      "qatar", "indonesia", "philippines", "saudi", "uae",
-                     "bahrain", "morocco"))
+                     "bahrain", "morocco", "russia"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -94,6 +94,8 @@ def pick_sar(airframe) -> str:
 # country icon carries the OWNER's country, not the flag state (TATOOSH
 # and AL RAYA fly Cayman). Royal fleet SUPPORT ships count (AL NOORES).
 # A published IMO that fails its check digit is no identifier.
+# An MMSI not heard for years is left out and the ship listed by IMO only:
+# a dead MMSI can be reissued to another ship (OLYMPIA, CHAYKA).
 STATE_BY_IMO = {
     "4537661": "dannebrog",   # Kongeskibet DANNEBROG, Denmark, 78.43 m
     "4603343": "norge",       # KS NORGE, Norway, 80.6 m (IMO measured live)
@@ -112,6 +114,9 @@ STATE_BY_IMO = {
     "1006336": "uae",         # TATOOSH, UAE President; Cayman flag
     "9693367": "uae",         # AZZAM, Dept of the President's Affairs, 180 m
     "9526758": "bahrain",     # AL RAYA, Royal Family of Bahrain; Cayman flag
+    "1011551": "russia",      # GRACEFUL (KOSATKA), US Treasury: Putin's, 82 m
+    "1006960": "russia",      # OLYMPIA, US Treasury: Putin's; Cayman flag
+    "9544619": "russia",      # CHAYKA ex SIRIUS, bought for the President 2011
 }
 STATE_BY_MMSI = {
     "219517000": "dannebrog",  # call sign OUDA
@@ -130,6 +135,7 @@ STATE_BY_MMSI = {
     "319801000": "uae",        # TATOOSH
     "470992000": "uae",        # AZZAM
     "319150300": "bahrain",    # AL RAYA (NOT 319526000: her MMSI as DILBAR)
+    "273294110": "russia",     # GRACEFUL (NOT 378374000: her BVI MMSI to 2021)
 }
 
 
@@ -271,7 +277,7 @@ _DEFAULT_WEIGHT = {
     "carcarrier": 0.92, "cruise": 0.95, "dannebrog": 0.80,
     "norge": 0.80, "savarona": 0.95, "oman": 0.95, "qatar": 0.90,
     "indonesia": 0.80, "philippines": 0.80, "saudi": 0.95, "uae": 0.95,
-    "bahrain": 0.90, "morocco": 0.80,
+    "bahrain": 0.90, "morocco": 0.80, "russia": 0.85,
 }
 
 
