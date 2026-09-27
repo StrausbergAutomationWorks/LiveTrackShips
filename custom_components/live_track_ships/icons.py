@@ -35,7 +35,8 @@ ICON_KEYS = frozenset((
     "pleasure", "highspeed", "workboat", "military", "container", "bulk",
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
-    "dannebrog", "norge", "savarona"))
+    "dannebrog", "norge", "savarona", "oman", "qatar", "indonesia",
+    "philippines"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -44,7 +45,8 @@ ICON_KEYS = frozenset((
 # Live Track Aircraft's light-aircraft icons at weight 0.62 span 31 px of a
 # 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
 # The state-vessel icons below are painted too: their colours ARE the icon.
-PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona"))
+PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
+                     "qatar", "indonesia", "philippines"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -82,15 +84,31 @@ def pick_sar(airframe) -> str:
 # whose IMO has not arrived yet (static data lags position, SSOT section 6);
 # list only the MMSI she broadcasts NOW - an old one can be reissued.
 # Each value must be in ICON_KEYS and PAINTED (test_icons.py checks).
+# ! RULE (Lee, 2026-09-26): a royal or presidential ship gets an icon when
+# its MMSI OR its IMO can be found - including a reigning monarch's own
+# yacht and a warship that doubles as the presidential ship. No
+# identifier, no ship. Icons named for a SHIP are that ship's; icons named
+# for a COUNTRY are its flag and serve every state vessel of that country.
 STATE_BY_IMO = {
     "4537661": "dannebrog",   # Kongeskibet DANNEBROG, Denmark, 78.43 m
     "4603343": "norge",       # KS NORGE, Norway, 80.6 m (IMO measured live)
     "5314810": "savarona",    # SAVARONA, Turkey, 136 m
+    "9463774": "oman",        # AL SAID, Oman Royal Yacht Squadron, 155 m
+    "9714460": "oman",        # FULK AL SALAMAH, Oman, 164 m
+    "1004572": "oman",        # ZINAT AL BIHAAR, Oman, royal sailing dhow
+    "9772929": "qatar",       # AL LUSAIL, the reigning Emir of Qatar, 123 m
+    "4772326": "indonesia",   # KRI BUNG KARNO (369), presidential corvette
+    "4608410": "philippines", # BRP ANG PANGULO (AT-25); no MMSI published
 }
 STATE_BY_MMSI = {
     "219517000": "dannebrog",  # call sign OUDA
     "257001000": "norge",      # call sign LAMA; measured live 2026-09-26
     "271035111": "savarona",   # as TCG SAVARONA since the 2024 refit
+    "461001000": "oman",       # AL SAID
+    "461002000": "oman",       # FULK AL SALAMAH
+    "461003000": "oman",       # ZINAT AL BIHAAR
+    "466443000": "qatar",      # AL LUSAIL
+    "525114116": "indonesia",  # KRI BUNG KARNO
 }
 
 
@@ -230,7 +248,8 @@ _DEFAULT_WEIGHT = {
     "military": 0.80, "ferry": 0.85, "passenger": 0.85, "atb": 0.85,
     "cargo": 0.90, "tanker": 0.90, "container": 0.92, "bulk": 0.92,
     "carcarrier": 0.92, "cruise": 0.95, "dannebrog": 0.80,
-    "norge": 0.80, "savarona": 0.95,
+    "norge": 0.80, "savarona": 0.95, "oman": 0.95, "qatar": 0.90,
+    "indonesia": 0.80, "philippines": 0.80,
 }
 
 

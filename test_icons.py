@@ -71,8 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("28 keys (22 vessels + netbuoy + sarheli + sarplane + 3 state)",
-      len(icons.ICON_KEYS), 28)
+check("32 keys (22 vessels + netbuoy + sarheli + sarplane + 7 state)",
+      len(icons.ICON_KEYS), 32)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -107,6 +107,21 @@ check("norge: red, white and blue", all(c in nge for c in
 svr = icons.render(icons.icon_path("savarona"), "savarona", None, 64, "default", 0.95, False)
 check("savarona: red and white", all(c in svr for c in ("#E30A17", "#FFFFFF")), True)
 check("136 m -> weight 0.88", icons.weight_for("savarona", 136), 0.88)
+for imo, mmsi, want in (("9463774", "461001000", "oman"),
+                        ("9714460", "461002000", "oman"),
+                        ("1004572", "461003000", "oman"),
+                        ("9772929", "466443000", "qatar"),
+                        ("4772326", "525114116", "indonesia")):
+    check(f"IMO {imo} -> {want}", icons.special_for(None, imo), want)
+    check(f"MMSI {mmsi} -> {want}", icons.special_for(mmsi, None), want)
+check("Ang Pangulo by IMO alone", icons.special_for("548000000", "4608410"), "philippines")
+for key, colours in (("oman", ("#DB161B", "#008000", "#FFFFFF")),
+                     ("qatar", ("#8A1538", "#FFFFFF")),
+                     ("indonesia", ("#CE1126", "#FFFFFF")),
+                     ("philippines", ("#0038A8", "#CE1126", "#FFFFFF", "#FCD116"))):
+    s = icons.render(icons.icon_path(key), key, None, 64, "military", 0.9, False)
+    check(f"{key}: its own colours, not olive",
+          all(c in s for c in colours) and "#8C9A4B" not in s, True)
 dnb = icons.render(icons.icon_path("dannebrog"), "dannebrog", None, 64,
                    "military", 0.8, False, 90)
 check("dannebrog keeps its red", "#C60C30" in dnb, True)
