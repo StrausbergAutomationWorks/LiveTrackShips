@@ -257,7 +257,7 @@ class ShipEvent(GeolocationEvent):
             key = "generic"
         else:
             # A named royal or presidential ship draws its own icon.
-            key = (icons.special_for(o.identity)
+            key = (icons.special_for(o.identity, valid_imo(o.imo))
                    or icons.pick(o.ship_type, o.length_m))
         if kind in _FIXED_KINDS:
             bearing, basis = None, None

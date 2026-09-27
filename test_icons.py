@@ -71,8 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("26 keys (22 vessels + netbuoy + sarheli + sarplane + dannebrog)",
-      len(icons.ICON_KEYS), 26)
+check("28 keys (22 vessels + netbuoy + sarheli + sarplane + 3 state)",
+      len(icons.ICON_KEYS), 28)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -87,10 +87,26 @@ check("int MMSI -> dannebrog", icons.special_for(219517000), "dannebrog")
 check("padded MMSI -> dannebrog", icons.special_for(" 219517000 "), "dannebrog")
 check("a neighbour MMSI -> None", icons.special_for("219517001"), None)
 check("None -> None", icons.special_for(None), None)
-check("every state icon is a key",
-      sorted(set(icons.STATE_VESSELS.values()) - icons.ICON_KEYS), [])
-check("every state icon is PAINTED",
-      sorted(set(icons.STATE_VESSELS.values()) - icons.PAINTED), [])
+_state = set(icons.STATE_BY_IMO.values()) | set(icons.STATE_BY_MMSI.values())
+check("every state icon is a key", sorted(_state - icons.ICON_KEYS), [])
+check("every state icon is PAINTED", sorted(_state - icons.PAINTED), [])
+check("IMO wins: Savarona under her OLD MMSI",
+      icons.special_for("271000250", "5314810"), "savarona")
+check("IMO wins over a mismatching MMSI",
+      icons.special_for("219517000", "4603343"), "norge")
+check("unknown IMO falls back to MMSI",
+      icons.special_for("257001000", "9074729"), "norge")
+check("no IMO: MMSI 271035111 -> savarona",
+      icons.special_for(271035111, None), "savarona")
+check("old Savarona MMSI alone is NOT listed",
+      icons.special_for("271000250", None), None)
+check("unknown both -> None", icons.special_for("1", "9074729"), None)
+nge = icons.render(icons.icon_path("norge"), "norge", None, 64, "default", 0.8, False)
+check("norge: red, white and blue", all(c in nge for c in
+      ("#BA0C2F", "#FFFFFF", "#00205B")), True)
+svr = icons.render(icons.icon_path("savarona"), "savarona", None, 64, "default", 0.95, False)
+check("savarona: red and white", all(c in svr for c in ("#E30A17", "#FFFFFF")), True)
+check("136 m -> weight 0.88", icons.weight_for("savarona", 136), 0.88)
 dnb = icons.render(icons.icon_path("dannebrog"), "dannebrog", None, 64,
                    "military", 0.8, False, 90)
 check("dannebrog keeps its red", "#C60C30" in dnb, True)

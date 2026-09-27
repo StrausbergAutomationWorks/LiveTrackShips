@@ -35,7 +35,7 @@ ICON_KEYS = frozenset((
     "pleasure", "highspeed", "workboat", "military", "container", "bulk",
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
-    "dannebrog"))
+    "dannebrog", "norge", "savarona"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -44,7 +44,7 @@ ICON_KEYS = frozenset((
 # Live Track Aircraft's light-aircraft icons at weight 0.62 span 31 px of a
 # 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
 # The state-vessel icons below are painted too: their colours ARE the icon.
-PAINTED = frozenset(("netbuoy", "dannebrog"))
+PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -69,26 +69,41 @@ def pick_sar(airframe) -> str:
 
 
 # --- one named ship, one icon ----------------------------------------------
-# ! ROYAL AND PRESIDENTIAL SHIPS, by MMSI (Lee, 2026-09-26). Each draws its
-# own PAINTED icon in its national colours, whatever type it broadcasts:
-# the ship is the point, not its declared class. Keyed by MMSI alone, the
-# identity used everywhere (SSOT section 6), never by name - a name is
-# padded, mangled and editable. Only objects of kind `vessel` reach this.
-# Added as allowed, one row per ship; each value must be in ICON_KEYS and
-# PAINTED (test_icons.py checks).
-STATE_VESSELS = {
-    # Kongeskibet DANNEBROG, the Royal Danish yacht. IMO 4537661, call
-    # sign OUDA, 78.43 m. Hull #C60C30, white Nordic cross: long bar on
-    # the centreline, crossbar just aft of midships (Lee).
-    "219517000": "dannebrog",
+# ! ROYAL AND PRESIDENTIAL SHIPS (Lee, 2026-09-26). Each draws its own
+# PAINTED icon in its national colours, whatever type it broadcasts: the
+# ship is the point, not its declared class. Only objects of kind `vessel`
+# reach this. Never keyed by name - a name is padded, mangled and editable.
+#
+# ! IMO FIRST, MMSI SECOND (Lee, 2026-09-26). An IMO number stays with the
+# hull for life; an MMSI changes with flag or operator - SAVARONA went from
+# 271000250 to 271035111 when she became TCG SAVARONA, and a table keyed by
+# MMSI alone would have gone dark on her. The caller passes the IMO only
+# when sources/base.py valid_imo() accepts it. The MMSI row covers a ship
+# whose IMO has not arrived yet (static data lags position, SSOT section 6);
+# list only the MMSI she broadcasts NOW - an old one can be reissued.
+# Each value must be in ICON_KEYS and PAINTED (test_icons.py checks).
+STATE_BY_IMO = {
+    "4537661": "dannebrog",   # Kongeskibet DANNEBROG, Denmark, 78.43 m
+    "4603343": "norge",       # KS NORGE, Norway, 80.6 m (IMO measured live)
+    "5314810": "savarona",    # SAVARONA, Turkey, 136 m
+}
+STATE_BY_MMSI = {
+    "219517000": "dannebrog",  # call sign OUDA
+    "257001000": "norge",      # call sign LAMA; measured live 2026-09-26
+    "271035111": "savarona",   # as TCG SAVARONA since the 2024 refit
 }
 
 
-def special_for(identity) -> str | None:
-    """The icon of a named state vessel, or None for every other ship."""
+def special_for(identity, imo=None) -> str | None:
+    """The icon of a named state vessel, or None for every other ship.
+    `imo` must already be validated (valid_imo); `identity` is the MMSI."""
+    if imo is not None:
+        key = STATE_BY_IMO.get(str(imo).strip())
+        if key:
+            return key
     if identity is None:
         return None
-    return STATE_VESSELS.get(str(identity).strip())
+    return STATE_BY_MMSI.get(str(identity).strip())
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.
@@ -215,6 +230,7 @@ _DEFAULT_WEIGHT = {
     "military": 0.80, "ferry": 0.85, "passenger": 0.85, "atb": 0.85,
     "cargo": 0.90, "tanker": 0.90, "container": 0.92, "bulk": 0.92,
     "carcarrier": 0.92, "cruise": 0.95, "dannebrog": 0.80,
+    "norge": 0.80, "savarona": 0.95,
 }
 
 
