@@ -117,6 +117,7 @@ STATE_BY_IMO = {
     "1011551": "russia",      # GRACEFUL (KOSATKA), US Treasury: Putin's, 82 m
     "1006960": "russia",      # OLYMPIA, US Treasury: Putin's; Cayman flag
     "9544619": "russia",      # CHAYKA ex SIRIUS, bought for the President 2011
+    "1009663": "russia",      # VICTORIA, 71 m, linked to Putin (Maritime Executive)
 }
 STATE_BY_MMSI = {
     "219517000": "dannebrog",  # call sign OUDA
@@ -136,6 +137,7 @@ STATE_BY_MMSI = {
     "470992000": "uae",        # AZZAM
     "319150300": "bahrain",    # AL RAYA (NOT 319526000: her MMSI as DILBAR)
     "273294110": "russia",     # GRACEFUL (NOT 378374000: her BVI MMSI to 2021)
+    "273216780": "russia",     # VICTORIA, call sign UBZU3
 }
 
 

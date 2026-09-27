@@ -122,6 +122,8 @@ check("qatar: outline EDGE", 'flood-color="#1F2327"' in _q and "#9AA0A6" not in 
 check("every EDGE_FOR key is PAINTED", sorted(set(icons.EDGE_FOR) - icons.PAINTED), [])
 check("GRACEFUL by IMO", icons.special_for(None, "1011551"), "russia")
 check("GRACEFUL by MMSI", icons.special_for("273294110", None), "russia")
+check("VICTORIA by IMO", icons.special_for(None, "1009663"), "russia")
+check("VICTORIA by MMSI", icons.special_for("273216780", None), "russia")
 for imo in ("1006960", "9544619"):
     check(f"IMO {imo} -> russia", icons.special_for(None, imo), "russia")
 for gone in ("378374000", "319766000", "273352710"):
