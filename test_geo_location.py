@@ -216,5 +216,29 @@ x, p = attrs_of("367148870", course_deg=200.0, speed_kmh=1.0, ship_type=70)
 check("a VESSEL below 2 kn still gets no course rotation", "icon_rotation_deg" in x, False)
 check("a VESSEL with nothing is never drawn east", "/fixed.svg" in (p or ""), True)
 
+print("\n=== attribution: the entry's source credit (Lee 2026-09-26) ===")
+import live_track_ships.const_flow as cfa                            # noqa: E402
+check("no attribution given -> none", ShipEvent(FULL, 1.0).attribution, None)
+check("attribution given -> carried",
+      ShipEvent(FULL, 1.0, "Credit X").attribution, "Credit X")
+dt_line = cfa.ATTRIBUTION[cfa.SOURCE_DIGITRAFFIC]
+bw_line = cfa.ATTRIBUTION[cfa.SOURCE_BARENTSWATCH]
+check("Digitraffic: Fintraffic's own credit wording",
+      "Source: Fintraffic / digitraffic.fi" in dt_line and "license CC 4.0 BY" in dt_line)
+check("Digitraffic: links the licence",
+      "https://creativecommons.org/licenses/by/4.0/" in dt_line)
+check("Digitraffic: links the original", "digitraffic.fi/en/marine-traffic" in dt_line)
+check("Digitraffic: says it was changed", "Changed by Live Track Ships" in dt_line)
+check("BarentsWatch: NLOD default credit, licensor named",
+      "Contains data under the Norwegian licence for Open Government data (NLOD)" in bw_line
+      and "distributed by BarentsWatch" in bw_line)
+check("BarentsWatch: links NLOD", "https://data.norge.no/nlod/en/2.0" in bw_line)
+check("BarentsWatch: says it was changed", "Changed by Live Track Ships" in bw_line)
+check("aisstream credited", "aisstream.io" in cfa.ATTRIBUTION[cfa.SOURCE_AISSTREAM])
+check("every source has a line", set(cfa.ATTRIBUTION), set(cfa.SOURCES))
+check("no stored source -> aisstream's line",
+      cfa.attribution_for(None), cfa.ATTRIBUTION[cfa.SOURCE_AISSTREAM])
+check("an unknown source -> none", cfa.attribution_for("nope"), None)
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

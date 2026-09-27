@@ -48,6 +48,7 @@ class VesselCountSensor(SensorEntity):
         # own sensor rather than colliding.
         self._attr_unique_id = f"{DOMAIN}:{entry.entry_id}:vessel_count"
         self._attr_name = "Ships in range"
+        self._attr_attribution = feed.attribution
 
     async def async_added_to_hass(self):
         self.async_on_remove(self._feed.add_listener(self._changed))

@@ -136,7 +136,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             seen.add(identity)
             existing = known.get(identity)
             if existing is None:
-                entity = ShipEvent(obs, distance)
+                entity = ShipEvent(obs, distance, feed.attribution)
                 known[identity] = entity
                 new.append(entity)
             elif existing.update_from(obs, distance):
@@ -219,10 +219,14 @@ class ShipEvent(GeolocationEvent):
     _attr_unit_of_measurement = UnitOfLength.KILOMETERS
     _attr_icon = "mdi:ferry"
 
-    def __init__(self, obs: Observation, distance_km: float):
+    def __init__(self, obs: Observation, distance_km: float,
+                 attribution: str | None = None):
         # ⚠ NO unique_id - see the module docstring. Identity lives in the
         # entity_id (suggested_object_id) and in the `identity` attribute.
         self._obs = obs
+        # The owning entry's source credit (const_flow.ATTRIBUTION). Fixed for
+        # the entity's life: an entity belongs to the entry that created it.
+        self._attr_attribution = attribution
         self._attr_distance = distance_km
         self.retired = False
         # The last COURSE-derived bearing, held while the vessel is at rest.

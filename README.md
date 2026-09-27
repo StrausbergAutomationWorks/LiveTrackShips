@@ -102,6 +102,22 @@ You choose one source per configured area.
 Which categories appear, how fresh positions are and how complete vessel
 details are all depend on the source you choose.
 
+### Attribution
+
+Every vessel entity, and each area's `ships_in_range` sensor, carries an
+`attribution` naming the source that supplied it; Home Assistant shows it in
+the entity's details. Two of the sources license their data with an
+attribution requirement, and Live Track Ships changes the data it receives
+(units converted, only vessels inside your circle), so their lines say so. If
+you show this data to others, for example on a public dashboard, read the
+source's own terms:
+
+- **aisstream.io**: no published terms. <https://aisstream.io>
+- **Fintraffic Digitraffic**: CC BY 4.0.
+  <https://www.digitraffic.fi/en/terms-of-service/>
+- **BarentsWatch**: Norwegian Licence for Open Government Data (NLOD).
+  <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+
 ## Where it looks
 
 You give it a **latitude, a longitude and a radius**. The centre can be
@@ -114,6 +130,11 @@ about 340 over the Solent in southern England — the same radius, roughly 80×
 the traffic. So the integration keeps at most a set number of vessels (1,000 by
 default, adjustable up to 5,000), keeps the nearest when there are more, and
 says so on its `ships_in_range` sensor.
+
+All your areas **together** show at most 2,500 vessels, whatever their
+sources. Each area's settings have a slider, *Maximum vessels on the map, all
+Live Track Ships entries together*, that can only lower that ceiling; the
+lowest setting on any enabled area applies. Lower it on slower hardware.
 
 ## Coverage, measured rather than promised
 

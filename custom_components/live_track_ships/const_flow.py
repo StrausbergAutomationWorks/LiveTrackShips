@@ -36,6 +36,39 @@ SOURCE_BARENTSWATCH = "barentswatch"
 # is unreachable without a registration form and was measured DEAD from here -
 # all ports timed out. There is NO free live public AIS feed for US waters.
 # See Live Track Ships SSOT section 15.
+# ⚠ ATTRIBUTION, one line per source (Lee 2026-09-26: "Add attribution to what
+# Ships emits"). Set as `attribution` on every vessel entity and on each entry's
+# count sensor; Home Assistant shows it in the entity's details. Each line is
+# the source's OWN requested credit, not our summary of its terms
+# (05_SHARED_LESSONS.md B9 - link, never restate; the README links the terms).
+#   Digitraffic: CC BY 4.0. Fintraffic asks for "Source: Fintraffic /
+#     digitraffic.fi, license CC 4.0 BY", a link to the licence and to the
+#     original, and a notice when the material was changed.
+#   BarentsWatch: NLOD unless its API documentation says otherwise; NLOD's
+#     default credit names the licensor and asks that changes be indicated.
+#   aisstream.io publishes no terms (Ships SSOT item 250); credited anyway.
+# We change what we receive (units converted, only vessels inside the circle,
+# types labelled), so the two licensed lines say so.
+_CHANGED = "Changed by Live Track Ships: units converted, limited to your circle."
+ATTRIBUTION = {
+    SOURCE_AISSTREAM: "Data: aisstream.io (https://aisstream.io)",
+    SOURCE_DIGITRAFFIC: (
+        "Source: Fintraffic / digitraffic.fi "
+        "(https://www.digitraffic.fi/en/marine-traffic/), license CC 4.0 BY "
+        "(https://creativecommons.org/licenses/by/4.0/). " + _CHANGED),
+    SOURCE_BARENTSWATCH: (
+        "Contains data under the Norwegian licence for Open Government data "
+        "(NLOD) (https://data.norge.no/nlod/en/2.0) distributed by BarentsWatch "
+        "(https://www.barentswatch.no). " + _CHANGED),
+}
+
+
+def attribution_for(source) -> str | None:
+    """The credit line for an entry's source. An entry with no stored source
+    is aisstream, as ShipFeed treats it; an unknown source gets none."""
+    return ATTRIBUTION.get(source or SOURCE_AISSTREAM)
+
+
 SOURCES = {
     SOURCE_AISSTREAM: "aisstream.io — worldwide, free API key required",
     SOURCE_DIGITRAFFIC: "Fintraffic Digitraffic — Finnish and Baltic waters, "

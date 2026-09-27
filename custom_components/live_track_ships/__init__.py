@@ -28,6 +28,7 @@ from .const_flow import (
     DEFAULT_MAX_VESSELS, DOMAIN, NOTIFY_WINDOW_S, PLATFORMS,
     SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
 )
+from .const_flow import attribution_for
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
 from .sources import statics as _statics
 from .quota import effective_ceiling
@@ -122,6 +123,8 @@ class ShipFeed:
             self.lat, self.lon, self.radius,
             cfg.get(CONF_MAX_VESSELS, DEFAULT_MAX_VESSELS))
         self._cfg = cfg
+        # Credit line for everything this entry shows (const_flow.ATTRIBUTION).
+        self.attribution = attribution_for(cfg.get(CONF_SOURCE))
         self._task: asyncio.Task | None = None
         self._prune: asyncio.Task | None = None
         self._source = None

@@ -172,6 +172,11 @@ async def main():
             added.extend(ents)
         await gl.async_setup_entry(hass, entry, add_entities)
         check("three vessels added on setup", len(added), 3)
+        from live_track_ships.const_flow import ATTRIBUTION as _AT
+        check("attribution: every entity carries its entry's source line",
+              {e.attribution for e in added}, {_AT[SOURCE_DIGITRAFFIC]})
+        check("attribution: the feed holds the same line",
+              f3.attribution, _AT[SOURCE_DIGITRAFFIC])
 
         # One vessel moves; the pass must write that one and no other.
         if f3.store.add(obs("v2", 0.025, 30)):
