@@ -71,8 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("32 keys (22 vessels + netbuoy + sarheli + sarplane + 7 state)",
-      len(icons.ICON_KEYS), 32)
+check("36 keys (22 vessels + netbuoy + sarheli + sarplane + 11 state)",
+      len(icons.ICON_KEYS), 36)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -115,10 +115,29 @@ for imo, mmsi, want in (("9463774", "461001000", "oman"),
     check(f"IMO {imo} -> {want}", icons.special_for(None, imo), want)
     check(f"MMSI {mmsi} -> {want}", icons.special_for(mmsi, None), want)
 check("Ang Pangulo by IMO alone", icons.special_for("548000000", "4608410"), "philippines")
+for imo, mmsi, want in (("1007043", "403003000", "saudi"),
+                        ("9234240", "461006000", "oman"),
+                        ("9803601", "242822300", "morocco"),
+                        ("6915946", "242890000", "morocco"),
+                        ("1006324", "470886000", "uae"),
+                        ("1006336", "319801000", "uae"),
+                        ("9693367", "470992000", "uae"),
+                        ("9526758", "319150300", "bahrain"),
+                        ):
+    check(f"IMO {imo} -> {want}", icons.special_for(None, imo), want)
+    check(f"MMSI {mmsi} -> {want}", icons.special_for(mmsi, None), want)
+for gone in ("403007000", "319526000", "403001000", "466066000", "319650000"):
+    check(f"MMSI {gone} is NOT listed", icons.special_for(gone, None), None)
+for gone in ("9562805", "1003308", "1004704", "5617475", "1009120"):
+    check(f"IMO {gone} is NOT listed", icons.special_for(None, gone), None)
 for key, colours in (("oman", ("#DB161B", "#008000", "#FFFFFF")),
                      ("qatar", ("#8A1538", "#FFFFFF")),
                      ("indonesia", ("#CE1126", "#FFFFFF")),
-                     ("philippines", ("#0038A8", "#CE1126", "#FFFFFF", "#FCD116"))):
+                     ("philippines", ("#0038A8", "#CE1126", "#FFFFFF", "#FCD116")),
+                     ("saudi", ("#006C35", "#FFFFFF")),
+                     ("uae", ("#00732F", "#FFFFFF", "#000000", "#FF0000")),
+                     ("bahrain", ("#CE1126", "#FFFFFF")),
+                     ("morocco", ("#C1272D", "#006233"))):
     s = icons.render(icons.icon_path(key), key, None, 64, "military", 0.9, False)
     check(f"{key}: its own colours, not olive",
           all(c in s for c in colours) and "#8C9A4B" not in s, True)

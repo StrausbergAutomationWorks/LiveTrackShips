@@ -36,7 +36,7 @@ ICON_KEYS = frozenset((
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
     "dannebrog", "norge", "savarona", "oman", "qatar", "indonesia",
-    "philippines"))
+    "philippines", "saudi", "uae", "bahrain", "morocco"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -46,7 +46,8 @@ ICON_KEYS = frozenset((
 # 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
 # The state-vessel icons below are painted too: their colours ARE the icon.
 PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
-                     "qatar", "indonesia", "philippines"))
+                     "qatar", "indonesia", "philippines", "saudi", "uae",
+                     "bahrain", "morocco"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -89,6 +90,10 @@ def pick_sar(airframe) -> str:
 # yacht and a warship that doubles as the presidential ship. No
 # identifier, no ship. Icons named for a SHIP are that ship's; icons named
 # for a COUNTRY are its flag and serve every state vessel of that country.
+# ! RULES (Lee, 2026-09-27): no FORMER ruler's yacht - it is private. A
+# country icon carries the OWNER's country, not the flag state (TATOOSH
+# and AL RAYA fly Cayman). Royal fleet SUPPORT ships count (AL NOORES).
+# A published IMO that fails its check digit is no identifier.
 STATE_BY_IMO = {
     "4537661": "dannebrog",   # Kongeskibet DANNEBROG, Denmark, 78.43 m
     "4603343": "norge",       # KS NORGE, Norway, 80.6 m (IMO measured live)
@@ -99,6 +104,14 @@ STATE_BY_IMO = {
     "9772929": "qatar",       # AL LUSAIL, the reigning Emir of Qatar, 123 m
     "4772326": "indonesia",   # KRI BUNG KARNO (369), presidential corvette
     "4608410": "philippines", # BRP ANG PANGULO (AT-25); no MMSI published
+    "1007043": "saudi",       # AL SALAMAH, Saudi Arabia Govt Finance, 139 m
+    "9234240": "oman",        # AL NOORES, Royal Yachts Squadron tug
+    "9803601": "morocco",     # BADIS 1, King Mohammed VI
+    "6915946": "morocco",     # EL BOUGHAZ I, King Mohammed VI
+    "1006324": "uae",         # DUBAI, the Ruler of Dubai, 162 m
+    "1006336": "uae",         # TATOOSH, UAE President; Cayman flag
+    "9693367": "uae",         # AZZAM, Dept of the President's Affairs, 180 m
+    "9526758": "bahrain",     # AL RAYA, Royal Family of Bahrain; Cayman flag
 }
 STATE_BY_MMSI = {
     "219517000": "dannebrog",  # call sign OUDA
@@ -109,6 +122,14 @@ STATE_BY_MMSI = {
     "461003000": "oman",       # ZINAT AL BIHAAR
     "466443000": "qatar",      # AL LUSAIL
     "525114116": "indonesia",  # KRI BUNG KARNO
+    "403003000": "saudi",      # AL SALAMAH (NOT 403007000: resolves to nothing)
+    "461006000": "oman",       # AL NOORES
+    "242822300": "morocco",    # BADIS 1
+    "242890000": "morocco",    # EL BOUGHAZ I
+    "470886000": "uae",        # DUBAI
+    "319801000": "uae",        # TATOOSH
+    "470992000": "uae",        # AZZAM
+    "319150300": "bahrain",    # AL RAYA (NOT 319526000: her MMSI as DILBAR)
 }
 
 
@@ -249,7 +270,8 @@ _DEFAULT_WEIGHT = {
     "cargo": 0.90, "tanker": 0.90, "container": 0.92, "bulk": 0.92,
     "carcarrier": 0.92, "cruise": 0.95, "dannebrog": 0.80,
     "norge": 0.80, "savarona": 0.95, "oman": 0.95, "qatar": 0.90,
-    "indonesia": 0.80, "philippines": 0.80,
+    "indonesia": 0.80, "philippines": 0.80, "saudi": 0.95, "uae": 0.95,
+    "bahrain": 0.90, "morocco": 0.80,
 }
 
 
