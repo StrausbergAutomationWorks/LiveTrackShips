@@ -71,7 +71,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("25 keys (22 vessels + netbuoy + sarheli + sarplane)", len(icons.ICON_KEYS), 25)
+check("26 keys (22 vessels + netbuoy + sarheli + sarplane + dannebrog)",
+      len(icons.ICON_KEYS), 26)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -79,6 +80,23 @@ check("every pick() result is a key", sorted(every_pick - icons.ICON_KEYS), [])
 for bad in ("_star_of_life", "../icons/tug", "lng", "", "Tug", "tug.svg"):
     check(f"valid_key({bad!r}) is False", icons.valid_key(bad), False)
 check("icon_path('tug') exists", icons.icon_path("tug") is not None, True)
+
+print("\n=== state vessels: one ship, one painted icon, by MMSI ===")
+check("219517000 -> dannebrog", icons.special_for("219517000"), "dannebrog")
+check("int MMSI -> dannebrog", icons.special_for(219517000), "dannebrog")
+check("padded MMSI -> dannebrog", icons.special_for(" 219517000 "), "dannebrog")
+check("a neighbour MMSI -> None", icons.special_for("219517001"), None)
+check("None -> None", icons.special_for(None), None)
+check("every state icon is a key",
+      sorted(set(icons.STATE_VESSELS.values()) - icons.ICON_KEYS), [])
+check("every state icon is PAINTED",
+      sorted(set(icons.STATE_VESSELS.values()) - icons.PAINTED), [])
+dnb = icons.render(icons.icon_path("dannebrog"), "dannebrog", None, 64,
+                   "military", 0.8, False, 90)
+check("dannebrog keeps its red", "#C60C30" in dnb, True)
+check("dannebrog keeps its white cross", dnb.count('fill="#FFFFFF"'), 1)
+check("the military tone does not recolour it", "#8C9A4B" in dnb, False)
+check("78.43 m -> weight 0.8", icons.weight_for("dannebrog", 78.43), 0.8)
 
 print("\n=== tone ===")
 for code, want in ((55, "police"), (3, "gov"), (35, "military"), (39, "military"),

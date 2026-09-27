@@ -256,7 +256,9 @@ class ShipEvent(GeolocationEvent):
         elif kind != "vessel":
             key = "generic"
         else:
-            key = icons.pick(o.ship_type, o.length_m)
+            # A named royal or presidential ship draws its own icon.
+            key = (icons.special_for(o.identity)
+                   or icons.pick(o.ship_type, o.length_m))
         if kind in _FIXED_KINDS:
             bearing, basis = None, None
         elif kind == "net_buoy":

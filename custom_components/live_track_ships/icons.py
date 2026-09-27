@@ -34,7 +34,8 @@ ICON_KEYS = frozenset((
     "generic", "cargo", "tanker", "passenger", "fishing", "tug", "sailing",
     "pleasure", "highspeed", "workboat", "military", "container", "bulk",
     "carcarrier", "cruise", "ferry", "dredger", "offshore", "police",
-    "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane"))
+    "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
+    "dannebrog"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -42,7 +43,8 @@ ICON_KEYS = frozenset((
 # instead of filling it with a tone. Sized as the smallest aircraft draws:
 # Live Track Aircraft's light-aircraft icons at weight 0.62 span 31 px of a
 # 64 px image (bin\ship_icons\make_fish.txt, 2026-09-24), and so does this.
-PAINTED = frozenset(("netbuoy",))
+# The state-vessel icons below are painted too: their colours ARE the icon.
+PAINTED = frozenset(("netbuoy", "dannebrog"))
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -64,6 +66,29 @@ SAR_KEY_FOR = {"fixed_wing": "sarplane", "rotorcraft": "sarheli"}
 
 def pick_sar(airframe) -> str:
     return SAR_KEY_FOR.get(airframe, "sarheli")
+
+
+# --- one named ship, one icon ----------------------------------------------
+# ! ROYAL AND PRESIDENTIAL SHIPS, by MMSI (Lee, 2026-09-26). Each draws its
+# own PAINTED icon in its national colours, whatever type it broadcasts:
+# the ship is the point, not its declared class. Keyed by MMSI alone, the
+# identity used everywhere (SSOT section 6), never by name - a name is
+# padded, mangled and editable. Only objects of kind `vessel` reach this.
+# Added as allowed, one row per ship; each value must be in ICON_KEYS and
+# PAINTED (test_icons.py checks).
+STATE_VESSELS = {
+    # Kongeskibet DANNEBROG, the Royal Danish yacht. IMO 4537661, call
+    # sign OUDA, 78.43 m. Hull #C60C30, white Nordic cross: long bar on
+    # the centreline, crossbar just aft of midships (Lee).
+    "219517000": "dannebrog",
+}
+
+
+def special_for(identity) -> str | None:
+    """The icon of a named state vessel, or None for every other ship."""
+    if identity is None:
+        return None
+    return STATE_VESSELS.get(str(identity).strip())
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.
@@ -189,7 +214,7 @@ _DEFAULT_WEIGHT = {
     "fishing": 0.60, "generic": 0.70, "dredger": 0.75, "offshore": 0.75,
     "military": 0.80, "ferry": 0.85, "passenger": 0.85, "atb": 0.85,
     "cargo": 0.90, "tanker": 0.90, "container": 0.92, "bulk": 0.92,
-    "carcarrier": 0.92, "cruise": 0.95,
+    "carcarrier": 0.92, "cruise": 0.95, "dannebrog": 0.80,
 }
 
 
