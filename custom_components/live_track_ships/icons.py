@@ -60,7 +60,7 @@ PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
 VESSEL_PAINTED = frozenset((
     "tanker", "atb", "tug", "dredger", "offshore", "fishing", "cargo",
     "bulk", "container", "carcarrier", "cruise", "ferry", "passenger",
-    "highspeed", "workboat", "pleasure"))
+    "highspeed", "workboat", "pleasure", "police"))
 PAINTED = PAINTED | VESSEL_PAINTED
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -420,6 +420,71 @@ def _symbol(kind: str, k: float, counter: int | None) -> str:
     return ""
 
 
+# --- overlays drawn OUTSIDE the outline filter ----------------------------
+# ! POLICE (Lee, 2026-09-28): white hull, blue light bar, two lamps in
+# wig-wag; each flash is a blue burst that reaches past the hull on its
+# side. Nominal radius 108, CAPPED per weight so the burst - fading tail
+# included - never reaches past 94 from the image centre: nothing clips
+# at any heading. Outside the filter, so the glow stays soft.
+POLICE_FLASH_R = 108.0
+REACH_LIMIT = 94.0
+_LY = 101
+POLICE_BLUE, POLICE_HOT = "#3D8BFF", "#EEF6FF"
+
+
+def _flash_reach(r: float) -> float:
+    """Farthest point of one flash ellipse from the centre, art units."""
+    cx = 85 - 0.25 * r
+    return max(math.hypot(cx + r * math.cos(a) - 100,
+                          _LY + 0.72 * r * math.sin(a) - 100)
+               for a in (i * math.pi / 360 for i in range(720)))
+
+
+_FLASH_CACHE: dict[float, float] = {}
+
+
+def police_flash_r(k: float) -> float:
+    """Largest radius <= POLICE_FLASH_R whose flash, scaled by k, stays
+    within REACH_LIMIT. Rounded DOWN so the limit holds exactly."""
+    k = round(max(0.1, min(1.0, k)), 2)
+    if k not in _FLASH_CACHE:
+        if k * _flash_reach(POLICE_FLASH_R) <= REACH_LIMIT:
+            _FLASH_CACHE[k] = POLICE_FLASH_R
+        else:
+            lo, hi = 0.0, POLICE_FLASH_R
+            for _ in range(40):
+                mid = (lo + hi) / 2
+                lo, hi = (mid, hi) if k * _flash_reach(mid) <= REACH_LIMIT else (lo, mid)
+            _FLASH_CACHE[k] = math.floor(lo * 10) / 10
+    return _FLASH_CACHE[k]
+
+
+def _police_flash(k: float) -> str:
+    r = police_flash_r(k)
+    kt = 'keyTimes="0;0.06;0.38;0.48;1"'
+    out = []
+    for x, begin, g in ((85, "0s", "pfa"), (115, "-0.4s", "pfb")):
+        cx = x + (-1 if x < 100 else 1) * r * 0.25
+        out.append(
+            '<defs><radialGradient id="%s"><stop offset="0" stop-color="%s"/>'
+            '<stop offset="0.22" stop-color="%s" stop-opacity="0.95"/>'
+            '<stop offset="0.6" stop-color="%s" stop-opacity="0.55"/>'
+            '<stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient></defs>'
+            '<ellipse cx="%.1f" cy="%d" rx="%.1f" ry="%.1f" fill="url(#%s)" opacity="0">'
+            '<animate attributeName="opacity" values="0;1;1;0;0" %s dur="0.8s" '
+            'begin="%s" repeatCount="indefinite"/></ellipse>'
+            % (g, POLICE_HOT, POLICE_BLUE, POLICE_BLUE, POLICE_BLUE,
+               cx, _LY, r, 0.72 * r, g, kt, begin))
+    return ('<g transform="translate(%.4f %.4f) scale(%.6f)">%s</g>'
+            % (100 - 100 * k, 100 - 100 * k, k, "".join(out)))
+
+
+def _overlay(key: str, k: float, counter: int | None) -> str:
+    if key == "police":
+        return _police_flash(k)
+    return ""
+
+
 # --- rendering: Live Track Aircraft's pipeline, rotation fit 1.0 -----------
 _SVG_OPEN = re.compile(r"<svg\b[^>]*>", re.I)
 _PAINT_ATTR = re.compile(r'\s(?:fill|stroke)\s*=\s*"(?!none\s*")[^"]*"', re.I)
@@ -474,7 +539,7 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
         fill = TONES.get(tone, TONES["default"])
         art = '<g transform="%s" fill="%s">%s</g>' % (
             " ".join(parts), fill, decolour(body))
-    sym = _symbol(SYMBOL_FOR.get(key, ""), k, counter)
+    sym = _symbol(SYMBOL_FOR.get(key, ""), k, counter) + _overlay(key, k, counter)
     if badge:
         return (head + '<circle cx="100" cy="100" r="100" fill="%s"/>' % BADGE
                 + art + sym + '</svg>')

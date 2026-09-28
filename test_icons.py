@@ -222,6 +222,25 @@ _clash = sorted((c, sorted(u)) for c, u in _uses.items()
                 if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
 check("no palette colour appears in two icons (outline excepted)", _clash, [])
 
+print("\n=== police: light bar, flash outside the outline, capped at 94 ===")
+check("police is PAINTED", "police" in icons.PAINTED, True)
+check("light bar blue", icons.POLICE_BLUE in open(icons.icon_path("police"), encoding="utf-8").read(), True)
+check("no side rays left", "M138.43" in open(icons.icon_path("police"), encoding="utf-8").read(), False)
+_over = []
+for _w in [x / 100 for x in range(10, 101)]:
+    _r = icons.police_flash_r(_w)
+    if _w * icons._flash_reach(_r) > icons.REACH_LIMIT + 1e-9 or _r > icons.POLICE_FLASH_R:
+        _over.append((_w, _r))
+check("flash within 94 at every weight 0.10-1.00", _over, [])
+check("small boat (0.55) gets the full 108", icons.police_flash_r(0.55), 108.0)
+check("largest (1.0) is capped", icons.police_flash_r(1.0) < 108.0, True)
+_p = icons.render(icons.icon_path("police"), "police", None, 64, "police", 0.68, False)
+check("two flashes", _p.count("<ellipse"), 2)
+check("flashes after the filtered group", _p.rfind("<ellipse") > _p.rfind('filter="url(#e)"'), True)
+_fb = _re.findall(r'<ellipse[^>]*>\s*<animate[^>]*begin="([^"]+)"', _p)
+check("the two flashes alternate", sorted(_fb), ["-0.4s", "0s"])
+check("no overlay on cargo", "<ellipse" in icons.render(icons.icon_path("cargo"), "cargo", None, 64, "default", 0.9, False), False)
+
 print("\n=== render: strict XML for every icon, angle, tone and mode ===")
 bad = []
 n = 0
