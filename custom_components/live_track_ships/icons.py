@@ -60,7 +60,7 @@ PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
 VESSEL_PAINTED = frozenset((
     "tanker", "atb", "tug", "dredger", "offshore", "fishing", "cargo",
     "bulk", "container", "carcarrier", "cruise", "ferry", "passenger",
-    "highspeed", "workboat", "pleasure", "police"))
+    "highspeed", "workboat", "pleasure", "police", "sailing"))
 PAINTED = PAINTED | VESSEL_PAINTED
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -369,6 +369,9 @@ def quantise(deg) -> int | None:
 
 # --- the upright symbol ----------------------------------------------------
 SYMBOL_FOR = {"medical": "cross", "sar": "sol"}
+# Keys whose image carries something that must stand upright, so the
+# picture URL carries the card's angle (s=) to counter-rotate it.
+UPRIGHT = frozenset(SYMBOL_FOR) | {"sailing"}
 CROSS_RED = "#D7263D"
 SOL_ORANGE = "#F26A1B"   # the SAR variant; blue now means police
 
@@ -479,9 +482,46 @@ def _police_flash(k: float) -> str:
             % (100 - 100 * k, 100 - 100 * k, k, "".join(out)))
 
 
+# ! SAILBOAT (Lee, 2026-09-28): seen from shore - a tall mast, a white
+# main and a slightly greyer jib with water between them, shaded, with a
+# soft shadow and no outline. The hull turns with the heading; the RIG is
+# counter-rotated so it always stands up, and it is NOT scaled by length
+# (it would vanish at 13 m). The mast stands on the image centre, so hull
+# and rig stay joined at any heading; reach 94 at the masthead.
+RIG_MAIN = ("#F7F8FA", "#CBD3DB")
+RIG_JIB = ("#E3E8ED", "#B3BDC7")
+RIG_SPAR = "#8A7B6A"
+
+
+def _rig(counter: int | None) -> str:
+    top, boom, tack, foot, gap, drop = 8, 142, 56, 88, 6, 10
+    jh, clew = top + 10 + drop, 99 - gap
+    rot = ' transform="rotate(%d 100 100)"' % (-counter % 360) if counter else ""
+    return (
+        '<g%s><defs>'
+        '<linearGradient id="rgm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="%s"/>'
+        '<stop offset="0.35" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
+        '<linearGradient id="rgj" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="%s"/>'
+        '<stop offset="0.55" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>'
+        '<filter id="rgs" x="-20%%" y="-20%%" width="140%%" height="140%%">'
+        '<feDropShadow dx="2.5" dy="3" stdDeviation="2.2" flood-color="%s" flood-opacity="0.38"/>'
+        '</filter></defs><g filter="url(#rgs)">'
+        '<path fill="url(#rgm)" d="M103 %d Q%d %d %d %d L103 %d Z"/>'
+        '<path fill="url(#rgj)" d="M%d %d Q%d %d %d %d L%d %d Z"/>'
+        '<rect x="99.5" y="%d" width="3" height="%d" rx="1.2" fill="%s"/>'
+        '<rect x="102" y="%d" width="%d" height="2.4" rx="1" fill="%s"/>'
+        '</g></g>'
+        % (rot, RIG_MAIN[1], RIG_MAIN[0], RIG_MAIN[0], RIG_JIB[1], RIG_JIB[0], RIG_JIB[0], EDGE,
+           top, boom - 6, (top + foot) // 2 + 8, boom, foot, foot + 2,
+           clew - 1, jh, tack + 12, (jh + foot) // 2 + 10, tack, foot - 2, clew, foot - 2,
+           top - 2, 104 - top, RIG_SPAR, foot - 1, boom - 101, RIG_SPAR))
+
+
 def _overlay(key: str, k: float, counter: int | None) -> str:
     if key == "police":
         return _police_flash(k)
+    if key == "sailing":
+        return _rig(counter)
     return ""
 
 

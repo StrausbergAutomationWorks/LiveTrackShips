@@ -274,7 +274,7 @@ class ShipEvent(GeolocationEvent):
         if angle is not None:
             out["icon_rotation_deg"] = angle
             out["icon_rotation_basis"] = basis
-        symbol = key in icons.SYMBOL_FOR
+        symbol = key in icons.UPRIGHT
         # The one picture drawn rotated: a net buoy with nothing to go on
         # points EAST in the image, and publishes no icon_rotation_deg, so
         # the card leaves it as drawn and nothing doubles.

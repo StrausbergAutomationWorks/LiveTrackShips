@@ -202,6 +202,14 @@ ev = ShipEvent(Observation(identity="367148861", source="live_track_ships", obse
                            latitude=59.4, longitude=10.7, heading_deg=30), 1.0)
 check("ShipEvent takes no icon options", ev.entity_picture is not None, True)
 
+print("\n=== sailboat: the rig stands up, so the picture carries the angle (2026-09-28) ===")
+x, p = attrs_of("367148870", ship_type=36, heading_deg=200, length_m=12.0)
+check("sailboat picture unrotated", (p or "").split("?")[0].endswith("/sailing/fixed.svg"), True)
+check("sailboat picture carries the counter angle", "s=200" in (p or ""), True)
+check("the card is told the same angle", x.get("icon_rotation_deg"), 200)
+x, p = attrs_of("367148871", ship_type=70, heading_deg=200, length_m=120.0)
+check("cargo carries no counter angle", "s=" in (p or ""), False)
+
 print("\n=== net buoys: any heading or course, at any speed; else EAST (2026-09-25) ===")
 x, p = attrs_of("586707080", name="FISHING BOUY")
 check("buoy, nothing to go on: no rotation attribute", "icon_rotation_deg" in x, False)

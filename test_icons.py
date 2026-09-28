@@ -241,6 +241,23 @@ _fb = _re.findall(r'<ellipse[^>]*>\s*<animate[^>]*begin="([^"]+)"', _p)
 check("the two flashes alternate", sorted(_fb), ["-0.4s", "0s"])
 check("no overlay on cargo", "<ellipse" in icons.render(icons.icon_path("cargo"), "cargo", None, 64, "default", 0.9, False), False)
 
+print("\n=== sailboat: upright rig, counter-rotated, not scaled ===")
+check("sailing is PAINTED", "sailing" in icons.PAINTED, True)
+check("UPRIGHT = symbols + sailing", sorted(icons.UPRIGHT), sorted(set(icons.SYMBOL_FOR) | {"sailing"}))
+_s0 = icons.render(icons.icon_path("sailing"), "sailing", None, 64, "default", 0.53, False)
+_s9 = icons.render(icons.icon_path("sailing"), "sailing", None, 64, "default", 0.53, False, 90)
+check("rig present", _s0.count("url(#rgm)") == 1 and _s0.count("url(#rgj)") == 1, True)
+check("no counter -> rig upright, unrotated", "rotate(" in _s0, False)
+check("counter 90 -> rig turned back by -90", '<g transform="rotate(270 100 100)">' in _s9, True)
+check("counter 90 -> hull NOT rotated", "rotate(90 100 100)" in _s9, False)
+check("rig after the filtered group", _s0.rfind("url(#rgm)") > _s0.rfind('filter="url(#e)"'), True)
+_rig = lambda s: s[s.index('<g><defs><linearGradient id="rgm"'):]
+_o5, _o10 = icons._overlay("sailing", 0.53, None), icons._overlay("sailing", 1.0, None)
+check("rig identical at weight 0.53 and 1.0", _o5 == _o10, True)
+check("rig carries no scale", "scale(" in _o5, False)
+check("the rig is served as built", _o5 in _s0, True)
+check("no rig on pleasure", "rgm" in icons.render(icons.icon_path("pleasure"), "pleasure", None, 64, "default", 0.5, False), False)
+
 print("\n=== render: strict XML for every icon, angle, tone and mode ===")
 bad = []
 n = 0
