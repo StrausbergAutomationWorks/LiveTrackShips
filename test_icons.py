@@ -202,6 +202,26 @@ check("quantise 2.4 -> 0", icons.quantise(2.4), 0)
 check("quantise 47.6 -> 50", icons.quantise(47.6), 50)
 check("quantise None", icons.quantise(None), None)
 
+print("\n=== vessel palette: painted, and no colour shared between icons ===")
+check("every palette key is a key", sorted(icons.VESSEL_PAINTED - icons.ICON_KEYS), [])
+check("every palette key is PAINTED", sorted(icons.VESSEL_PAINTED - icons.PAINTED), [])
+# named outright: a key dropped from VESSEL_PAINTED would also drop out of the
+# check above and be decoloured to cream without any test noticing
+check("the painted vessel set", sorted(icons.VESSEL_PAINTED - {"police", "sailing"}), sorted((
+    "atb", "bulk", "carcarrier", "cargo", "container", "cruise", "dredger", "ferry",
+    "fishing", "highspeed", "offshore", "passenger", "pleasure", "tanker", "tug", "workboat")))
+check("tinted vessels stay tinted", sorted({"generic", "military", "medical", "sar"} & icons.PAINTED), [])
+import re as _re
+_hex = _re.compile(r"#[0-9A-Fa-f]{6}")
+_uses = {}
+for _k in sorted(icons.PAINTED):
+    for _c in set(h.upper() for h in _hex.findall(open(icons.icon_path(_k), encoding="utf-8").read())):
+        _uses.setdefault(_c, set()).add(_k)
+_state = set(icons.STATE_BY_IMO.values()) | set(icons.STATE_BY_MMSI.values()) | {"netbuoy"}
+_clash = sorted((c, sorted(u)) for c, u in _uses.items()
+                if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
+check("no palette colour appears in two icons (outline excepted)", _clash, [])
+
 print("\n=== render: strict XML for every icon, angle, tone and mode ===")
 bad = []
 n = 0

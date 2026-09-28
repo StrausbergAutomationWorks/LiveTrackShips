@@ -50,6 +50,18 @@ PAINTED = frozenset(("netbuoy", "dannebrog", "norge", "savarona", "oman",
                      "qatar", "indonesia", "philippines", "saudi", "uae",
                      "bahrain", "morocco", "russia", "turkmenistan",
                      "croatia"))
+# ! THE VESSEL PALETTE (Lee, 2026-09-28): soft colours, never primaries,
+# the real-world colours where a type has them (red tanker decks, yellow
+# dredgers, white cruise ships), and no colour shared with another icon
+# apart from the outline (test_icons.py checks). These draw their own
+# paint; the tint vocabulary (TONES) stays for generic, military, medical
+# and sar, whose colour carries meaning. Drafts and the check:
+# bin\ship_icons\draft_palette\, SSOT item 254.
+VESSEL_PAINTED = frozenset((
+    "tanker", "atb", "tug", "dredger", "offshore", "fishing", "cargo",
+    "bulk", "container", "carcarrier", "cruise", "ferry", "passenger",
+    "highspeed", "workboat", "pleasure"))
+PAINTED = PAINTED | VESSEL_PAINTED
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 

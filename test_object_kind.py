@@ -89,9 +89,12 @@ for deg in (None, 0, 45, 185):
         check("paint kept deg=%s badge=%s" % (deg, badge), "#FA8072" in svg, True)
         check("no tone fill deg=%s badge=%s" % (deg, badge),
               icons.TONES["police"] in svg, False)
-# a vessel icon is still filled with its tone and decoloured
-svg = icons.render(icons.icon_path("cargo"), "cargo", 30, 64, "police", 0.9, True)
-check("vessel still toned", icons.TONES["police"] in svg, True)
+# a vessel icon that is not painted is still filled with its tone and
+# decoloured (2026-09-28: cargo and the rest of the vessel palette now paint
+# their own colours - icons.VESSEL_PAINTED - so this uses generic)
+svg = icons.render(icons.icon_path("generic"), "generic", 30, 64, "police", 0.9, True)
+check("unpainted vessel still toned", icons.TONES["police"] in svg, True)
+check("generic is not painted", "generic" in icons.PAINTED, False)
 
 # SAR aircraft: ITU-R M.585-8 seventh digit, 1 fixed-wing, 5 helicopter, optional
 # the airframe is decided ONCE, in base.sar_airframe; the icon maps it (backlog 258)
