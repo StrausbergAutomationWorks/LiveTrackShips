@@ -321,21 +321,54 @@ def weight_for(key: str, length_m=None) -> float:
 SLOW_KMH = 2 * 1.852
 
 
-def bearing(heading_deg, course_deg, speed_kmh, held):
+# A move at least this long by a vessel not making 2 kn is a boat easing into
+# or out of its slip, not mooring jitter (the card's 30 m floor, card SSOT 40;
+# on the river capture 920 at-rest moves were under 30 m and 148 over, 85 of
+# them 100-965 m). Lee, 2026-09-29.
+ARRIVAL_MIN_M = 30.0
+_EARTH_M = 6371008.8
+
+
+def arrival_bearing(prev_lat, prev_lon, lat, lon):
+    """Initial great-circle bearing of the move from the previous fix to this
+    one, degrees 0..360, or None: no previous fix, or a move under
+    ARRIVAL_MIN_M (jitter has no direction)."""
+    try:
+        p1, l1, p2, l2 = (math.radians(float(v)) for v in (prev_lat, prev_lon, lat, lon))
+    except (TypeError, ValueError):
+        return None
+    h = (math.sin((p2 - p1) / 2) ** 2
+         + math.cos(p1) * math.cos(p2) * math.sin((l2 - l1) / 2) ** 2)
+    if 2 * _EARTH_M * math.asin(min(1.0, math.sqrt(h))) < ARRIVAL_MIN_M:
+        return None
+    y = math.sin(l2 - l1) * math.cos(p2)
+    x = math.cos(p1) * math.sin(p2) - math.sin(p1) * math.cos(p2) * math.cos(l2 - l1)
+    return math.degrees(math.atan2(y, x)) % 360
+
+
+def bearing(heading_deg, course_deg, speed_kmh, held, arrival=None):
     """(bearing, basis) or (None, None). 06_MAP_CONTRACT.md D4.
 
     True heading when broadcast - it is where the hull points, meaningful at
-    rest. Else course over ground while moving at 2 kn or more. Else the last
-    course-derived bearing, HELD (Lee, 2026-09-24): a moored vessel's course
-    is noise, and dropping the rotation would snap every one of them north.
-    A vessel first seen at rest with no heading has nothing to hold."""
+    rest. Else course over ground while moving at 2 kn or more. Below that a
+    moored vessel's course is noise (Lee, 2026-09-24), so the angle is HELD:
+    the bearing of the move it just made if that was ARRIVAL_MIN_M or more -
+    it points the way it came into its slip; else the angle already held;
+    else, with nothing held yet (first seen slow: after a restart, or back in
+    range), its reported course, which the caller then holds. A held boat
+    must point the right way, never snap north (Lee, 2026-09-29).
+    With none of these there is nothing to show."""
     if heading_deg is not None:
         return float(heading_deg) % 360, "heading"
     if (course_deg is not None and speed_kmh is not None
             and speed_kmh >= SLOW_KMH):
         return float(course_deg) % 360, "course"
+    if arrival is not None:
+        return float(arrival) % 360, "held"
     if held is not None:
         return held, "held"
+    if course_deg is not None:
+        return float(course_deg) % 360, "held"
     return None, None
 
 

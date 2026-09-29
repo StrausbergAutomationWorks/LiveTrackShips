@@ -211,6 +211,22 @@ async def _remove_vessel(entity: "ShipEvent", release) -> None:
         release()
 
 
+# The held angle per vessel, for the life of this Home Assistant run: kept
+# here, not on the entity, so a vessel that leaves the entry's cut and comes
+# back still points the way it did (Lee, 2026-09-29). Insertion-ordered; the
+# oldest entries go past _HELD_MAX. Not persisted: after a restart a slow
+# vessel starts from its move or its reported course (icons.bearing).
+_HELD_BY_ID: dict[str, float] = {}
+_HELD_MAX = 50_000
+
+
+def _remember_held(identity: str, deg: float) -> None:
+    _HELD_BY_ID.pop(identity, None)
+    _HELD_BY_ID[identity] = deg
+    while len(_HELD_BY_ID) > _HELD_MAX:
+        _HELD_BY_ID.pop(next(iter(_HELD_BY_ID)))
+
+
 class ShipEvent(GeolocationEvent):
     """One vessel on the shared map."""
 
@@ -229,10 +245,12 @@ class ShipEvent(GeolocationEvent):
         self._attr_attribution = attribution
         self._attr_distance = distance_km
         self.retired = False
-        # The last COURSE-derived bearing, held while the vessel is at rest.
+        # The angle held while the vessel is at rest: from its course, its
+        # last move of 30 m or more, or its reported course (icons.bearing).
         # Never a heading: heading stays meaningful at rest and is published
-        # as it is (06_MAP_CONTRACT.md D4).
-        self._held: float | None = None
+        # as it is (06_MAP_CONTRACT.md D4). Per vessel for the run, not per
+        # entity object (_HELD_BY_ID).
+        self._held: float | None = _HELD_BY_ID.get(obs.identity)
         self._icon: dict = {}
         self._refresh_icon()
 
@@ -265,10 +283,15 @@ class ShipEvent(GeolocationEvent):
             # Any heading or course, at any speed; none -> east (icons.py).
             bearing, basis = icons.buoy_bearing(o.heading_deg, o.course_deg)
         else:
+            prev = o.extra or {}
+            arrival = icons.arrival_bearing(prev.get("previous_latitude"),
+                                            prev.get("previous_longitude"),
+                                            o.latitude, o.longitude)
             bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
-                                           o.speed_kmh, self._held)
-        if basis == "course" and kind != "net_buoy":
+                                           o.speed_kmh, self._held, arrival)
+        if basis in ("course", "held") and kind != "net_buoy":
             self._held = bearing
+            _remember_held(o.identity, bearing)
         angle = icons.quantise(bearing)
         out: dict = {"icon_key": key}
         if angle is not None:

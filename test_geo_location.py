@@ -221,8 +221,38 @@ check("buoy with a course: image unrotated", "/netbuoy/fixed.svg" in (p or ""), 
 x, p = attrs_of("586707082", name="FISHING BOUY", heading_deg=10, course_deg=200.0, speed_kmh=0.4)
 check("buoy heading wins over course", (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (10, "heading"))
 x, p = attrs_of("367148870", course_deg=200.0, speed_kmh=1.0, ship_type=70)
-check("a VESSEL below 2 kn still gets no course rotation", "icon_rotation_deg" in x, False)
-check("a VESSEL with nothing is never drawn east", "/fixed.svg" in (p or ""), True)
+check("a VESSEL below 2 kn: its course is HELD, never basis course (Lee 2026-09-29)",
+      (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (200, "held"))
+check("a VESSEL is never drawn east in the image", "/fixed.svg" in (p or ""), True)
+x, p = attrs_of("367148875", speed_kmh=0.0, ship_type=70)
+check("a VESSEL with nothing to go on: no rotation", "icon_rotation_deg" in x, False)
+
+print("\n=== held: the right way, never north (Lee 2026-09-29) ===")
+x, _ = attrs_of("367148871", speed_kmh=0.5, ship_type=60,
+                extra={"previous_latitude": 59.4, "previous_longitude": 10.698})
+check("slow, moved 113 m east, no course: held at 90",
+      (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (90, "held"))
+x, _ = attrs_of("367148872", speed_kmh=0.5, ship_type=60, course_deg=10.0,
+                extra={"previous_latitude": 59.399, "previous_longitude": 10.7})
+check("slow, moved 111 m north: the move beats the slow course",
+      (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (0, "held"))
+x, _ = attrs_of("367148873", speed_kmh=0.5, ship_type=60,
+                extra={"previous_latitude": 59.4, "previous_longitude": 10.6997})
+check("slow, moved 17 m, no course: jitter, no rotation", "icon_rotation_deg" in x, False)
+mv = Observation(identity="367148874", source="live_track_ships", observed_at=T0,
+                 latitude=59.4, longitude=10.7, speed_kmh=12.0, course_deg=120.0, ship_type=60)
+ShipEvent(mv, 1.0)
+back = Observation(identity="367148874", source="live_track_ships", observed_at=T0,
+                   latitude=59.4, longitude=10.7, speed_kmh=0.0, ship_type=60)
+x = ShipEvent(back, 1.0).extra_state_attributes
+check("a NEW entity for the same vessel keeps its held angle",
+      (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (120, "held"))
+ev = ShipEvent(Observation(identity="367148876", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=0.3, course_deg=250.0, ship_type=60), 1.0)
+ev.update_from(Observation(identity="367148876", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=0.3, course_deg=40.0, ship_type=60), 1.0)
+check("a slow course seeds the held angle once; later slow courses are noise",
+      ev.extra_state_attributes.get("icon_rotation_deg"), 250)
 
 print("\n=== attribution: the entry's source credit (Lee 2026-09-26) ===")
 import live_track_ships.const_flow as cfa                            # noqa: E402

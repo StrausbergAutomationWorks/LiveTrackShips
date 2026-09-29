@@ -7,6 +7,7 @@ standard library. The raster checks need resvg_py and are skipped where it is
 absent (the HA container); the XML checks run everywhere.
 """
 import importlib.util
+import math
 import pathlib
 import sys
 import xml.etree.ElementTree as ET
@@ -193,7 +194,21 @@ SLOW = icons.SLOW_KMH
 check("heading wins, even at rest", icons.bearing(90, 180, 0.0, 10.0), (90.0, "heading"))
 check("course when moving", icons.bearing(None, 180, SLOW, None), (180.0, "course"))
 check("course just below 2 kn -> held", icons.bearing(None, 180, SLOW - 0.01, 45.0), (45.0, "held"))
-check("slow, nothing held -> none", icons.bearing(None, 180, 0.5, None), (None, None))
+check("slow, nothing held -> its course, as held", icons.bearing(None, 180, 0.5, None), (180.0, "held"))
+check("slow, nothing held, no course -> none", icons.bearing(None, None, 0.5, None), (None, None))
+check("slow, a move of 30 m+ beats the held angle", icons.bearing(None, 180, 0.5, 45.0, 300.0), (300.0, "held"))
+check("slow, a move of 30 m+ beats a slow course", icons.bearing(None, 180, 0.5, None, 300.0), (300.0, "held"))
+check("moving at 2 kn: course beats the move", icons.bearing(None, 180, SLOW, 45.0, 300.0), (180.0, "course"))
+check("heading beats the move", icons.bearing(90, 180, 0.0, 10.0, 300.0), (90.0, "heading"))
+check("held beats a slow course", icons.bearing(None, 180, 0.5, 45.0), (45.0, "held"))
+check("arrival floor is 30 m", icons.ARRIVAL_MIN_M, 30.0)
+_M = 1 / 111195.0   # degrees of latitude per metre, near enough
+check("a move of 100 m north bears 0", round(icons.arrival_bearing(41.88, -87.63, 41.88 + 100 * _M, -87.63)), 0)
+check("a move of 100 m east bears 90", round(icons.arrival_bearing(41.88, -87.63, 41.88, -87.63 + 100 * _M / math.cos(math.radians(41.88)))), 90)
+check("a move of 100 m south-west bears 225", round(icons.arrival_bearing(41.88, -87.63, 41.88 - 70.71 * _M, -87.63 - 70.71 * _M / math.cos(math.radians(41.88)))), 225)
+check("29 m is jitter: no bearing", icons.arrival_bearing(41.88, -87.63, 41.88 + 29 * _M, -87.63), None)
+check("31 m is a move", icons.arrival_bearing(41.88, -87.63, 41.88 + 31 * _M, -87.63) is not None, True)
+check("no previous fix: no bearing", icons.arrival_bearing(None, None, 41.88, -87.63), None)
 check("no speed -> held, not course", icons.bearing(None, 180, None, 30.0), (30.0, "held"))
 check("moving, no course -> held", icons.bearing(None, None, 20.0, 30.0), (30.0, "held"))
 check("heading 360 wraps", icons.bearing(360, None, None, None), (0.0, "heading"))
