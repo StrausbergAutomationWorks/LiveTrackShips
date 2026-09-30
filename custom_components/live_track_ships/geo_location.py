@@ -256,6 +256,7 @@ class ShipEvent(GeolocationEvent):
         way."""
         o = self._obs
         kind = o.kind
+        weight = None
         if kind == "net_buoy":
             key = "netbuoy"
         elif kind == "sar_aircraft":
@@ -263,9 +264,10 @@ class ShipEvent(GeolocationEvent):
         elif kind != "vessel":
             key = "generic"
         else:
-            # A named royal or presidential ship draws its own icon.
-            key = (icons.special_for(o.identity, valid_imo(o.imo))
-                   or icons.pick(o.ship_type, o.length_m))
+            # A royal or presidential ship, then a named boat (by MMSI
+            # alone, at its fixed size), draw their own icon (icons.choose).
+            key, weight = icons.choose(o.identity, valid_imo(o.imo),
+                                       o.ship_type, o.length_m)
         if kind in _FIXED_KINDS:
             bearing, basis = None, None
         elif kind == "net_buoy":
@@ -307,7 +309,7 @@ class ShipEvent(GeolocationEvent):
             baked,
             icons.tone_for(o.ship_type) if kind == "vessel"
             else icons.tone_for_kind(kind),
-            icons.weight_for(key, o.length_m),
+            icons.weight_for(key, o.length_m) if weight is None else weight,
             badge=False,
             counter=angle if symbol else None)
         self._icon = out

@@ -37,7 +37,9 @@ ICON_KEYS = frozenset((
     "medical", "atb", "sar", "netbuoy", "sarheli", "sarplane",
     "dannebrog", "norge", "savarona", "oman", "qatar", "indonesia",
     "philippines", "saudi", "uae", "bahrain", "morocco", "russia",
-    "turkmenistan", "croatia"))
+    "turkmenistan", "croatia",
+    "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
+    "elite", "seadogry", "seadogyr"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -61,7 +63,21 @@ VESSEL_PAINTED = frozenset((
     "tanker", "atb", "tug", "dredger", "offshore", "fishing", "cargo",
     "bulk", "container", "carcarrier", "cruise", "ferry", "passenger",
     "highspeed", "workboat", "pleasure", "police", "sailing"))
-PAINTED = PAINTED | VESSEL_PAINTED
+# ! NAMED BOATS (Lee, 2026-09-29/30): one boat, or one fleet, drawn in its
+# own colours from photographs - Chicago's party boat, water taxis, tour
+# boats and City Cruises. Which boat gets which: NAMED_BY_MMSI below.
+NAMED_KEYS = frozenset((
+    "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
+    "elite", "seadogry", "seadogyr"))
+PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
+# ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
+# (test_icons.py) holds only BETWEEN companies. A key not listed is its own
+# company. Seadog is City Cruises; Wendella runs Chicago Water Taxi.
+COMPANY_FOR = {
+    "odyssey": "citycruises", "elite": "citycruises",
+    "seadogry": "citycruises", "seadogyr": "citycruises",
+    "wendella": "wendella", "cwttaxi": "wendella",
+}
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
 
@@ -168,6 +184,64 @@ def special_for(identity, imo=None) -> str | None:
     if identity is None:
         return None
     return STATE_BY_MMSI.get(str(identity).strip())
+
+# ! NAMED BOATS, BY MMSI ALONE (Lee, 2026-09-30 04:21: "Just match on mmsi").
+# No name check, no IMO: a boat on this list draws its icon whatever it
+# broadcasts as name, type or length, and at a FIXED size, because the
+# broadcast length is often wrong on these boats (ISLAND TIME says 512 x 64 m)
+# and the sizes were chosen against each other: taxis 0.70 < Wendella 0.75
+# < City Cruises 0.85-0.90. A state vessel (special_for) still wins.
+# ! An MMSI can be reissued: when one of these boats is sold or renamed out
+# of the fleet, take its row out. Names below are as BROADCAST (the two
+# ODYSSEYs arrive mangled); they are comments, never compared.
+# Research and sources: 20_Research/WATER_TAXIS_20260930.md; decisions in
+# bin\ship_icons\draft_*\CHOSEN.md; SSOT item 254.
+NAMED_BY_MMSI = {
+    "367776910": ("islandtime", 0.59),     # ISLAND TIME; the ramp at 20 m
+    "367496450": ("shorelinetaxi", 0.70),  # ASAP
+    "367531970": ("shorelinetaxi", 0.70),  # GOTTA GO NOW
+    "367576980": ("shorelinetaxi", 0.70),  # SKEDADDLE
+    "367307630": ("shorelinetaxi", 0.70),  # GIDDY UP
+    "367454470": ("shorelinetaxi", 0.70),  # LICKETY SPLIT
+    "367364840": ("shorelinetaxi", 0.70),  # SHAKE A LEG (not yet heard by us)
+    "367023080": ("shorelinetaxi", 0.70),  # BLUE DOG (not yet heard by us)
+    "366825870": ("cwttaxi", 0.70),        # BRAVO
+    "367170850": ("cwttaxi", 0.70),        # SUNLINER
+    "367152790": ("cwttaxi", 0.70),        # WENDELLA LTD (not yet heard by us)
+    "367162320": ("wendella", 0.75),       # WENDELLA
+    "367648960": ("wendella", 0.75),       # LUCIA
+    "367442380": ("wendella", 0.75),       # LINNEA
+    "367521420": ("wendella", 0.75),       # LILA
+    "367360260": ("odyssey", 0.90),        # ODYSSEY LAKE MI_IGAN
+    "368039870": ("odyssey", 0.85),        # ODYSSEY CHICAGO_IVER
+    "367409940": ("elite", 0.85),          # CHICAGO ELITE
+    "367148850": ("elite", 0.90),          # SPIRIT OF CHICAGO
+    "367350360": ("elite", 0.85),          # SPIRIT OF NAVY PIER
+    "366848350": ("seadogry", 0.70),       # SEADOG IV (not yet heard by us)
+    "367350620": ("seadogyr", 0.70),       # SEADOG V (SEADOG EXTREME)
+}
+
+
+def named_for(identity) -> tuple[str, float] | None:
+    """(icon key, fixed weight) of a named boat, by MMSI alone, or None."""
+    if identity is None:
+        return None
+    return NAMED_BY_MMSI.get(str(identity).strip())
+
+
+def choose(identity, imo, ship_type, length_m) -> tuple[str, float]:
+    """(icon key, weight) for an object of kind `vessel`: a state vessel
+    (sized by its length), else a named boat (its fixed size), else the
+    declared type (sized by its length). `imo` must already be validated."""
+    key = special_for(identity, imo)
+    if key:
+        return key, weight_for(key, length_m)
+    named = named_for(identity)
+    if named:
+        return named
+    key = pick(ship_type, length_m)
+    return key, weight_for(key, length_m)
+
 
 # Codes that name ONE thing. 01-19 and x5-x8 are the USCG extension (reserved
 # in ITU); 30-59 are ITU's own standalone block.

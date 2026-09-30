@@ -72,8 +72,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("39 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state)",
-      len(icons.ICON_KEYS), 39)
+check("47 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 8 named)",
+      len(icons.ICON_KEYS), 47)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -262,9 +262,68 @@ for _k in sorted(icons.PAINTED):
     for _c in set(h.upper() for h in _hex.findall(open(icons.icon_path(_k), encoding="utf-8").read())):
         _uses.setdefault(_c, set()).add(_k)
 _state = set(icons.STATE_BY_IMO.values()) | set(icons.STATE_BY_MMSI.values()) | {"netbuoy"}
+# "Same company, same color" (Lee, 2026-09-30): a colour may be shared only
+# WITHIN a company (icons.COMPANY_FOR; an unlisted key is its own company).
+_company = lambda k: icons.COMPANY_FOR.get(k, k)
 _clash = sorted((c, sorted(u)) for c, u in _uses.items()
-                if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
-check("no palette colour appears in two icons (outline excepted)", _clash, [])
+                if c != icons.EDGE.upper() and len({_company(k) for k in u}) > 1
+                and u - _state)
+check("no colour shared between icons of different companies (outline excepted)", _clash, [])
+check("the companies", icons.COMPANY_FOR, {
+    "odyssey": "citycruises", "elite": "citycruises", "seadogry": "citycruises",
+    "seadogyr": "citycruises", "wendella": "wendella", "cwttaxi": "wendella"})
+check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
+_same = sorted((c, sorted(u)) for c, u in _uses.items()
+               if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
+check("the exception is exercised: a shared colour exists within a company", bool(_same), True)
+check("every shared colour stays inside one company",
+      [c for c, u in _same if len({_company(k) for k in u}) > 1], [])
+
+print("\n=== named boats: by MMSI alone, painted, a FIXED size (Lee 2026-09-30) ===")
+_NAMED = {
+    "367776910": ("islandtime", 0.59), "367496450": ("shorelinetaxi", 0.70),
+    "367531970": ("shorelinetaxi", 0.70), "367576980": ("shorelinetaxi", 0.70),
+    "367307630": ("shorelinetaxi", 0.70), "367454470": ("shorelinetaxi", 0.70),
+    "367364840": ("shorelinetaxi", 0.70), "367023080": ("shorelinetaxi", 0.70),
+    "366825870": ("cwttaxi", 0.70), "367170850": ("cwttaxi", 0.70),
+    "367152790": ("cwttaxi", 0.70), "367162320": ("wendella", 0.75),
+    "367648960": ("wendella", 0.75), "367442380": ("wendella", 0.75),
+    "367521420": ("wendella", 0.75), "367360260": ("odyssey", 0.90),
+    "368039870": ("odyssey", 0.85), "367409940": ("elite", 0.85),
+    "367148850": ("elite", 0.90), "367350360": ("elite", 0.85),
+    "366848350": ("seadogry", 0.70), "367350620": ("seadogyr", 0.70)}
+check("the table is exactly the 22 boats", icons.NAMED_BY_MMSI, _NAMED)
+for _m, _want in _NAMED.items():
+    check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
+check("int MMSI", icons.named_for(367360260), ("odyssey", 0.90))
+check("padded MMSI", icons.named_for(" 367360260 "), ("odyssey", 0.90))
+check("a neighbour MMSI -> None", icons.named_for("367360261"), None)
+check("None -> None", icons.named_for(None), None)
+_nk = {k for k, _ in icons.NAMED_BY_MMSI.values()}
+check("NAMED_KEYS is the table's keys", sorted(icons.NAMED_KEYS), sorted(_nk))
+check("every named key is a key", sorted(_nk - icons.ICON_KEYS), [])
+check("every named key is PAINTED", sorted(_nk - icons.PAINTED), [])
+check("no named key is reachable by type", sorted(every_pick & icons.NAMED_KEYS), [])
+check("ISLAND TIME's 0.59 is the ramp at 20 m", icons.weight_for("generic", 20), 0.59)
+print("  choose: state vessel, then named boat, then declared type")
+check("named: broadcast 99 at 512 m ignored", icons.choose("367776910", None, 99, 512.0), ("islandtime", 0.59))
+check("named: broadcast type 6 ignored", icons.choose("367531970", None, 6, 19.0), ("shorelinetaxi", 0.70))
+check("named: no type, no length", icons.choose("367576980", None, None, None), ("shorelinetaxi", 0.70))
+check("named: a freighter's type and length ignored", icons.choose("367148850", None, 70, 217.0), ("elite", 0.90))
+check("a valid state IMO beats the named MMSI", icons.choose("367360260", "4537661", 60, 61.0),
+      ("dannebrog", icons.weight_for("dannebrog", 61.0)))
+check("a state MMSI keeps its length ramp", icons.choose("219517000", None, None, 78.43), ("dannebrog", 0.8))
+check("unnamed: type and length ramp", icons.choose("367360261", None, 60, 61.0),
+      ("passenger", icons.weight_for("passenger", 61.0)))
+import inspect as _inspect
+check("no name is taken, so none is compared", "name" in _inspect.signature(icons.choose).parameters, False)
+for _k in sorted(icons.NAMED_KEYS):
+    _src = open(icons.icon_path(_k), encoding="utf-8").read()
+    _cols = set(h.upper() for h in _re.findall(r"#[0-9A-Fa-f]{6}", _src))
+    _out = icons.render(icons.icon_path(_k), _k, None, 64, "military", 0.8, False).upper()
+    check(f"{_k}: every own colour served", sorted(c for c in _cols if c not in _out), [])
+    check(f"{_k}: the military tone does not tint it", "#8C9A4B" in _out, "#8C9A4B" in _cols)
+check("islandtime animates", "<animate" in open(icons.icon_path("islandtime"), encoding="utf-8").read(), True)
 
 print("\n=== police: light bar, flash outside the outline, capped at 94 ===")
 check("police is PAINTED", "police" in icons.PAINTED, True)
