@@ -251,8 +251,79 @@ ev = ShipEvent(Observation(identity="367148876", source="live_track_ships", obse
                latitude=59.4, longitude=10.7, speed_kmh=0.3, course_deg=250.0, ship_type=60), 1.0)
 ev.update_from(Observation(identity="367148876", source="live_track_ships", observed_at=T0,
                latitude=59.4, longitude=10.7, speed_kmh=0.3, course_deg=40.0, ship_type=60), 1.0)
-check("a slow course seeds the held angle once; later slow courses are noise",
-      ev.extra_state_attributes.get("icon_rotation_deg"), 250)
+check("a slow-course seed is WEAK: a newer non-zero slow course replaces it (2026-09-29)",
+      ev.extra_state_attributes.get("icon_rotation_deg"), 40)
+ev.update_from(Observation(identity="367148876", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=0.0, course_deg=0.0, ship_type=60), 1.0)
+check("course 0 at speed 0 does not replace it",
+      ev.extra_state_attributes.get("icon_rotation_deg"), 40)
+ev = ShipEvent(Observation(identity="367148877", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=12.0, course_deg=120.0, ship_type=60), 1.0)
+ev.update_from(Observation(identity="367148877", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=0.3, course_deg=40.0, ship_type=60), 1.0)
+check("a hold from a course at 2 kn STICKS against a slow course",
+      (ev.extra_state_attributes.get("icon_rotation_deg"),
+       ev.extra_state_attributes.get("icon_rotation_basis")), (120, "held"))
+
+from live_track_ships.held import HELD                               # noqa: E402
+ta = ShipEvent(Observation(identity="367148878", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=12.0, course_deg=80.0, ship_type=60), 1.0)
+ShipEvent(Observation(identity="367148879", source="live_track_ships", observed_at=T0,
+          latitude=59.4, longitude=10.7, speed_kmh=12.0, course_deg=81.0, ship_type=60), 1.0)
+ta.update_from(Observation(identity="367148878", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, speed_kmh=0.2, ship_type=60), 1.0)
+check("the held angle is shared per vessel", HELD.get("367148878"), (80.0, True))
+check("drawing a held angle again marks it held NOW (newest last)",
+      list(HELD._d)[-1], "367148878")
+
+print("\n=== ODYSSEY (367360260): course 0 at 0 km/h is no course (2026-09-29) ===")
+od = ShipEvent(Observation(identity="367360261", source="live_track_ships", observed_at=T0,
+               latitude=41.89, longitude=-87.61, speed_kmh=0.0, course_deg=0.0,
+               nav_status=5, ship_type=60), 1.0)
+x = od.extra_state_attributes
+check("course 0 at 0 with no heading: no rotation, never north", "icon_rotation_deg" in x, False)
+od.update_from(Observation(identity="367360261", source="live_track_ships", observed_at=T0,
+               latitude=41.89, longitude=-87.61, speed_kmh=0.0, course_deg=49.4,
+               nav_status=5, ship_type=60), 1.0)
+x = od.extra_state_attributes
+check("then course 49.4 at 0: drawn at 50, held",
+      (x.get("icon_rotation_deg"), x.get("icon_rotation_basis")), (50, "held"))
+
+print("\n=== sailboats with nothing to go on: hull EAST, rig upright (Lee 2026-09-29) ===")
+x, p = attrs_of("367148880", ship_type=36, speed_kmh=0.0, length_m=10.0)
+check("idle sailboat: no rotation attribute", "icon_rotation_deg" in x, False)
+check("idle sailboat: drawn EAST in the image", "/sailing/90.svg" in (p or ""), True)
+check("idle sailboat: no counter angle (the rig stays upright)", "s=" in (p or ""), False)
+check("idle sailboat: not counter-rotated", "icon_counter_rotated" in x, False)
+check("idle sailboat: no disc", "b=0" in (p or ""), True)
+x, p = attrs_of("367148881", ship_type=36, speed_kmh=0.0, course_deg=0.0, length_m=10.0)
+check("sailboat, course 0 at 0: still east", "/sailing/90.svg" in (p or ""), True)
+x, p = attrs_of("367148882", ship_type=36, speed_kmh=0.3, course_deg=210.0, length_m=10.0)
+check("sailboat with a slow course: held, unrotated image",
+      (x.get("icon_rotation_deg"), "/sailing/fixed.svg" in (p or "")), (210, True))
+x, p = attrs_of("367148883", ship_type=70, speed_kmh=0.0, length_m=100.0)
+check("a cargo ship with nothing is NOT drawn east", "/fixed.svg" in (p or ""), True)
+x, p = attrs_of("367148884", ship_type=37, speed_kmh=0.0, length_m=10.0)
+check("a pleasure craft with nothing is NOT drawn east (sailboats only)", "/fixed.svg" in (p or ""), True)
+
+print("\n=== icon_counter_rotated for UPRIGHT pictures (brief 2026-09-28) ===")
+x, p = attrs_of("367148885", ship_type=36, heading_deg=200, length_m=12.0)
+check("sailboat with an angle: True", x.get("icon_counter_rotated"), True)
+x, p = attrs_of("367148886", ship_type=58, heading_deg=30, length_m=20.0)
+check("medical with an angle: True", x.get("icon_counter_rotated"), True)
+x, p = attrs_of("367148887", ship_type=70, heading_deg=30, length_m=120.0)
+check("cargo with an angle: no key", "icon_counter_rotated" in x, False)
+x, p = attrs_of("367148888", ship_type=58, speed_kmh=0.0, length_m=20.0)
+check("medical with no angle: no key", "icon_counter_rotated" in x, False)
+ch = ShipEvent(Observation(identity="367148889", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, heading_deg=30, ship_type=36), 1.0)
+check("before: sailing, key present", ch.extra_state_attributes.get("icon_counter_rotated"), True)
+ch.update_from(Observation(identity="367148889", source="live_track_ships", observed_at=T0,
+               latitude=59.4, longitude=10.7, heading_deg=30, ship_type=70), 1.0)
+check("the key goes when the icon changes to a non-UPRIGHT one",
+      "icon_counter_rotated" in ch.extra_state_attributes, False)
+x, p = attrs_of("111257001", name="NOR-002", heading_deg=45, speed_kmh=150.0)
+check("a SAR helicopter is not UPRIGHT: no key", "icon_counter_rotated" in x, False)
 
 print("\n=== attribution: the entry's source credit (Lee 2026-09-26) ===")
 import live_track_ships.const_flow as cfa                            # noqa: E402

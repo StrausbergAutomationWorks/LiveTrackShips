@@ -30,6 +30,7 @@ from .const_flow import (
 )
 from .const_flow import attribution_for
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
+from . import held as _held
 from .sources import statics as _statics
 from .quota import effective_ceiling
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
@@ -101,6 +102,69 @@ class StaticsHolder:
         await self.async_flush()
 
 
+# ⚠ NOT under hass.data[DOMAIN], which maps entry ids to feeds.
+HELD_KEY = f"{DOMAIN}_held"
+
+
+class HeldHolder:
+    """The saved held angles (SSOT item 270, Lee 2026-09-29): read into
+    held.HELD once per Home Assistant, before any entity is made, and written
+    as a diff by every entry's prune pass, at unload and at shutdown. Every
+    source: a vessel with no heading can come from any of them."""
+
+    def __init__(self, hass):
+        self.hass = hass
+        self.path = hass.config.path(".storage", _held.FILE_NAME)
+        self._loaded: asyncio.Future | None = None
+        self._lock = asyncio.Lock()
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_FINAL_WRITE,
+                                   self._final_write)
+
+    async def async_load(self):
+        if self._loaded is None:
+            self._loaded = self.hass.loop.create_future()
+            try:
+                rows = await self.hass.async_add_executor_job(
+                    _held.load, self.path)
+                taken = _held.HELD.load_rows(rows)
+                _LOGGER.debug("Held angles: %d of %d read back", taken,
+                              len(rows))
+            except Exception as exc:                   # noqa: BLE001
+                # ⚠ Never block setup on a convenience: start empty.
+                _LOGGER.warning("Held angles not read back: %s", exc)
+            finally:
+                self._loaded.set_result(True)
+        await self._loaded
+
+    async def async_flush(self):
+        """Write what changed. A failed write is logged; the next flush
+        computes the diff again, so nothing is lost but time."""
+        async with self._lock:
+            upserts, deletes = _held.HELD.changes()
+            if not upserts and not deletes:
+                return
+            try:
+                await self.hass.async_add_executor_job(
+                    _held.save, self.path, upserts, deletes)
+            except Exception as exc:                   # noqa: BLE001
+                _LOGGER.warning("Held angles not saved: %s", exc)
+                return
+            _held.HELD.committed(upserts, deletes)
+            _LOGGER.debug("Held angles: %d written, %d dropped",
+                          len(upserts), len(deletes))
+
+    async def _final_write(self, _event):
+        await self.async_flush()
+
+
+async def _held_holder(hass) -> HeldHolder:
+    holder = hass.data.get(HELD_KEY)
+    if holder is None:
+        holder = hass.data[HELD_KEY] = HeldHolder(hass)
+    await holder.async_load()
+    return holder
+
+
 async def _statics_holder(hass) -> StaticsHolder:
     holder = hass.data.get(STATICS_KEY)
     if holder is None:
@@ -129,6 +193,7 @@ class ShipFeed:
         self._prune: asyncio.Task | None = None
         self._source = None
         self._statics: StaticsHolder | None = None   # aisstream only
+        self._held: HeldHolder | None = None
         self._listeners: list = []
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
         # ⛔ Item 246: at most one listener pass per window. Instance
@@ -196,6 +261,8 @@ class ShipFeed:
         if self._cfg[CONF_SOURCE] not in (SOURCE_DIGITRAFFIC,
                                           SOURCE_BARENTSWATCH):
             self._statics = await _statics_holder(self.hass)
+        # Before the platforms make any entity (item 270).
+        self._held = await _held_holder(self.hass)
         self._source = self._build_source()
         self._task = self.entry.async_create_background_task(
             self.hass, self._run(), f"{DOMAIN}_feed")
@@ -222,6 +289,8 @@ class ShipFeed:
                 self._notify()
             if self._statics is not None:
                 await self._statics.async_flush()
+            if self._held is not None:
+                await self._held.async_flush()
 
     async def stop(self):
         """⚠ TEAR DOWN CLEANLY. Only THREE connections exist per account and
@@ -239,6 +308,8 @@ class ShipFeed:
         # What this entry learned since the last prune pass (item 262).
         if self._statics is not None:
             await self._statics.async_flush()
+        if self._held is not None:
+            await self._held.async_flush()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

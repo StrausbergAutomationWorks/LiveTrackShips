@@ -48,6 +48,7 @@ from homeassistant.core import callback
 
 from . import icons
 from . import instance_ceiling
+from .held import HELD
 from .const_flow import DOMAIN
 from .geo import hold_rank
 from .quota import allocate
@@ -211,20 +212,10 @@ async def _remove_vessel(entity: "ShipEvent", release) -> None:
         release()
 
 
-# The held angle per vessel, for the life of this Home Assistant run: kept
-# here, not on the entity, so a vessel that leaves the entry's cut and comes
-# back still points the way it did (Lee, 2026-09-29). Insertion-ordered; the
-# oldest entries go past _HELD_MAX. Not persisted: after a restart a slow
-# vessel starts from its move or its reported course (icons.bearing).
-_HELD_BY_ID: dict[str, float] = {}
-_HELD_MAX = 50_000
-
-
-def _remember_held(identity: str, deg: float) -> None:
-    _HELD_BY_ID.pop(identity, None)
-    _HELD_BY_ID[identity] = deg
-    while len(_HELD_BY_ID) > _HELD_MAX:
-        _HELD_BY_ID.pop(next(iter(_HELD_BY_ID)))
+# The held angle per vessel lives in held.HELD, not on the entity, so a
+# vessel that leaves the entry's cut and comes back still points the way it
+# did (Lee, 2026-09-29), and a STRONG one survives a restart
+# (.storage/saw_vessel_held.sqlite, written by the prune pass).
 
 
 class ShipEvent(GeolocationEvent):
@@ -245,12 +236,10 @@ class ShipEvent(GeolocationEvent):
         self._attr_attribution = attribution
         self._attr_distance = distance_km
         self.retired = False
-        # The angle held while the vessel is at rest: from its course, its
-        # last move of 30 m or more, or its reported course (icons.bearing).
-        # Never a heading: heading stays meaningful at rest and is published
-        # as it is (06_MAP_CONTRACT.md D4). Per vessel for the run, not per
-        # entity object (_HELD_BY_ID).
-        self._held: float | None = _HELD_BY_ID.get(obs.identity)
+        # The angle held while the vessel is at rest (icons.resolve) is kept
+        # per vessel in held.HELD, never on this object. Never a heading:
+        # heading stays meaningful at rest and is published as it is
+        # (06_MAP_CONTRACT.md D4).
         self._icon: dict = {}
         self._refresh_icon()
 
@@ -287,22 +276,31 @@ class ShipEvent(GeolocationEvent):
             arrival = icons.arrival_bearing(prev.get("previous_latitude"),
                                             prev.get("previous_longitude"),
                                             o.latitude, o.longitude)
-            bearing, basis = icons.bearing(o.heading_deg, o.course_deg,
-                                           o.speed_kmh, self._held, arrival)
-        if basis in ("course", "held") and kind != "net_buoy":
-            self._held = bearing
-            _remember_held(o.identity, bearing)
+            was = HELD.get(o.identity)
+            bearing, basis, now = icons.resolve(o.heading_deg, o.course_deg,
+                                                o.speed_kmh, was, arrival)
+            if now != was:
+                HELD.put(o.identity, *now)
+            elif basis == "held":
+                HELD.touch(o.identity)
         angle = icons.quantise(bearing)
         out: dict = {"icon_key": key}
         if angle is not None:
             out["icon_rotation_deg"] = angle
             out["icon_rotation_basis"] = basis
         symbol = key in icons.UPRIGHT
-        # The one picture drawn rotated: a net buoy with nothing to go on
-        # points EAST in the image, and publishes no icon_rotation_deg, so
-        # the card leaves it as drawn and nothing doubles.
-        baked = (icons.BUOY_REST_DEG
-                 if kind == "net_buoy" and angle is None else None)
+        # The card turns the picture by the angle and the symbol inside it is
+        # turned back by the same angle: it must stay at the REPORTED angle
+        # while the card slides it facing its travel (06_MAP_CONTRACT D3c-iv).
+        # Omitted otherwise, never False (D0).
+        if symbol and angle is not None:
+            out["icon_counter_rotated"] = True
+        # The pictures drawn rotated: a net buoy or a sailboat with nothing
+        # to go on points EAST in the image and publishes no
+        # icon_rotation_deg, so the card leaves it as drawn and nothing
+        # doubles. The sailboat's rig stays upright (Lee, 2026-09-29).
+        baked = (icons.REST_EAST_DEG
+                 if angle is None and key in icons.REST_EAST_KEYS else None)
         out["entity_picture"] = picture_url(
             key,
             baked,
@@ -450,7 +448,8 @@ class ShipEvent(GeolocationEvent):
         # now the silhouette drawn (SSOT item 254). Nothing on the dashboard
         # filtered on it (read that day, lts_dash_read.txt).
         attrs["icon_category"] = self._icon["icon_key"]
-        for key in ("icon_rotation_deg", "icon_rotation_basis"):
+        for key in ("icon_rotation_deg", "icon_rotation_basis",
+                    "icon_counter_rotated"):
             if key in self._icon:
                 attrs[key] = self._icon[key]
         return attrs

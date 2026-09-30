@@ -346,8 +346,51 @@ def arrival_bearing(prev_lat, prev_lon, lat, lon):
     return math.degrees(math.atan2(y, x)) % 360
 
 
+def usable_course(course_deg, speed_kmh):
+    """The course in degrees 0..360, or None. A course of exactly 0 (or 360)
+    at speed 0 or with no speed is what a transponder sends when it has
+    nothing: it is NO course, never north (ODYSSEY, 367360260, 2026-09-29)."""
+    if course_deg is None:
+        return None
+    c = float(course_deg) % 360
+    if c == 0.0 and not speed_kmh:
+        return None
+    return c
+
+
+def resolve(heading_deg, course_deg, speed_kmh, held, arrival=None):
+    """(bearing, basis, held) - `held` in and out is (degrees, strong) or None.
+    06_MAP_CONTRACT.md D4.
+
+    1. True heading when broadcast; the held angle is left as it is.
+    2. Course over ground at 2 kn or more; held STRONG.
+    3. Below that, the bearing of a move of ARRIVAL_MIN_M or more; held STRONG.
+    4. The angle already held - but a WEAK one (seeded from a slow course) is
+       replaced by each newer non-zero slow course (Lee, 2026-09-29).
+    5. Nothing held: the slow course, held WEAK.
+    Only a course at 2 kn or more, or a move of 30 m or more, sticks against
+    later slow courses. A course of 0 at rest is no course (usable_course)."""
+    if heading_deg is not None:
+        return float(heading_deg) % 360, "heading", held
+    course = usable_course(course_deg, speed_kmh)
+    if course is not None and speed_kmh is not None and speed_kmh >= SLOW_KMH:
+        return course, "course", (course, True)
+    if arrival is not None:
+        a = float(arrival) % 360
+        return a, "held", (a, True)
+    if held is not None:
+        deg, strong = held
+        if not strong and course:
+            return course, "held", (course, False)
+        return deg, "held", held
+    if course is not None:
+        return course, "held", (course, False)
+    return None, None, held
+
+
 def bearing(heading_deg, course_deg, speed_kmh, held, arrival=None):
-    """(bearing, basis) or (None, None). 06_MAP_CONTRACT.md D4.
+    """(bearing, basis) or (None, None). 06_MAP_CONTRACT.md D4. A bare
+    `held` angle counts as STRONG; the full ladder is resolve().
 
     True heading when broadcast - it is where the hull points, meaningful at
     rest. Else course over ground while moving at 2 kn or more. Below that a
@@ -358,18 +401,9 @@ def bearing(heading_deg, course_deg, speed_kmh, held, arrival=None):
     range), its reported course, which the caller then holds. A held boat
     must point the right way, never snap north (Lee, 2026-09-29).
     With none of these there is nothing to show."""
-    if heading_deg is not None:
-        return float(heading_deg) % 360, "heading"
-    if (course_deg is not None and speed_kmh is not None
-            and speed_kmh >= SLOW_KMH):
-        return float(course_deg) % 360, "course"
-    if arrival is not None:
-        return float(arrival) % 360, "held"
-    if held is not None:
-        return held, "held"
-    if course_deg is not None:
-        return float(course_deg) % 360, "held"
-    return None, None
+    b, basis, _held = resolve(heading_deg, course_deg, speed_kmh,
+                              None if held is None else (held, True), arrival)
+    return b, basis
 
 
 # A FISHING-GEAR BUOY (object_kind net_buoy, SSOT item 257) is not a vessel
@@ -378,7 +412,13 @@ def bearing(heading_deg, course_deg, speed_kmh, held, arrival=None):
 # has. Heading first, then course at ANY speed, never held. With neither it is
 # drawn pointing EAST - into the IMAGE, with no icon_rotation_deg, because D4
 # allows only heading, course or held as a basis and "east" is none of them.
-BUOY_REST_DEG = 90
+REST_EAST_DEG = 90
+BUOY_REST_DEG = REST_EAST_DEG
+# The pictures drawn pointing EAST in the image, with no icon_rotation_deg,
+# when nothing gives them a direction: the net buoy, and the sailboat, whose
+# rig stays upright (the renderer never turns the rig with `degrees`), so
+# a harbour of idle sailboats still reads as sailboats (Lee, 2026-09-29).
+REST_EAST_KEYS = frozenset(("netbuoy", "sailing"))
 
 
 def buoy_bearing(heading_deg, course_deg):
