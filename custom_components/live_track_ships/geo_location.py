@@ -270,7 +270,9 @@ class ShipEvent(GeolocationEvent):
             bearing, basis = None, None
         elif kind == "net_buoy":
             # Any heading or course, at any speed; none -> east (icons.py).
-            bearing, basis = icons.buoy_bearing(o.heading_deg, o.course_deg)
+            # A course of 0 at rest is none (Lee, 2026-09-29).
+            bearing, basis = icons.buoy_bearing(o.heading_deg, o.course_deg,
+                                                o.speed_kmh)
         else:
             prev = o.extra or {}
             arrival = icons.arrival_bearing(prev.get("previous_latitude"),

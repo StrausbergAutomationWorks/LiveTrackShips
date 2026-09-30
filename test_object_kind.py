@@ -173,7 +173,10 @@ check("ids never registration", "registration" in oi("111265583", 9074729), Fals
 bb = icons.buoy_bearing
 check("buoy heading wins", bb(33, 200), (33.0, "heading"))
 check("buoy course at any speed", bb(None, 200), (200.0, "course"))
-check("buoy course 0 is north, not missing", bb(None, 0), (0.0, "course"))
+check("buoy course 0 while drifting is north", bb(None, 0, 0.4), (0.0, "course"))
+check("buoy course 0 at speed 0 is NO course (Lee 2026-09-29)", bb(None, 0, 0.0), (None, None))
+check("buoy course 360 with no speed is NO course", bb(None, 360), (None, None))
+check("buoy course 200 at speed 0 is used", bb(None, 200, 0.0), (200.0, "course"))
 check("buoy nothing", bb(None, None), (None, None))
 check("buoy rest direction is east", icons.BUOY_REST_DEG, 90)
 check("vessels keep the 2 kn rule: below it a course is held, never basis course",
