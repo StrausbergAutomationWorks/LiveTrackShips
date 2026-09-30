@@ -269,7 +269,7 @@ class ShipEvent(GeolocationEvent):
         if kind in _FIXED_KINDS:
             bearing, basis = None, None
         elif kind == "net_buoy":
-            # Any heading or course, at any speed; none -> east (icons.py).
+            # Any heading or course, at any speed; none -> west (icons.py).
             # A course of 0 at rest is none (Lee, 2026-09-29).
             bearing, basis = icons.buoy_bearing(o.heading_deg, o.course_deg,
                                                 o.speed_kmh)
@@ -297,12 +297,11 @@ class ShipEvent(GeolocationEvent):
         # Omitted otherwise, never False (D0).
         if symbol and angle is not None:
             out["icon_counter_rotated"] = True
-        # The pictures drawn rotated: a net buoy or a sailboat with nothing
-        # to go on points EAST in the image and publishes no
+        # The pictures drawn rotated: a net buoy (WEST) or a sailboat (EAST)
+        # with nothing to go on is turned in the image and publishes no
         # icon_rotation_deg, so the card leaves it as drawn and nothing
         # doubles. The sailboat's rig stays upright (Lee, 2026-09-29).
-        baked = (icons.REST_EAST_DEG
-                 if angle is None and key in icons.REST_EAST_KEYS else None)
+        baked = icons.REST_DEG_FOR.get(key) if angle is None else None
         out["entity_picture"] = picture_url(
             key,
             baked,

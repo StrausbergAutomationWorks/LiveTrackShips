@@ -411,15 +411,17 @@ def bearing(heading_deg, course_deg, speed_kmh, held, arrival=None):
 # its line and whatever heading or course it sends is the only direction it
 # has. Heading first, then course at ANY speed, never held - but a course of 0
 # at speed 0 or with no speed is no course (usable_course; Lee, 2026-09-29).
-# With neither it is drawn pointing EAST - into the IMAGE, with no icon_rotation_deg, because D4
-# allows only heading, course or held as a basis and "east" is none of them.
-REST_EAST_DEG = 90
-BUOY_REST_DEG = REST_EAST_DEG
-# The pictures drawn pointing EAST in the image, with no icon_rotation_deg,
+# With neither it is drawn pointing WEST - into the IMAGE, with no icon_rotation_deg, because D4
+# allows only heading, course or held as a basis and "west" is none of them. West, not east
+# (Lee, 2026-09-29: "West makes the fish look the most recognizable"); it was east from
+# 2026-09-25 to 2026-09-29.
+BUOY_REST_DEG = 270
+SAIL_REST_DEG = 90
+# The pictures drawn ROTATED in the image, with no icon_rotation_deg,
 # when nothing gives them a direction: the net buoy, and the sailboat, whose
 # rig stays upright (the renderer never turns the rig with `degrees`), so
 # a harbour of idle sailboats still reads as sailboats (Lee, 2026-09-29).
-REST_EAST_KEYS = frozenset(("netbuoy", "sailing"))
+REST_DEG_FOR = {"netbuoy": BUOY_REST_DEG, "sailing": SAIL_REST_DEG}
 
 
 def buoy_bearing(heading_deg, course_deg, speed_kmh=None):

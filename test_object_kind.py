@@ -169,7 +169,7 @@ check("ids 8 digits dropped", oi("25704780"), {})
 check("ids no identity", oi(None), {})
 check("ids never registration", "registration" in oi("111265583", 9074729), False)
 
-# --- net buoys point where they are going, at ANY speed; else EAST (Lee 2026-09-25) ---
+# --- net buoys point where they are going, at ANY speed; else WEST (Lee 2026-09-29; east 09-25) ---
 bb = icons.buoy_bearing
 check("buoy heading wins", bb(33, 200), (33.0, "heading"))
 check("buoy course at any speed", bb(None, 200), (200.0, "course"))
@@ -178,12 +178,13 @@ check("buoy course 0 at speed 0 is NO course (Lee 2026-09-29)", bb(None, 0, 0.0)
 check("buoy course 360 with no speed is NO course", bb(None, 360), (None, None))
 check("buoy course 200 at speed 0 is used", bb(None, 200, 0.0), (200.0, "course"))
 check("buoy nothing", bb(None, None), (None, None))
-check("buoy rest direction is east", icons.BUOY_REST_DEG, 90)
+check("buoy rest direction is WEST (Lee 2026-09-29)", icons.BUOY_REST_DEG, 270)
 check("vessels keep the 2 kn rule: below it a course is held, never basis course",
       icons.bearing(None, 200, 1.0, None), (200.0, "held"))
-svg = icons.render(icons.icon_path("netbuoy"), "netbuoy", 90, 64, "default", 0.47, False)
+svg = icons.render(icons.icon_path("netbuoy"), "netbuoy", icons.BUOY_REST_DEG, 64, "default", 0.47, False)
+check("a west-drawn fish is turned 270", "rotate(270 100 100)" in svg, True)
 ET.fromstring(svg)
-check("an east-drawn fish keeps its paint", "#FA8072" in svg, True)
+check("a west-drawn fish keeps its paint", "#FA8072" in svg, True)
 
 print("%d passed, %d failed" % (passed, failed))
 sys.exit(1 if failed else 0)
