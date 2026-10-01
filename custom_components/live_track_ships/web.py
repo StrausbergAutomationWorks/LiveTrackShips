@@ -24,13 +24,14 @@ URL_BASE = "/api/live_track_ships/icon"
 # ! Bumped whenever the ARTWORK or the renderer changes. Responses are cached
 # for a day as immutable, so without this a browser keeps yesterday's picture
 # and a fix looks like it did nothing (06_MAP_CONTRACT.md D6a-0a, one level down).
-ARTWORK_VERSION = "14"
+ARTWORK_VERSION = "15"
 
 
 def picture_url(key: str, degrees: int | None, tone: str = "default",
                 weight: float | None = None, badge: bool = True,
-                counter: int | None = None) -> str:
-    """The entity_picture for one icon.
+                counter: int | None = None, tow=None) -> str:
+    """The entity_picture for one icon. `tow` = (length, beam), whole metres,
+    from icons.tow_for: the tug pushing a barge.
 
     ! Tone, weight, badge and the symbol's counter-rotation ride as QUERY
     parameters and only when not the default, so the query is part of the
@@ -46,6 +47,8 @@ def picture_url(key: str, degrees: int | None, tone: str = "default",
         extra.append("b=0")
     if counter:
         extra.append("s=%d" % counter)
+    if tow:
+        extra.append("tl=%d&tb=%d" % tow)
     return url + "?" + "&".join(extra)
 
 
@@ -87,11 +90,22 @@ class ShipIconView(HomeAssistantView):
             counter = int(q.get("s", 0)) % 360 or None
         except (TypeError, ValueError):
             counter = None
+        # The barge: both numbers or neither, whole metres, clamped to what
+        # icons.tow_for can send; for the tug only. Anything else: a plain tug.
+        tow = None
+        if key == "tug" and "tl" in q and "tb" in q:
+            try:
+                lo, hi = icons.TOW_LENGTH_LIMITS
+                blo, bhi = icons.TOW_BEAM_LIMITS
+                tow = (max(lo, min(hi, int(q["tl"]))),
+                       max(blo, min(bhi, int(q["tb"]))))
+            except (TypeError, ValueError):
+                tow = None
 
         try:
             svg = await request.app["hass"].async_add_executor_job(
                 icons.render, path, key, degrees, 64, tone, weight, badge,
-                counter)
+                counter, tow)
         except Exception:  # noqa: BLE001
             _LOGGER.exception("Could not render %s at %s", key, angle)
             return web.Response(status=500, text="render failed")

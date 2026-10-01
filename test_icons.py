@@ -55,20 +55,68 @@ for code, length, want in (
         (74, None, "cargo"), (75, None, "bulk"), (76, None, "container"),
         (77, None, "carcarrier"), (78, None, "cargo"), (79, None, "cargo"),
         (80, None, "tanker"), (81, None, "tanker"), (84, None, "tanker"),
-        (85, None, "tanker"), (86, None, "atb"), (89, None, "tanker"),
+        (85, None, "tanker"), (86, None, "tug"), (89, None, "tanker"),
         ("70", None, "cargo")):
     check(f"type {code!r} -> {want}", icons.pick(code, length), want)
 
-print("\n=== pick: a tug broadcasting the combined unit is an ATB ===")
-check("52 at 164 m (SEA EAGLE II) -> atb", icons.pick(52, 164), "atb")
+print("\n=== towing vessels: tug under 60 m; at 60 m+ atb or the tug pushing a barge (Lee 2026-09-30) ===")
+check("52 at 164 m, no beam (SEA EAGLE II) -> atb", icons.pick(52, 164), "atb")
 check("52 at 30 m -> tug", icons.pick(52, 30), "tug")
-check("52 at exactly 60 m -> tug", icons.pick(52, 60), "tug")
+check("52 at exactly 60 m, no beam -> atb (60 m OR MORE)", icons.pick(52, 60), "atb")
+check("52 at 59 m -> tug", icons.pick(52, 59), "tug")
 check("31 at 90 m -> atb", icons.pick(31, 90), "atb")
 check("32 at 61 m -> atb", icons.pick(32, 61), "atb")
-check("57 at 120 m -> atb (USCG: 57 where 86 is unsupported)", icons.pick(57, 120), "atb")
-check("57 at 20 m -> generic", icons.pick(57, 20), "generic")
+check("57 at 120 m -> atb", icons.pick(57, 120), "atb")
+check("57 at 20 m -> tug (was generic)", icons.pick(57, 20), "tug")
+check("86 at 20 m -> tug (was atb)", icons.pick(86, 20), "tug")
+check("86 with no length -> tug", icons.pick(86, None), "tug")
 check("52 with no length -> tug", icons.pick(52, None), "tug")
 check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
+check("70 at 300 m x 40 m is no tow", icons.tow_form(70, 300, 40), None)
+for _t in (31, 32, 52, 57, 86):
+    check(f"{_t} at 215 x 33 (PAT VOSS shape) -> tug", icons.pick(_t, 215, 33), "tug")
+    check(f"{_t} at 215 x 33 -> barge", icons.tow_form(_t, 215, 33), "barge")
+check("UNDAUNTED 150 x 18 -> atb", icons.pick(31, 150, 18), "atb")
+check("OLIVE L. MOORE 222 x 22 -> atb", icons.pick(52, 222, 22), "atb")
+check("beam exactly 15 -> atb", icons.tow_form(52, 100, 15), "atb")
+check("beam 14.9 -> barge", icons.tow_form(52, 100, 14.9), "barge")
+check("beam 24.9 -> atb", icons.tow_form(52, 100, 24.9), "atb")
+check("beam exactly 25 -> barge", icons.tow_form(52, 100, 25), "barge")
+check("towing astern (11) at 215 x 33 -> atb", icons.pick(57, 215, 33, 11), "atb")
+check("towing astern as a string '11' -> atb", icons.tow_form(57, 215, 33, "11"), "atb")
+check("pushing ahead (12) at 215 x 33 -> barge", icons.tow_form(57, 215, 33, 12), "barge")
+check("t31 at 59 m x 33 -> plain tug, no barge", (icons.pick(31, 59, 33), icons.tow_for(31, 59, 33)), ("tug", None))
+check("tow_for PAT VOSS", icons.tow_for(57, 215, 33), (215, 33))
+check("tow_for clamps length", icons.tow_for(57, 900, 33), (400, 33))
+check("tow_for clamps beam", icons.tow_for(57, 215, 500), (215, 70))
+check("tow_for rounds", icons.tow_for(57, 215.4, 32.6), (215, 33))
+check("tow_for: atb gets no barge", icons.tow_for(52, 222, 22), None)
+check("tow_for: astern gets no barge", icons.tow_for(52, 215, 33, 11), None)
+check("tow_for: garbage", (icons.tow_for(None, 215, 33), icons.tow_for(52, "x", 33), icons.tow_for(52, 215, "x")),
+      (None, None, None))
+check("choose passes beam and status", icons.choose("999999991", None, 57, 215, 33, 11), ("atb", icons.weight_for("atb", 215)))
+check("choose: PAT VOSS is the tug at its length", icons.choose("999999992", None, 57, 215, 33),
+      ("tug", icons.weight_for("tug", 215)))
+_g = icons.tow_layout(215, 33)
+check("PAT VOSS grid 3 x 3", (_g["across"], _g["long"]), (3, 3))
+check("61 x 10 grid 1 x 1", (icons.tow_layout(61, 10)["across"], icons.tow_layout(61, 10)["long"]), (1, 1))
+_narrow = [(L, B) for L in range(60, 401, 10) for B in (1, 5, 10, 14)
+           if icons.tow_layout(L, B)["bw"] + 1e-9 < icons.tow_layout(L, B)["tug_w"]]
+check("the barge is never narrower than the tug", _narrow, [])
+_wide = [(L, B) for L in range(60, 401, 10) for B in range(1, 71, 3)
+         if icons.tow_layout(L, B)["bw"] / 2 > icons.TOW_HALF_MAX + 1e-9]
+check("the barge never wider than the reach allows", _wide, [])
+check("the bow corners sit inside REACH_LIMIT", math.hypot(icons.TOW_HALF_MAX, 90) <= icons.REACH_LIMIT, True)
+_sv = icons.render(icons.icon_path("tug"), "tug", None, 64, "default", 0.95, False, None, (215, 33))
+ET.fromstring(_sv)
+check("composite carries the barge colours", all(c in _sv for c in (icons.BARGE, icons.BARGE_HATCH, icons.BARGE_COAMING)), True)
+check("composite: ONE outline filter", _sv.count('filter="url(#e)"'), 1)
+check("composite keeps the tug's own paint", "#E0A273" in _sv, True)
+check("composite: 9 barges", _sv.count(icons.BARGE_COAMING), 9)
+_plain = icons.render(icons.icon_path("tug"), "tug", None, 64, "default", 0.65, False, None, None)
+check("no tow: no barge", icons.BARGE in _plain, False)
+check("tow ignored for any other key", icons.BARGE in icons.render(
+    icons.icon_path("atb"), "atb", None, 64, "default", 0.9, False, None, (215, 33)), False)
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
@@ -277,6 +325,8 @@ check("the companies", icons.COMPANY_FOR, {
     "fairlady": "firstlady", "littlelady": "firstlady", "anitadee": "anitadee",
     "anitadee2": "anitadee", "innisfree": "chicagoline", "ftdearborn": "chicagoline",
     "marquette": "chicagoline"})
+check("the barge colours are in no icon file", sorted(c for c in (icons.BARGE, icons.BARGE_HATCH, icons.BARGE_COAMING)
+      if c.upper() in _uses), [])
 check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
 _same = sorted((c, sorted(u)) for c, u in _uses.items()
                if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
@@ -448,6 +498,21 @@ else:
             if max(edge) > 0:
                 clipped.append((key, deg))
     check("every icon x 24 angles at full weight touches no edge", clipped, [])
+    tclip = []
+    for tow in ((60, 1), (60, 60), (61, 10), (215, 33), (300, 64), (400, 70), (400, 1)):
+        for deg in range(0, 360, 15):
+            s = icons.render(icons.icon_path("tug"), "tug", deg, 128, "default", 1.0, False, None, tow)
+            im = Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(
+                svg_string=s, width=128, height=128)))).convert("RGBA")
+            a = im.getchannel("A")
+            w, h = im.size
+            edge = [a.getpixel((x, 0)) for x in range(w)] + \
+                   [a.getpixel((x, h - 1)) for x in range(w)] + \
+                   [a.getpixel((0, y)) for y in range(h)] + \
+                   [a.getpixel((w - 1, y)) for y in range(h)]
+            if max(edge) > 0:
+                tclip.append((tow, deg))
+    check("the tug pushing a barge x 7 shapes x 24 angles at full weight touches no edge", tclip, [])
 
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

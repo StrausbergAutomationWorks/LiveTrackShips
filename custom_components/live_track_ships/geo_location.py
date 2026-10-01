@@ -267,7 +267,8 @@ class ShipEvent(GeolocationEvent):
             # A royal or presidential ship, then a named boat (by MMSI
             # alone, at its fixed size), draw their own icon (icons.choose).
             key, weight = icons.choose(o.identity, valid_imo(o.imo),
-                                       o.ship_type, o.length_m)
+                                       o.ship_type, o.length_m, o.beam_m,
+                                       o.nav_status)
         if kind in _FIXED_KINDS:
             bearing, basis = None, None
         elif kind == "net_buoy":
@@ -311,7 +312,10 @@ class ShipEvent(GeolocationEvent):
             else icons.tone_for_kind(kind),
             icons.weight_for(key, o.length_m) if weight is None else weight,
             badge=False,
-            counter=angle if symbol else None)
+            counter=angle if symbol else None,
+            # A pushing tug at 60 m or more: the barge ahead of it (icons.tow_form).
+            tow=icons.tow_for(o.ship_type, o.length_m, o.beam_m, o.nav_status)
+            if kind == "vessel" and key == "tug" else None)
         self._icon = out
 
     @property

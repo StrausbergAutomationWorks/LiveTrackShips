@@ -259,17 +259,19 @@ def named_for(identity) -> tuple[str, float] | None:
     return NAMED_BY_MMSI.get(str(identity).strip())
 
 
-def choose(identity, imo, ship_type, length_m) -> tuple[str, float]:
+def choose(identity, imo, ship_type, length_m, beam_m=None,
+           nav_status=None) -> tuple[str, float]:
     """(icon key, weight) for an object of kind `vessel`: a state vessel
     (sized by its length), else a named boat (its fixed size), else the
-    declared type (sized by its length). `imo` must already be validated."""
+    declared type (sized by its length). `imo` must already be validated.
+    Beam and navigational status decide only a towing vessel (tow_form)."""
     key = special_for(identity, imo)
     if key:
         return key, weight_for(key, length_m)
     named = named_for(identity)
     if named:
         return named
-    key = pick(ship_type, length_m)
+    key = pick(ship_type, length_m, beam_m, nav_status)
     return key, weight_for(key, length_m)
 
 
@@ -310,7 +312,7 @@ _EXACT = {
     54: "workboat",     # anti-pollution or firefighting
     55: "police",       # law enforcement
     56: "generic",      # spare, local vessels
-    57: "generic",      # spare, local vessels - see _ATB_BY_LENGTH
+    57: "tug",          # a push vessel whose dimensions include its tow (USCG) - tow_form
     58: "medical",      # medical transport, 1949 Geneva Conventions
     59: "generic",      # ships of states not party to an armed conflict
     65: "cruise",       # passenger (cruise) ship (USCG)
@@ -321,28 +323,84 @@ _EXACT = {
     77: "carcarrier",   # roll-on roll-off carrier (USCG)
     78: "cargo",        # landing craft (USCG)
     85: "tanker",       # non-hazardous tanker (USCG)
-    86: "atb",          # integrated / articulated tug and barge (USCG)
+    86: "tug",          # integrated / articulated tug and barge (USCG) - tow_form
 }
 
 # Everything else in a decade takes the decade's icon, hazard digits included.
 _DECADE = {2: "highspeed",      # WIG: nearest shape we have (Lee, 2026-09-24)
            4: "highspeed", 6: "passenger", 7: "cargo", 8: "tanker"}
 
-# ! A TUG BROADCASTING THE COMBINED UNIT. SEA EAGLE II sends type 52 at 164 m:
-# an articulated tug-barge, not a 164 m tug (SSOT section 6). The USCG guide
-# tells push tugs to send 86, or 57 where their set lacks 86 - so 57 joins the
-# tug codes here, and only above the length no lone tug reaches.
-_ATB_BY_LENGTH = frozenset((31, 32, 52, 57))
-ATB_MIN_LENGTH_M = 60.0
+# ! A TOWING VESSEL (Lee, 2026-09-30; Ships 30_Correspondence/
+# BRIEF_tug_barge_20260930.md). The towing codes are 31 and 32 (towing), 52
+# (tug), and 57 and 86, which the USCG AIS Encoding Guide gives a push vessel
+# whose broadcast dimensions include its tow (USCG Safety Alert 04-20: 57, not
+# 31, when towing ahead or alongside). ALL TUGS LOOK THE SAME (Lee): under
+# TOW_MIN_LENGTH_M every one is the stock `tug`. At or above it the broadcast
+# describes the boat AND its tow (SEA EAGLE II sends 52 at 164 m, SSOT section
+# 6), and tow_form() is the ONE rule for how it is drawn:
+#   - towing ASTERN (nav_status 11): `atb`. A hawser tow trails on its own
+#     track; a rigid picture would point it wrong on every turn.
+#   - no beam, or a beam of 15 to 25 m: `atb`, one barge with the tug in its
+#     notch. ATB barges run about 18-26 m wide (UNDAUNTED 18, OLIVE L. MOORE 22).
+#   - otherwise: the stock `tug` with a barge composed ahead of it by the
+#     renderer (tow_for, render's `tow`), hopper barges in a grid sized from the
+#     broadcast - one wide under 15 m, three wide at 33 m (PAT VOSS, 3 x 3).
+# ! KNOWN MISS: a tow two hoppers wide (~21 m) draws `atb`; beam alone cannot
+# tell it from an ATB (Lee 22:17, the lifelike choice of the two offered).
+TOWING_TYPES = frozenset((31, 32, 52, 57, 86))
+TOW_MIN_LENGTH_M = 60.0
+ATB_BEAM_M = (15.0, 25.0)        # [low, high): an ATB's one wide barge
+NAV_TOWING_ASTERN = 11
+# What the picture URL may carry (web.py clamps to these as well).
+TOW_LENGTH_LIMITS = (60, 400)
+TOW_BEAM_LIMITS = (1, 70)
 
 
-def pick(ship_type, length_m=None) -> str:
+def _positive(v) -> float:
+    try:
+        f = float(v) if v else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+    return f if f > 0 and math.isfinite(f) else 0.0
+
+
+def tow_form(ship_type, length_m=None, beam_m=None, nav_status=None):
+    """None (not a towing code, or no length under TOW_MIN_LENGTH_M), "atb",
+    or "barge": the stock tug with a barge composed ahead of it."""
+    try:
+        code = int(ship_type)
+    except (TypeError, ValueError):
+        return None
+    if code not in TOWING_TYPES or _positive(length_m) < TOW_MIN_LENGTH_M:
+        return None
+    try:
+        astern = int(nav_status) == NAV_TOWING_ASTERN
+    except (TypeError, ValueError):
+        astern = False
+    beam = _positive(beam_m)
+    if astern or not beam or ATB_BEAM_M[0] <= beam < ATB_BEAM_M[1]:
+        return "atb"
+    return "barge"
+
+
+def tow_for(ship_type, length_m=None, beam_m=None, nav_status=None):
+    """(length, beam) in whole metres, clamped, for the renderer's barge;
+    None unless tow_form() says "barge"."""
+    if tow_form(ship_type, length_m, beam_m, nav_status) != "barge":
+        return None
+    lo, hi = TOW_LENGTH_LIMITS
+    blo, bhi = TOW_BEAM_LIMITS
+    return (max(lo, min(hi, int(round(_positive(length_m))))),
+            max(blo, min(bhi, int(round(_positive(beam_m))))))
+
+
+def pick(ship_type, length_m=None, beam_m=None, nav_status=None) -> str:
     """Which silhouette. Never None; an unknown or absent type is generic."""
     try:
         code = int(ship_type)
     except (TypeError, ValueError):
         return "generic"
-    if code in _ATB_BY_LENGTH and length_m and length_m > ATB_MIN_LENGTH_M:
+    if tow_form(code, length_m, beam_m, nav_status) == "atb":
         return "atb"
     if code in _EXACT:
         return _EXACT[code]
@@ -740,6 +798,58 @@ _OUTLINE_FILTER = (
     '</filter></defs>')
 
 
+# --- the barge ahead of a pushing tug (tow_form "barge") --------------------
+# Colours of company `barge`, checked against every shipped icon (look_tow.py's
+# settle, 2026-09-30; test_icons.py keeps them out of every icon file).
+BARGE, BARGE_HATCH, BARGE_COAMING = "#7F868C", "#5F666C", "#A3A9AE"
+HOPPER_L_M, HOPPER_B_M = 59.5, 10.7     # a 195 x 35 ft jumbo hopper barge
+TUG_LEN_M = 30.0                        # the pushing boat's assumed length
+TUG_MIN_UNITS = 30.0                    # never drawn shorter than this
+TUG_ART = (64.0, 38.0, 136.0, 166.0)    # tug.svg's hull, x0 y0 x1 y1
+# Half-width that keeps the barge's bow corners (y 10) within REACH_LIMIT.
+TOW_HALF_MAX = math.floor(math.sqrt(REACH_LIMIT ** 2 - 90.0 ** 2))
+
+
+def tow_layout(length_m: float, beam_m: float) -> dict:
+    """Where the barge and the tug go in the 200-unit box, before the weight
+    scale: the broadcast length spans y 10..190, the tug's stern at 190 and its
+    bow against the barge. The barge is never narrower than the tug (a 61 x 10 m
+    tow) and never wider than TOW_HALF_MAX each side."""
+    L = max(TOW_LENGTH_LIMITS[0], min(TOW_LENGTH_LIMITS[1], float(length_m)))
+    B = max(TOW_BEAM_LIMITS[0], min(TOW_BEAM_LIMITS[1], float(beam_m)))
+    s = 180.0 / L
+    tug_u = max(TUG_MIN_UNITS, TUG_LEN_M * s)
+    f = tug_u / (TUG_ART[3] - TUG_ART[1])
+    tug_w = (TUG_ART[2] - TUG_ART[0]) * f
+    bw = min(2 * TOW_HALF_MAX, max(B * s, tug_w))
+    return {"f": f, "tug_w": tug_w, "bow": 190.0 - tug_u,
+            "tx": 100.0 - 100.0 * f, "ty": 190.0 - TUG_ART[3] * f,
+            "bw": bw, "across": max(1, round(B / HOPPER_B_M)),
+            "long": max(1, round((L - TUG_LEN_M) / HOPPER_L_M))}
+
+
+def _tow_body(tug_body: str, length_m: float, beam_m: float) -> str:
+    """The barge grid, then the tug's own body scaled into the stern."""
+    g = tow_layout(length_m, beam_m)
+    x0, top, end = 100.0 - g["bw"] / 2, 10.0, g["bow"] - 1.5
+    cw, cl = g["bw"] / g["across"], (end - top) / g["long"]
+    out = []
+    for i in range(g["across"]):
+        for j in range(g["long"]):
+            x, y = x0 + i * cw, top + j * cl
+            out.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="1.2" '
+                       'fill="%s" stroke="%s" stroke-width="0.8"/>'
+                       % (x + 0.5, y + 0.5, cw - 1, cl - 1, BARGE, BARGE_COAMING))
+            nh = max(2, int(cl / 7))
+            for h in range(nh):
+                out.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="0.6" fill="%s"/>'
+                           % (x + 2.5, y + 3 + h * (cl - 6) / nh, max(0.5, cw - 5),
+                              (cl - 6) / nh - 1.2, BARGE_HATCH))
+    out.append('<g transform="translate(%.3f %.3f) scale(%.5f)">%s</g>'
+               % (g["tx"], g["ty"], g["f"], tug_body))
+    return "".join(out)
+
+
 def decolour(body: str) -> str:
     body = _PAINT_ATTR.sub(" ", body)
     return _PAINT_STYLE.sub("", body)
@@ -747,8 +857,11 @@ def decolour(body: str) -> str:
 
 def render(path: str, key: str, degrees: int | None, size: int = 64,
            tone: str = "default", weight: float = 0.70, badge: bool = True,
-           counter: int | None = None) -> str:
+           counter: int | None = None, tow=None) -> str:
     """One icon: coloured, sized, rotated, and its symbol upright.
+
+    `tow` = (length, beam) in metres draws the stock tug pushing a barge
+    (tow_for); honoured for key `tug` only.
 
     `degrees` rotates the hull (integration-rotated mode). `counter` is set
     only when the CARD rotates: the hull stays north and the symbol is turned
@@ -759,6 +872,8 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
     if not m:
         raise ValueError("no <svg> element")
     body = src[m.end():src.rfind("</svg>")]
+    if tow and key == "tug":
+        body = _tow_body(body, *tow)
     k = max(0.1, min(1.0, weight))
     parts = ["translate(%.4f %.4f)" % (100 - 100 * k, 100 - 100 * k),
              "scale(%.6f)" % k]
