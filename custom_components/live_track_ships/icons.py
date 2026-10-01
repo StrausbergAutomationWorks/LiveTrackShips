@@ -39,7 +39,10 @@ ICON_KEYS = frozenset((
     "philippines", "saudi", "uae", "bahrain", "morocco", "russia",
     "turkmenistan", "croatia",
     "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
-    "elite", "seadogry", "seadogyr"))
+    "elite", "seadogry", "seadogyr",
+    "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
+    "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
+    "marquette"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -68,7 +71,10 @@ VESSEL_PAINTED = frozenset((
 # boats and City Cruises. Which boat gets which: NAMED_BY_MMSI below.
 NAMED_KEYS = frozenset((
     "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
-    "elite", "seadogry", "seadogyr"))
+    "elite", "seadogry", "seadogyr",
+    "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
+    "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
+    "marquette"))
 PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
 # (test_icons.py) holds only BETWEEN companies. A key not listed is its own
@@ -77,6 +83,11 @@ COMPANY_FOR = {
     "odyssey": "citycruises", "elite": "citycruises",
     "seadogry": "citycruises", "seadogyr": "citycruises",
     "wendella": "wendella", "cwttaxi": "wendella",
+    "shorelinetaxi": "shoreline", "cityview": "shoreline", "shorelinetour": "shoreline",
+    "firstlady": "firstlady", "classiclady": "firstlady", "emeraldlady": "firstlady",
+    "fairlady": "firstlady", "littlelady": "firstlady",
+    "anitadee": "anitadee", "anitadee2": "anitadee",
+    "innisfree": "chicagoline", "ftdearborn": "chicagoline", "marquette": "chicagoline",
 }
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -219,6 +230,25 @@ NAMED_BY_MMSI = {
     "367350360": ("elite", 0.85),          # SPIRIT OF NAVY PIER
     "366848350": ("seadogry", 0.70),       # SEADOG IV (not yet heard by us)
     "367350620": ("seadogyr", 0.70),       # SEADOG V (SEADOG EXTREME)
+    # Batch 2, 2026-09-30 evening (Lee): Shoreline's tour boats, the First Lady fleet,
+    # Anita Dee, Chicago Line Cruises, one more water taxi, and a sailboat that broadcasts
+    # no statics. A row may name a TYPE icon (sailing): it then keeps that icon's behaviour.
+    "367627830": ("cityview", 0.8),           # CITYVIEW (tug and barge)
+    "366897080": ("shorelinetour", 0.78),     # BRIGHT STAR
+    "366853070": ("shorelinetour", 0.78),     # EVENING STAR
+    "367107750": ("firstlady", 0.78),         # CHICAGO'S FIRST LADY
+    "367608260": ("classiclady", 0.78),       # CLASSIC LADY
+    "367495590": ("classiclady", 0.78),       # LEADING LADY (one design with CLASSIC LADY)
+    "368156510": ("emeraldlady", 0.78),       # EMERALD LADY
+    "367116070": ("fairlady", 0.74),          # FAIR LADY
+    "367398450": ("littlelady", 0.74),        # LITTLE LADY
+    "367688370": ("anitadee2", 0.82),         # THE ANITA DEE II
+    "367060580": ("anitadee", 0.75),          # ANITA DEE
+    "366912650": ("innisfree", 0.72),         # INNISFREE
+    "367197480": ("ftdearborn", 0.7),         # FT DEARBORN
+    "366982270": ("marquette", 0.68),         # MARQUETTE; trackers list this MMSI as the tug CASPIAN DAWN
+    "368088860": ("cwttaxi", 0.7),            # ROBERT H (Lee 2026-09-30: a Chicago Water Taxi)
+    "338503254": ("sailing", 0.45),           # no statics broadcast; an 8 x 3 m sailboat (Lee), the 8 m ramp
 }
 
 
@@ -683,7 +713,19 @@ _PAINT_STYLE = re.compile(r"(?:fill|stroke)\s*:\s*[^;\"']*;?", re.I)
 EDGE = "#1F2327"
 # A painted icon whose flag carries black loses its edge in EDGE on dark
 # tiles; it gets its own outline colour (Lee, 2026-09-27: uae grey).
-EDGE_FOR = {"uae": "#9AA0A6"}
+EDGE_FOR = {
+    "uae": "#9AA0A6",
+    # Lee 2026-09-30: every Shoreline boat outlined in its brand blue, the First Lady
+    # fleet in its gold.
+    "shorelinetaxi": "#00559C",
+    "cityview": "#00559C",
+    "shorelinetour": "#00559C",
+    "firstlady": "#BB8833",
+    "classiclady": "#BB8833",
+    "emeraldlady": "#BB8833",
+    "fairlady": "#BB8833",
+    "littlelady": "#BB8833",
+}
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
 _SAFE = re.compile(r"^[a-z0-9]+$")

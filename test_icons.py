@@ -72,8 +72,8 @@ check("70 at 300 m is not an atb", icons.pick(70, 300), "cargo")
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("47 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 8 named)",
-      len(icons.ICON_KEYS), 47)
+check("59 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 20 named)",
+      len(icons.ICON_KEYS), 59)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -271,7 +271,12 @@ _clash = sorted((c, sorted(u)) for c, u in _uses.items()
 check("no colour shared between icons of different companies (outline excepted)", _clash, [])
 check("the companies", icons.COMPANY_FOR, {
     "odyssey": "citycruises", "elite": "citycruises", "seadogry": "citycruises",
-    "seadogyr": "citycruises", "wendella": "wendella", "cwttaxi": "wendella"})
+    "seadogyr": "citycruises", "wendella": "wendella", "cwttaxi": "wendella",
+    "shorelinetaxi": "shoreline", "cityview": "shoreline", "shorelinetour": "shoreline",
+    "firstlady": "firstlady", "classiclady": "firstlady", "emeraldlady": "firstlady",
+    "fairlady": "firstlady", "littlelady": "firstlady", "anitadee": "anitadee",
+    "anitadee2": "anitadee", "innisfree": "chicagoline", "ftdearborn": "chicagoline",
+    "marquette": "chicagoline"})
 check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
 _same = sorted((c, sorted(u)) for c, u in _uses.items()
                if c != icons.EDGE.upper() and len(u) > 1 and u - _state)
@@ -292,7 +297,25 @@ _NAMED = {
     "368039870": ("odyssey", 0.85), "367409940": ("elite", 0.85),
     "367148850": ("elite", 0.90), "367350360": ("elite", 0.85),
     "366848350": ("seadogry", 0.70), "367350620": ("seadogyr", 0.70)}
-check("the table is exactly the 22 boats", icons.NAMED_BY_MMSI, _NAMED)
+_NAMED.update({
+    "367627830": ("cityview", 0.8),
+    "366897080": ("shorelinetour", 0.78),
+    "366853070": ("shorelinetour", 0.78),
+    "367107750": ("firstlady", 0.78),
+    "367608260": ("classiclady", 0.78),
+    "367495590": ("classiclady", 0.78),
+    "368156510": ("emeraldlady", 0.78),
+    "367116070": ("fairlady", 0.74),
+    "367398450": ("littlelady", 0.74),
+    "367688370": ("anitadee2", 0.82),
+    "367060580": ("anitadee", 0.75),
+    "366912650": ("innisfree", 0.72),
+    "367197480": ("ftdearborn", 0.7),
+    "366982270": ("marquette", 0.68),
+    "368088860": ("cwttaxi", 0.7),
+    "338503254": ("sailing", 0.45)})
+check("38 boats", len(_NAMED), 38)
+check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
 check("int MMSI", icons.named_for(367360260), ("odyssey", 0.90))
@@ -300,9 +323,9 @@ check("padded MMSI", icons.named_for(" 367360260 "), ("odyssey", 0.90))
 check("a neighbour MMSI -> None", icons.named_for("367360261"), None)
 check("None -> None", icons.named_for(None), None)
 _nk = {k for k, _ in icons.NAMED_BY_MMSI.values()}
-check("NAMED_KEYS is the table's keys", sorted(icons.NAMED_KEYS), sorted(_nk))
+check("NAMED_KEYS is the table's keys less the type icons a row may name", sorted(icons.NAMED_KEYS), sorted(_nk - every_pick))
 check("every named key is a key", sorted(_nk - icons.ICON_KEYS), [])
-check("every named key is PAINTED", sorted(_nk - icons.PAINTED), [])
+check("every named key is PAINTED", sorted(icons.NAMED_KEYS - icons.PAINTED), [])
 check("no named key is reachable by type", sorted(every_pick & icons.NAMED_KEYS), [])
 check("ISLAND TIME's 0.59 is the ramp at 20 m", icons.weight_for("generic", 20), 0.59)
 print("  choose: state vessel, then named boat, then declared type")
@@ -324,6 +347,16 @@ for _k in sorted(icons.NAMED_KEYS):
     check(f"{_k}: every own colour served", sorted(c for c in _cols if c not in _out), [])
     check(f"{_k}: the military tone does not tint it", "#8C9A4B" in _out, "#8C9A4B" in _cols)
 check("islandtime animates", "<animate" in open(icons.icon_path("islandtime"), encoding="utf-8").read(), True)
+print("  batch 2 (Lee 2026-09-30 evening)")
+check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833'})
+for _k, _c in icons.EDGE_FOR.items():
+    check(f"{_k}: its outline colour is served", _c in icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.8, False), True)
+check("338503254 sails at the 8 m ramp", icons.named_for("338503254"), ("sailing", icons.weight_for("sailing", 8)))
+check("sailing is still UPRIGHT (held sail)", "sailing" in icons.UPRIGHT, True)
+check("CARMALEE ROSE has no row (Lee 20:07: all tugs look the same)", icons.named_for("367325460"), None)
+check("LADY GREBE is not shipped (no MMSI heard)", "ladygrebe" in icons.ICON_KEYS, False)
+check("EVENING STAR and BRIGHT STAR share the Shoreline tour boat", (icons.named_for("366853070"), icons.named_for("366897080")),
+      (("shorelinetour", 0.78), ("shorelinetour", 0.78)))
 
 print("\n=== police: light bar, flash outside the outline, capped at 94 ===")
 check("police is PAINTED", "police" in icons.PAINTED, True)
