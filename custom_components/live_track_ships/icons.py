@@ -42,7 +42,8 @@ ICON_KEYS = frozenset((
     "elite", "seadogry", "seadogyr",
     "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
-    "marquette"))
+    "marquette",
+    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -74,7 +75,9 @@ NAMED_KEYS = frozenset((
     "elite", "seadogry", "seadogyr",
     "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
-    "marquette"))
+    "marquette",
+    # Batch 3, 2026-10-03 (Lee, Ships 20_Research/MMSI.docx)
+    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess"))
 PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
 # (test_icons.py) holds only BETWEEN companies. A key not listed is its own
@@ -88,6 +91,22 @@ COMPANY_FOR = {
     "fairlady": "firstlady", "littlelady": "firstlady",
     "anitadee": "anitadee", "anitadee2": "anitadee",
     "innisfree": "chicagoline", "ftdearborn": "chicagoline", "marquette": "chicagoline",
+    # Batch 3 (2026-10-03). "fire": Lee's scheme for any US fireboat; "chicago": the City.
+    "capstreeter": "shoreline",
+    "starofchicago": "shoreline",
+    "skyview": "shoreline",
+    "fireboat": "fire",
+    "fireinflatable": "fire",
+    "versluis": "chicago",
+    "summerofgeorge": "lakefront",
+    "ouilmette": "wendella",
+    "lakeexpress": "lakeexpress",
+    "viking": "viking",
+    "vikingtender": "viking",
+    "paddlewheel": "paddlewheel",
+    "victory": "victory",
+    "windy": "windy",
+    "detroitprincess": "detroitprincess",
 }
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -249,6 +268,27 @@ NAMED_BY_MMSI = {
     "366982270": ("marquette", 0.68),         # MARQUETTE; trackers list this MMSI as the tug CASPIAN DAWN
     "368088860": ("cwttaxi", 0.7),            # ROBERT H (Lee 2026-09-30: a Chicago Water Taxi)
     "338503254": ("sailing", 0.45),           # no statics broadcast; an 8 x 3 m sailboat (Lee), the 8 m ramp
+    # Batch 3, 2026-10-03 (Lee, Ships 20_Research/MMSI.docx; drafts bin\ship_icons\draft_mmsi\).
+    "367164050": ("capstreeter", 0.75),     # CAP STREETER
+    "366936590": ("capstreeter", 0.75),     # MARLYN
+    "367396720": ("starofchicago", 0.75),   # STAR OF CHICAGO
+    "367745090": ("skyview", 0.8),          # SKYVIEW
+    "367575550": ("fireboat", 0.8),         # FRED A BUSSE
+    "338237135": ("fireboat", 0.8),         # CFD Boat 3 (Chicago Fire Department; several fireboats use it)
+    "338173767": ("fireinflatable", 0.45),  # CFD Zodiac 17
+    "338173771": ("fireinflatable", 0.45),  # CFD Zodiac 9
+    "367073840": ("versluis", 0.8),         # JAMES J. VERSLUIS (City of Chicago)
+    "366951920": ("summerofgeorge", 0.85),  # SUMMER OF GEORGE (Chicago Lakefront Cruises)
+    "366877570": ("ouilmette", 0.75),       # OUILMETTE (Wendella)
+    "366941210": ("lakeexpress", 0.9),      # LAKE EXPRESS
+    "259070000": ("viking", 1.0),           # VIKING OCTANTIS, IMO 9863194
+    "982570174": ("vikingtender", 0.5),     # OCTANTIS TENDER 1
+    "982570175": ("vikingtender", 0.5),     # OCTANTIS TENDER 2
+    "368081650": ("paddlewheel", 0.75),     # a sternwheeler, 80 ft (name not in our data)
+    "311050400": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213129
+    "311050300": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213131
+    "367505190": ("windy", 0.9),            # WINDY (side view, mirrors)
+    "366964380": ("detroitprincess", 0.9),  # DETROIT PRINCESS
 }
 
 
@@ -610,7 +650,17 @@ def quantise(deg) -> int | None:
 SYMBOL_FOR = {"medical": "cross", "sar": "sol"}
 # Keys whose image carries something that must stand upright, so the
 # picture URL carries the card's angle (s=) to counter-rotate it.
-UPRIGHT = frozenset(SYMBOL_FOR) | {"sailing"}
+# ! SIDE VIEW (Lee, 2026-10-03): WINDY is drawn from the side, bow EAST. The
+# whole picture is counter-rotated by the card's angle so she always stands
+# up, and mirrored (bow WEST) for an angle of 180-359 or none: the sails stay
+# with the hull and she never sails upside down. 0 rides as "no angle" (s= is
+# dropped at 0), so due north draws her west - a flip at the line, as asked.
+SIDEVIEW = frozenset({"windy"})
+UPRIGHT = frozenset(SYMBOL_FOR) | {"sailing"} | SIDEVIEW
+# ! EFFECTS LAYER (Lee, 2026-10-03): <key>_fx.svg - wakes, glow - drawn at the
+# art's scale but OUTSIDE the outline filter, so it stays soft, as the police
+# flash does. Not servable on its own: "_fx" fails valid_key().
+FX_KEYS = frozenset({"lakeexpress", "paddlewheel", "detroitprincess"})
 CROSS_RED = "#D7263D"
 SOL_ORANGE = "#F26A1B"   # the SAR variant; blue now means police
 
@@ -701,11 +751,15 @@ def police_flash_r(k: float) -> float:
     return _FLASH_CACHE[k]
 
 
-def _police_flash(k: float) -> str:
+FIRE_RED, FIRE_HOT = "#FF002F", "#FFE9EC"   # Lee 2026-10-03: any US fireboat
+
+
+def _police_flash(k: float, colour: str = POLICE_BLUE, hot: str = POLICE_HOT,
+                  ids: tuple = ("pfa", "pfb")) -> str:
     r = police_flash_r(k)
     kt = 'keyTimes="0;0.06;0.38;0.48;1"'
     out = []
-    for x, begin, g in ((85, "0s", "pfa"), (115, "-0.4s", "pfb")):
+    for x, begin, g in ((85, "0s", ids[0]), (115, "-0.4s", ids[1])):
         cx = x + (-1 if x < 100 else 1) * r * 0.25
         out.append(
             '<defs><radialGradient id="%s"><stop offset="0" stop-color="%s"/>'
@@ -715,7 +769,7 @@ def _police_flash(k: float) -> str:
             '<ellipse cx="%.1f" cy="%d" rx="%.1f" ry="%.1f" fill="url(#%s)" opacity="0">'
             '<animate attributeName="opacity" values="0;1;1;0;0" %s dur="0.8s" '
             'begin="%s" repeatCount="indefinite"/></ellipse>'
-            % (g, POLICE_HOT, POLICE_BLUE, POLICE_BLUE, POLICE_BLUE,
+            % (g, hot, colour, colour, colour,
                cx, _LY, r, 0.72 * r, g, kt, begin))
     return ('<g transform="translate(%.4f %.4f) scale(%.6f)">%s</g>'
             % (100 - 100 * k, 100 - 100 * k, k, "".join(out)))
@@ -759,6 +813,8 @@ def _rig(counter: int | None) -> str:
 def _overlay(key: str, k: float, counter: int | None) -> str:
     if key == "police":
         return _police_flash(k)
+    if key == "fireboat":
+        return _police_flash(k, FIRE_RED, FIRE_HOT, ("ffa", "ffb"))
     if key == "sailing":
         return _rig(counter)
     return ""
@@ -783,6 +839,18 @@ EDGE_FOR = {
     "emeraldlady": "#BB8833",
     "fairlady": "#BB8833",
     "littlelady": "#BB8833",
+    # Batch 3 (Lee, 2026-10-03, MMSI.docx)
+    "capstreeter": "#00559C",
+    "starofchicago": "#00559C",
+    "skyview": "#00559C",
+    "fireboat": "#FF002F",
+    "fireinflatable": "#FF002F",
+    "versluis": "#41B6E6",
+    "summerofgeorge": "#21C3F9",
+    "lakeexpress": "#425E8C",
+    "vikingtender": "#B10A32",
+    "paddlewheel": "#013CA3",
+    "victory": "#08264B",
 }
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
@@ -879,6 +947,11 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
              "scale(%.6f)" % k]
     if degrees:
         parts.append("rotate(%d 100 100)" % degrees)
+    if key in SIDEVIEW:
+        if counter:
+            parts.append("rotate(%d 100 100)" % (-counter % 360))
+        if not counter or counter % 360 >= 180:
+            parts.append("matrix(-1 0 0 1 200 0)")
     head = ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
             'viewBox="0 0 200 200">' % (size, size))
     if key in PAINTED:
@@ -887,7 +960,17 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
         fill = TONES.get(tone, TONES["default"])
         art = '<g transform="%s" fill="%s">%s</g>' % (
             " ".join(parts), fill, decolour(body))
-    sym = _symbol(SYMBOL_FOR.get(key, ""), k, counter) + _overlay(key, k, counter)
+    fx = ""
+    if key in FX_KEYS:
+        fp = os.path.join(os.path.dirname(path), key + "_fx.svg")
+        if os.path.exists(fp):
+            with open(fp, "r", encoding="utf-8") as fh:
+                fsrc = fh.read()
+            fm = _SVG_OPEN.search(fsrc)
+            if fm:
+                fx = '<g transform="%s">%s</g>' % (
+                    " ".join(parts), fsrc[fm.end():fsrc.rfind("</svg>")])
+    sym = fx + _symbol(SYMBOL_FOR.get(key, ""), k, counter) + _overlay(key, k, counter)
     if badge:
         return (head + '<circle cx="100" cy="100" r="100" fill="%s"/>' % BADGE
                 + art + sym + '</svg>')

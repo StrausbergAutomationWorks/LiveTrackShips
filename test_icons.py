@@ -120,8 +120,8 @@ check("tow ignored for any other key", icons.BARGE in icons.render(
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("59 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 20 named)",
-      len(icons.ICON_KEYS), 59)
+check("74 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 35 named)",
+      len(icons.ICON_KEYS), 74)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -304,6 +304,7 @@ check("the painted vessel set", sorted(icons.VESSEL_PAINTED - {"police", "sailin
     "fishing", "highspeed", "offshore", "passenger", "pleasure", "tanker", "tug", "workboat")))
 check("tinted vessels stay tinted", sorted({"generic", "military", "medical", "sar"} & icons.PAINTED), [])
 import re as _re
+import os
 _hex = _re.compile(r"#[0-9A-Fa-f]{6}")
 _uses = {}
 for _k in sorted(icons.PAINTED):
@@ -324,7 +325,8 @@ check("the companies", icons.COMPANY_FOR, {
     "firstlady": "firstlady", "classiclady": "firstlady", "emeraldlady": "firstlady",
     "fairlady": "firstlady", "littlelady": "firstlady", "anitadee": "anitadee",
     "anitadee2": "anitadee", "innisfree": "chicagoline", "ftdearborn": "chicagoline",
-    "marquette": "chicagoline"})
+    "marquette": "chicagoline",
+    "capstreeter": "shoreline",    "starofchicago": "shoreline",    "skyview": "shoreline",    "fireboat": "fire",    "fireinflatable": "fire",    "versluis": "chicago",    "summerofgeorge": "lakefront",    "ouilmette": "wendella",    "lakeexpress": "lakeexpress",    "viking": "viking",    "vikingtender": "viking",    "paddlewheel": "paddlewheel",    "victory": "victory",    "windy": "windy",    "detroitprincess": "detroitprincess",})
 check("the barge colours are in no icon file", sorted(c for c in (icons.BARGE, icons.BARGE_HATCH, icons.BARGE_COAMING)
       if c.upper() in _uses), [])
 check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
@@ -364,7 +366,29 @@ _NAMED.update({
     "366982270": ("marquette", 0.68),
     "368088860": ("cwttaxi", 0.7),
     "338503254": ("sailing", 0.45)})
-check("38 boats", len(_NAMED), 38)
+_NAMED.update({
+    "367164050": ("capstreeter", 0.75),
+    "366936590": ("capstreeter", 0.75),
+    "367396720": ("starofchicago", 0.75),
+    "367745090": ("skyview", 0.8),
+    "367575550": ("fireboat", 0.8),
+    "338237135": ("fireboat", 0.8),
+    "338173767": ("fireinflatable", 0.45),
+    "338173771": ("fireinflatable", 0.45),
+    "367073840": ("versluis", 0.8),
+    "366951920": ("summerofgeorge", 0.85),
+    "366877570": ("ouilmette", 0.75),
+    "366941210": ("lakeexpress", 0.9),
+    "259070000": ("viking", 1.0),
+    "982570174": ("vikingtender", 0.5),
+    "982570175": ("vikingtender", 0.5),
+    "368081650": ("paddlewheel", 0.75),
+    "311050400": ("victory", 0.95),
+    "311050300": ("victory", 0.95),
+    "367505190": ("windy", 0.9),
+    "366964380": ("detroitprincess", 0.9),
+})
+check("58 boats", len(_NAMED), 58)
 check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
@@ -398,7 +422,7 @@ for _k in sorted(icons.NAMED_KEYS):
     check(f"{_k}: the military tone does not tint it", "#8C9A4B" in _out, "#8C9A4B" in _cols)
 check("islandtime animates", "<animate" in open(icons.icon_path("islandtime"), encoding="utf-8").read(), True)
 print("  batch 2 (Lee 2026-09-30 evening)")
-check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833'})
+check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833', 'capstreeter': '#00559C', 'starofchicago': '#00559C', 'skyview': '#00559C', 'fireboat': '#FF002F', 'fireinflatable': '#FF002F', 'versluis': '#41B6E6', 'summerofgeorge': '#21C3F9', 'lakeexpress': '#425E8C', 'vikingtender': '#B10A32', 'paddlewheel': '#013CA3', 'victory': '#08264B'})
 for _k, _c in icons.EDGE_FOR.items():
     check(f"{_k}: its outline colour is served", _c in icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.8, False), True)
 check("338503254 sails at the 8 m ramp", icons.named_for("338503254"), ("sailing", icons.weight_for("sailing", 8)))
@@ -429,7 +453,7 @@ check("no overlay on cargo", "<ellipse" in icons.render(icons.icon_path("cargo")
 
 print("\n=== sailboat: upright rig, counter-rotated, not scaled ===")
 check("sailing is PAINTED", "sailing" in icons.PAINTED, True)
-check("UPRIGHT = symbols + sailing", sorted(icons.UPRIGHT), sorted(set(icons.SYMBOL_FOR) | {"sailing"}))
+check("UPRIGHT = symbols + sailing + windy", sorted(icons.UPRIGHT), sorted(set(icons.SYMBOL_FOR) | {"sailing", "windy"}))
 _s0 = icons.render(icons.icon_path("sailing"), "sailing", None, 64, "default", 0.53, False)
 _s9 = icons.render(icons.icon_path("sailing"), "sailing", None, 64, "default", 0.53, False, 90)
 check("rig present", _s0.count("url(#rgm)") == 1 and _s0.count("url(#rgj)") == 1, True)
@@ -443,6 +467,41 @@ check("rig identical at weight 0.53 and 1.0", _o5 == _o10, True)
 check("rig carries no scale", "scale(" in _o5, False)
 check("the rig is served as built", _o5 in _s0, True)
 check("no rig on pleasure", "rgm" in icons.render(icons.icon_path("pleasure"), "pleasure", None, 64, "default", 0.5, False), False)
+
+print("\n=== batch 3 (Lee 2026-10-03, MMSI.docx): fx layer, fire flash, WINDY ===")
+for _k in sorted(icons.FX_KEYS):
+    _fp = os.path.join(icons.icon_dir(), _k + "_fx.svg")
+    check(f"{_k}: fx file exists", os.path.exists(_fp), True)
+    check(f"{_k}_fx is not servable", icons.valid_key(_k + "_fx"), False)
+    _r = icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.9, False)
+    _fxb = open(_fp, encoding="utf-8").read()
+    _fxb = _fxb[_fxb.index(">") + 1:_fxb.rfind("</svg>")]
+    check(f"{_k}: fx served", _fxb in _r, True)
+    check(f"{_k}: fx after the filtered group", _r.rfind(_fxb) > _r.rfind('filter="url(#e)"'), True)
+    check(f"{_k}: fx at the art's scale", '<g transform="translate(10.0000 10.0000) scale(0.900000)">' + _fxb in _r, True)
+check("fx keys are exactly the three", sorted(icons.FX_KEYS), ["detroitprincess", "lakeexpress", "paddlewheel"])
+check("every _fx file belongs to an FX key", sorted(f[:-7] for f in os.listdir(icons.icon_dir()) if f.endswith("_fx.svg")),
+      sorted(icons.FX_KEYS))
+_f = icons.render(icons.icon_path("fireboat"), "fireboat", None, 64, "default", 0.8, False)
+check("fireboat: two flashes", _f.count("<ellipse"), 2)
+check("fireboat: flashes red, not police blue", (icons.FIRE_RED in _f, icons.POLICE_BLUE in _f), (True, False))
+check("fireboat: flashes after the filtered group", _f.rfind("<ellipse") > _f.rfind('filter="url(#e)"'), True)
+check("fireboat: its own gradient ids", ('id="ffa"' in _f, 'id="ffb"' in _f, 'id="pfa"' in _f), (True, True, False))
+check("fireboat: alternate", sorted(_re.findall(r'<ellipse[^>]*>\s*<animate[^>]*begin="([^"]+)"', _f)), ["-0.4s", "0s"])
+check("fireinflatable has no flash", "<ellipse" in icons.render(icons.icon_path("fireinflatable"), "fireinflatable", None, 64, "default", 0.45, False), False)
+check("police still blue", icons.POLICE_BLUE in icons.render(icons.icon_path("police"), "police", None, 64, "police", 0.6, False), True)
+_MIR = "matrix(-1 0 0 1 200 0)"
+_w = lambda c: icons.render(icons.icon_path("windy"), "windy", None, 64, "default", 0.9, False, c)
+check("windy: no angle -> mirrored (west), not turned", (_MIR in _w(None), "rotate(" in _w(None)), (True, False))
+check("windy: 90 -> turned back, east", ("rotate(270 100 100)" in _w(90), _MIR in _w(90)), (True, False))
+check("windy: 179 -> east", _MIR in _w(179), False)
+check("windy: 180 -> west", ("rotate(180 100 100)" in _w(180), _MIR in _w(180)), (True, True))
+check("windy: 200 -> turned back 160, west", ("rotate(160 100 100)" in _w(200), _MIR in _w(200)), (True, True))
+check("windy: mirror applied to the art first", _w(200).index("rotate(160") < _w(200).index(_MIR), True)
+check("windy is UPRIGHT, so the URL carries s=", "windy" in icons.UPRIGHT, True)
+check("only windy is side view", sorted(icons.SIDEVIEW), ["windy"])
+check("cargo never mirrored", _MIR in icons.render(icons.icon_path("cargo"), "cargo", None, 64, "default", 0.9, False, 200), False)
+check("paddlewheel paddles animate", "<animateTransform" in open(icons.icon_path("paddlewheel"), encoding="utf-8").read(), True)
 
 print("\n=== render: strict XML for every icon, angle, tone and mode ===")
 bad = []
