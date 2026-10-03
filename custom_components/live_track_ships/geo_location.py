@@ -313,6 +313,8 @@ class ShipEvent(GeolocationEvent):
             icons.weight_for(key, o.length_m) if weight is None else weight,
             badge=False,
             counter=angle if symbol else None,
+            # A wake only while moving (icons.WAKE_KEYS, Lee 2026-10-03).
+            moving=key in icons.WAKE_KEYS and icons.is_moving(o.speed_kmh),
             # A pushing tug at 60 m or more: the barge ahead of it (icons.tow_form).
             tow=icons.tow_for(o.ship_type, o.length_m, o.beam_m, o.nav_status)
             if kind == "vessel" and key == "tug" else None)

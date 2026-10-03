@@ -224,7 +224,7 @@ check("the FULL case sits on SPIRIT OF CHICAGO's MMSI and draws elite", a.get("i
 x, p = attrs_of("367360261", name="ODYSSEY LAKE MI_IGAN", ship_type=60, length_m=61.0)
 check("the name alone draws nothing: a neighbour MMSI is a passenger", x.get("icon_category"), "passenger")
 check("and keeps the length ramp", "w=0.90" in (p or ""), False)
-check("named pictures carry the artwork version 16", "v=16" in (p or ""), True)
+check("named pictures carry the artwork version 17", "v=17" in (p or ""), True)
 x, p = attrs_of("366853070", name="EVENING STAR", ship_type=69, length_m=30.0)
 check("EVENING STAR draws the Shoreline tour boat at 0.78", (x.get("icon_category"), "w=0.78" in (p or "")), ("shorelinetour", True))
 x, p = attrs_of("367688370", name="THE ANITA DEE II", ship_type=60, length_m=42.0)

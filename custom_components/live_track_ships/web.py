@@ -24,12 +24,12 @@ URL_BASE = "/api/live_track_ships/icon"
 # ! Bumped whenever the ARTWORK or the renderer changes. Responses are cached
 # for a day as immutable, so without this a browser keeps yesterday's picture
 # and a fix looks like it did nothing (06_MAP_CONTRACT.md D6a-0a, one level down).
-ARTWORK_VERSION = "16"
+ARTWORK_VERSION = "17"
 
 
 def picture_url(key: str, degrees: int | None, tone: str = "default",
                 weight: float | None = None, badge: bool = True,
-                counter: int | None = None, tow=None) -> str:
+                counter: int | None = None, tow=None, moving: bool = False) -> str:
     """The entity_picture for one icon. `tow` = (length, beam), whole metres,
     from icons.tow_for: the tug pushing a barge.
 
@@ -49,6 +49,8 @@ def picture_url(key: str, degrees: int | None, tone: str = "default",
         extra.append("s=%d" % counter)
     if tow:
         extra.append("tl=%d&tb=%d" % tow)
+    if moving:
+        extra.append("m=1")
     return url + "?" + "&".join(extra)
 
 
@@ -92,6 +94,7 @@ class ShipIconView(HomeAssistantView):
             counter = None
         # The barge: both numbers or neither, whole metres, clamped to what
         # icons.tow_for can send; for the tug only. Anything else: a plain tug.
+        moving = q.get("m") == "1"
         tow = None
         if key == "tug" and "tl" in q and "tb" in q:
             try:
@@ -105,7 +108,7 @@ class ShipIconView(HomeAssistantView):
         try:
             svg = await request.app["hass"].async_add_executor_job(
                 icons.render, path, key, degrees, 64, tone, weight, badge,
-                counter, tow)
+                counter, tow, moving)
         except Exception:  # noqa: BLE001
             _LOGGER.exception("Could not render %s at %s", key, angle)
             return web.Response(status=500, text="render failed")

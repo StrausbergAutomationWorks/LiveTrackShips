@@ -387,8 +387,9 @@ _NAMED.update({
     "311050300": ("victory", 0.95),
     "367505190": ("windy", 0.9),
     "366964380": ("detroitprincess", 0.9),
+    "338236842": ("tug", 0.45),
 })
-check("58 boats", len(_NAMED), 58)
+check("59 boats", len(_NAMED), 59)
 check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
@@ -473,12 +474,21 @@ for _k in sorted(icons.FX_KEYS):
     _fp = os.path.join(icons.icon_dir(), _k + "_fx.svg")
     check(f"{_k}: fx file exists", os.path.exists(_fp), True)
     check(f"{_k}_fx is not servable", icons.valid_key(_k + "_fx"), False)
-    _r = icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.9, False)
+    _r = icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.9, False, None, None, True)
     _fxb = open(_fp, encoding="utf-8").read()
     _fxb = _fxb[_fxb.index(">") + 1:_fxb.rfind("</svg>")]
     check(f"{_k}: fx served", _fxb in _r, True)
     check(f"{_k}: fx after the filtered group", _r.rfind(_fxb) > _r.rfind('filter="url(#e)"'), True)
     check(f"{_k}: fx at the art's scale", '<g transform="translate(10.0000 10.0000) scale(0.900000)">' + _fxb in _r, True)
+_rest = lambda k, **kw: icons.render(icons.icon_path(k), k, None, 64, "default", 0.9, False, **kw)
+check("wake keys", sorted(icons.WAKE_KEYS), ["lakeexpress", "paddlewheel"])
+check("lakeexpress at rest: no wake", "lewk" in _rest("lakeexpress"), False)
+check("lakeexpress moving: wake", "lewk" in _rest("lakeexpress", moving=True), True)
+check("paddlewheel at rest: no wake", "animateTransform attributeName=\"transform\" type=\"translate\" from=\"0 0\" to=\"0 9\"" in _rest("paddlewheel"), False)
+check("paddlewheel at rest: paddles still turn", "to=\"0 6\"" in _rest("paddlewheel"), True)
+check("detroitprincess at rest: glow stays", "dpg" in _rest("detroitprincess"), True)
+check("is_moving", [icons.is_moving(v) for v in (None, 0, 3.7, icons.SLOW_KMH, 20, "x")], [False, False, False, True, True, False])
+check("338236842 is the stock tug at the 7 m ramp", icons.named_for("338236842"), ("tug", icons.weight_for("tug", 7)))
 check("fx keys are exactly the three", sorted(icons.FX_KEYS), ["detroitprincess", "lakeexpress", "paddlewheel"])
 check("every _fx file belongs to an FX key", sorted(f[:-7] for f in os.listdir(icons.icon_dir()) if f.endswith("_fx.svg")),
       sorted(icons.FX_KEYS))

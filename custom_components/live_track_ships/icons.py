@@ -288,7 +288,8 @@ NAMED_BY_MMSI = {
     "311050400": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213129
     "311050300": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213131
     "367505190": ("windy", 0.9),            # WINDY (side view, mirrors)
-    "366964380": ("detroitprincess", 0.9),  # DETROIT PRINCESS
+    "366964380": ("detroitprincess", 0.9),
+    "338236842": ("tug", 0.45),           # a 7 x 4 m towing vessel that rarely broadcasts its type (Lee); the 7 m ramp  # DETROIT PRINCESS
 }
 
 
@@ -661,6 +662,17 @@ UPRIGHT = frozenset(SYMBOL_FOR) | {"sailing"} | SIDEVIEW
 # art's scale but OUTSIDE the outline filter, so it stays soft, as the police
 # flash does. Not servable on its own: "_fx" fails valid_key().
 FX_KEYS = frozenset({"lakeexpress", "paddlewheel", "detroitprincess"})
+# ! A WAKE shows only while the boat is moving (Lee, 2026-10-03 03:18): at or
+# above SLOW_KMH, the line below which course is noise. The URL carries m=1.
+# Detroit Princess's glow is not a wake: it shows at rest too.
+WAKE_KEYS = frozenset({"lakeexpress", "paddlewheel"})
+
+
+def is_moving(speed_kmh) -> bool:
+    try:
+        return speed_kmh is not None and float(speed_kmh) >= SLOW_KMH
+    except (TypeError, ValueError):
+        return False
 CROSS_RED = "#D7263D"
 SOL_ORANGE = "#F26A1B"   # the SAR variant; blue now means police
 
@@ -925,7 +937,7 @@ def decolour(body: str) -> str:
 
 def render(path: str, key: str, degrees: int | None, size: int = 64,
            tone: str = "default", weight: float = 0.70, badge: bool = True,
-           counter: int | None = None, tow=None) -> str:
+           counter: int | None = None, tow=None, moving: bool = False) -> str:
     """One icon: coloured, sized, rotated, and its symbol upright.
 
     `tow` = (length, beam) in metres draws the stock tug pushing a barge
@@ -961,7 +973,7 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
         art = '<g transform="%s" fill="%s">%s</g>' % (
             " ".join(parts), fill, decolour(body))
     fx = ""
-    if key in FX_KEYS:
+    if key in FX_KEYS and (moving or key not in WAKE_KEYS):
         fp = os.path.join(os.path.dirname(path), key + "_fx.svg")
         if os.path.exists(fp):
             with open(fp, "r", encoding="utf-8") as fh:
