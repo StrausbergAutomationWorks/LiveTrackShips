@@ -45,7 +45,7 @@ ICON_KEYS = frozenset((
     "marquette",
     "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
     # Batch 4, 2026-10-20 (Lee)
-    "nauticaqueen", "paddlewheelgreen"))
+    "nauticaqueen", "paddlewheelgreen", "ladycaroline"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -81,7 +81,7 @@ NAMED_KEYS = frozenset((
     # Batch 3, 2026-10-03 (Lee, Ships 20_Research/MMSI.docx)
     "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
     # Batch 4, 2026-10-20 (Lee)
-    "nauticaqueen", "paddlewheelgreen"))
+    "nauticaqueen", "paddlewheelgreen", "ladycaroline"))
 PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
 # (test_icons.py) holds only BETWEEN companies. A key not listed is its own
@@ -115,6 +115,7 @@ COMPANY_FOR = {
     # so its copy of STAR OF SAUGATUCK's art carries colours nudged one step.
     "nauticaqueen": "nauticaqueen",
     "paddlewheelgreen": "paddlewheelgreen",
+    "ladycaroline": "ladycaroline",
 }
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -301,6 +302,7 @@ NAMED_BY_MMSI = {
     "367164090": ("nauticaqueen", 0.80),    # NAUTICA QUEEN, 32 x 9 m, Cleveland (draft b)
     "367578130": ("cityview", 0.8),         # RIVER VIEW (Lee: same icon as CITYVIEW; broadcasts 7 x 5 m)
     "367107610": ("paddlewheelgreen", 0.80),  # 26 x 8 m passenger, not yet heard by us
+    "368285150": ("ladycaroline", 0.80),    # LADY CAROLINE, 29 x 10 m, Cleveland (Lee's picture, no letters)
     "338236842": ("tug", 0.45),           # a 7 x 4 m towing vessel that rarely broadcasts its type (Lee); the 7 m ramp  # DETROIT PRINCESS
 }
 
@@ -878,6 +880,8 @@ EDGE_FOR = {
     # Batch 4 (Lee, 2026-10-20): Nautica Queen white, the green sternwheeler #00B669.
     "nauticaqueen": "#FDFDFC",
     "paddlewheelgreen": "#00B669",
+    # Lady Caroline: the dark green of Lee's picture.
+    "ladycaroline": "#103831",
 }
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
