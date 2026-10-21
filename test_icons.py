@@ -120,8 +120,8 @@ check("tow ignored for any other key", icons.BARGE in icons.render(
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("76 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 37 named)",
-      len(icons.ICON_KEYS), 76)
+check("78 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 39 named)",
+      len(icons.ICON_KEYS), 78)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -328,7 +328,8 @@ check("the companies", icons.COMPANY_FOR, {
     "marquette": "chicagoline",
     "capstreeter": "shoreline",    "starofchicago": "shoreline",    "skyview": "shoreline",    "fireboat": "fire",    "fireinflatable": "fire",    "versluis": "chicago",    "summerofgeorge": "lakefront",    "ouilmette": "wendella",    "lakeexpress": "lakeexpress",    "viking": "viking",    "vikingtender": "viking",    "paddlewheel": "paddlewheel",    "victory": "victory",    "windy": "windy",    "detroitprincess": "detroitprincess",
     "nauticaqueen": "nauticaqueen", "paddlewheelgreen": "paddlewheelgreen",
-    "ladycaroline": "ladycaroline",})
+    "ladycaroline": "ladycaroline",
+    "drummond46": "drummond", "drummond30": "drummond",})
 check("the barge colours are in no icon file", sorted(c for c in (icons.BARGE, icons.BARGE_HATCH, icons.BARGE_COAMING)
       if c.upper() in _uses), [])
 check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
@@ -397,8 +398,10 @@ _NAMED.update({   # batch 4, 2026-10-20
     "367578130": ("cityview", 0.8),
     "367107610": ("paddlewheelgreen", 0.80),
     "368285150": ("ladycaroline", 0.80),
+    "367349450": ("drummond46", 0.88),
+    "367065250": ("drummond30", 0.80),
 })
-check("64 boats", len(_NAMED), 64)
+check("66 boats", len(_NAMED), 66)
 check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
@@ -432,7 +435,7 @@ for _k in sorted(icons.NAMED_KEYS):
     check(f"{_k}: the military tone does not tint it", "#8C9A4B" in _out, "#8C9A4B" in _cols)
 check("islandtime animates", "<animate" in open(icons.icon_path("islandtime"), encoding="utf-8").read(), True)
 print("  batch 2 (Lee 2026-09-30 evening)")
-check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833', 'capstreeter': '#00559C', 'starofchicago': '#00559C', 'skyview': '#00559C', 'fireboat': '#FF002F', 'fireinflatable': '#FF002F', 'versluis': '#41B6E6', 'summerofgeorge': '#21C3F9', 'lakeexpress': '#425E8C', 'vikingtender': '#B10A32', 'paddlewheel': '#013CA3', 'victory': '#08264B', 'nauticaqueen': '#FDFDFC', 'paddlewheelgreen': '#00B669', 'ladycaroline': '#103831'})
+check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833', 'capstreeter': '#00559C', 'starofchicago': '#00559C', 'skyview': '#00559C', 'fireboat': '#FF002F', 'fireinflatable': '#FF002F', 'versluis': '#41B6E6', 'summerofgeorge': '#21C3F9', 'lakeexpress': '#425E8C', 'vikingtender': '#B10A32', 'paddlewheel': '#013CA3', 'victory': '#08264B', 'nauticaqueen': '#FDFDFC', 'paddlewheelgreen': '#00B669', 'ladycaroline': '#103831', 'drummond46': '#004684', 'drummond30': '#004684'})
 for _k, _c in icons.EDGE_FOR.items():
     check(f"{_k}: its outline colour is served", _c in icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.8, False), True)
 check("338503254 sails at the 8 m ramp", icons.named_for("338503254"), ("sailing", icons.weight_for("sailing", 8)))
@@ -538,6 +541,10 @@ check("RIVER VIEW draws CITYVIEW", icons.named_for("367578130"), icons.named_for
 _lc = open(icons.icon_path("ladycaroline"), encoding="utf-8").read()
 check("seadogry is retired: no key, no file", ("seadogry" in icons.ICON_KEYS, os.path.exists(os.path.join(icons.icon_dir(), "seadogry.svg"))), (False, False))
 check("SEADOG III, IV, V draw the same icon", {icons.named_for(m)[0] for m in ("367401440", "366848350", "367350620")}, {"seadogyr"})
+for _k in ("drummond46", "drummond30"):
+    _d = open(icons.icon_path(_k), encoding="utf-8").read()
+    check(f"{_k}: Lee's #004684 fill", "#004684" in _d, True)
+    check(f"{_k}: its own gradient id", f'id="{_k}g"' in _d, True)
 check("LADY CAROLINE: no letters (Lee)", "<text" in _lc, False)
 check("LADY CAROLINE: the empty circle is there", 'r="12" fill="#123730"' in _lc, True)
 check("NAUTICA QUEEN: white outline, white pilot house", "#FDFDFC" in open(icons.icon_path("nauticaqueen"), encoding="utf-8").read(), True)

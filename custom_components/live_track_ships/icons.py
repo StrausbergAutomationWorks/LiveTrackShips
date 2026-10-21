@@ -45,7 +45,7 @@ ICON_KEYS = frozenset((
     "marquette",
     "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
     # Batch 4, 2026-10-20 (Lee)
-    "nauticaqueen", "paddlewheelgreen", "ladycaroline"))
+    "nauticaqueen", "paddlewheelgreen", "ladycaroline", "drummond46", "drummond30"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -81,7 +81,7 @@ NAMED_KEYS = frozenset((
     # Batch 3, 2026-10-03 (Lee, Ships 20_Research/MMSI.docx)
     "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
     # Batch 4, 2026-10-20 (Lee)
-    "nauticaqueen", "paddlewheelgreen", "ladycaroline"))
+    "nauticaqueen", "paddlewheelgreen", "ladycaroline", "drummond46", "drummond30"))
 PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
 # (test_icons.py) holds only BETWEEN companies. A key not listed is its own
@@ -116,6 +116,9 @@ COMPANY_FOR = {
     "nauticaqueen": "nauticaqueen",
     "paddlewheelgreen": "paddlewheelgreen",
     "ladycaroline": "ladycaroline",
+    # The Drummond Island car ferries (Lee 2026-10-20): one company, two hulls.
+    "drummond46": "drummond",
+    "drummond30": "drummond",
 }
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -305,6 +308,8 @@ NAMED_BY_MMSI = {
     "367578130": ("cityview", 0.8),         # RIVER VIEW (Lee: same icon as CITYVIEW; broadcasts 7 x 5 m)
     "367107610": ("paddlewheelgreen", 0.80),  # 26 x 8 m passenger, not yet heard by us
     "368285150": ("ladycaroline", 0.80),    # LADY CAROLINE, 29 x 10 m, Cleveland (Lee's picture, no letters)
+    "367349450": ("drummond46", 0.88),      # DRUMMOND ISLANDER IV, 46 x 12 m Ro-Ro
+    "367065250": ("drummond30", 0.80),      # 30 x 11 m Ro-Ro, Drummond Island (name not in our data)
     "338236842": ("tug", 0.45),           # a 7 x 4 m towing vessel that rarely broadcasts its type (Lee); the 7 m ramp  # DETROIT PRINCESS
 }
 
@@ -884,6 +889,9 @@ EDGE_FOR = {
     "paddlewheelgreen": "#00B669",
     # Lady Caroline: the dark green of Lee's picture.
     "ladycaroline": "#103831",
+    # Drummond Island ferries: Lee's #004684, outline and fill.
+    "drummond46": "#004684",
+    "drummond30": "#004684",
 }
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
