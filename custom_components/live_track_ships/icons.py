@@ -312,7 +312,7 @@ NAMED_BY_MMSI = {
     "367107610": ("paddlewheelgreen", 0.80),  # 26 x 8 m passenger, not yet heard by us
     "368285150": ("ladycaroline", 0.80),    # LADY CAROLINE, 29 x 10 m, Cleveland (Lee's picture, no letters)
     "367349450": ("drummond46", 0.88),      # DRUMMOND ISLANDER IV, 46 x 12 m Ro-Ro
-    "367065250": ("drummond30", 0.80),      # 30 x 11 m Ro-Ro, Drummond Island (name not in our data)
+    "367065250": ("drummond30", 0.80),      # DRUMMOND ISLANDER III, 30 x 11 m Ro-Ro, EUPTA's reserve (Lee, MarineTraffic; not in our statics)
     "368280810": ("neebish", 0.80),         # NEEBISH ISLANDER III, 28 x 10 m (broadcasts 89 x 33: feet)
     "367063240": ("sugarislander", 0.80),   # SUGAR ISLANDER II, 32 x 12 m (Lee; not in our statics)
     "338236842": ("tug", 0.45),           # a 7 x 4 m towing vessel that rarely broadcasts its type (Lee); the 7 m ramp  # DETROIT PRINCESS
