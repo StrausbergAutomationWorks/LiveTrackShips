@@ -49,6 +49,19 @@ COMPRESS_WBITS = 15
 SUBSCRIBE_WITHIN_S = 3
 MIN_SECONDS_BETWEEN_SUBSCRIBES = 1.0
 
+# ⚠ A SOCKET CAN DIE WITHOUT CLOSING. Measured 2026-10-20: the Madrid entry's
+# connection stopped carrying data at 15:58:06Z and stayed ESTABLISHED in the
+# kernel - 0 packets in 20 s by tcpdump - for 8.5 hours, while a fresh
+# connection with the same key and box got 222 messages a minute. With
+# heartbeat=None the read loop waited forever: no error, no reconnect, no log.
+# aiohttp sends a ping after HEARTBEAT_S with nothing received and drops the
+# socket if no pong comes within half of it, so a dead socket is noticed in
+# at most 45 s. aisstream answers pings (measured the same night: pong in
+# 0.28-0.29 s on a box over dry land, so no data frame was masking it).
+# ⚠ Do NOT replace this with an idle-data timeout: quiet water legitimately
+# sends nothing for minutes. SSOT.md item 23.
+HEARTBEAT_S = 30.0
+
 # ⚠ Reconnect with backoff AND JITTER. Without jitter, every instance that
 # lost the same upstream returns in lockstep.
 BACKOFF_START_S = 2.0
@@ -282,7 +295,7 @@ class AisStreamSource:
     async def _one_connection(self, aiohttp):
         async with self._session.ws_connect(
                 URL, compress=COMPRESS_WBITS, max_msg_size=0,
-                heartbeat=None) as ws:
+                heartbeat=HEARTBEAT_S) as ws:
 
             # ⚠ WITHIN 3 SECONDS or the socket closes. Send it first, before
             # any other work.
@@ -299,9 +312,17 @@ class AisStreamSource:
                     payload = msg.data.decode("utf-8", errors="replace")
                 elif msg.type is aiohttp.WSMsgType.TEXT:
                     payload = msg.data          # tolerated, never observed
+                elif msg.type is aiohttp.WSMsgType.ERROR:
+                    # ⚠ A missed pong arrives HERE, as ERROR carrying a
+                    # ServerTimeoutError. WARNING, not info: a socket that died
+                    # silently must leave a line in a default log.
+                    if not self._closing:
+                        _LOGGER.warning(
+                            "aisstream connection lost (%s); reconnecting",
+                            ws.exception() or msg.data)
+                    return
                 elif msg.type in (aiohttp.WSMsgType.CLOSED,
-                                  aiohttp.WSMsgType.CLOSING,
-                                  aiohttp.WSMsgType.ERROR):
+                                  aiohttp.WSMsgType.CLOSING):
                     _LOGGER.info("aisstream closed the connection: %s",
                                  ws.close_code)
                     return
@@ -311,6 +332,22 @@ class AisStreamSource:
                 try:
                     obj = json.loads(payload)
                 except json.JSONDecodeError:
+                    continue
+                if not isinstance(obj, dict):
+                    continue
+
+                # ⚠ The service reports a refusal (bad key, too many
+                # connections) as a frame with an "error" key and NO
+                # MessageType. Before 2026-10-20 it fell through
+                # _to_observation as "no MMSI" and vanished without a log line,
+                # which looks exactly like empty water. The text is the
+                # service's own; the key is masked in case it is ever echoed.
+                if "error" in obj and "MessageType" not in obj:
+                    text = str(obj.get("error"))[:200]
+                    if self._key:
+                        text = text.replace(self._key, "<api key>")
+                    _LOGGER.warning("aisstream refused the subscription: %s",
+                                    text)
                     continue
 
                 if obj.get("MessageType") == "SubscriptionConfirmation":
