@@ -39,7 +39,7 @@ ICON_KEYS = frozenset((
     "philippines", "saudi", "uae", "bahrain", "morocco", "russia",
     "turkmenistan", "croatia",
     "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
-    "elite", "seadogry", "seadogyr",
+    "elite", "seadogyr",
     "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
     "marquette",
@@ -74,7 +74,7 @@ VESSEL_PAINTED = frozenset((
 # boats and City Cruises. Which boat gets which: NAMED_BY_MMSI below.
 NAMED_KEYS = frozenset((
     "islandtime", "shorelinetaxi", "cwttaxi", "wendella", "odyssey",
-    "elite", "seadogry", "seadogyr",
+    "elite", "seadogyr",
     "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
     "marquette",
@@ -88,7 +88,7 @@ PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # company. Seadog is City Cruises; Wendella runs Chicago Water Taxi.
 COMPANY_FOR = {
     "odyssey": "citycruises", "elite": "citycruises",
-    "seadogry": "citycruises", "seadogyr": "citycruises",
+    "seadogyr": "citycruises",
     "wendella": "wendella", "cwttaxi": "wendella",
     "shorelinetaxi": "shoreline", "cityview": "shoreline", "shorelinetour": "shoreline",
     "firstlady": "firstlady", "classiclady": "firstlady", "emeraldlady": "firstlady",
@@ -256,7 +256,9 @@ NAMED_BY_MMSI = {
     "367409940": ("elite", 0.85),          # CHICAGO ELITE
     "367148850": ("elite", 0.90),          # SPIRIT OF CHICAGO
     "367350360": ("elite", 0.85),          # SPIRIT OF NAVY PIER
-    "366848350": ("seadogry", 0.70),       # SEADOG IV (not yet heard by us)
+    # Lee 2026-10-20: SEADOG III, IV and V all draw the yellow-deck Seadog; seadogry retired.
+    "367401440": ("seadogyr", 0.70),       # SEADOG III
+    "366848350": ("seadogyr", 0.70),       # SEADOG IV
     "367350620": ("seadogyr", 0.70),       # SEADOG V (SEADOG EXTREME)
     # Batch 2, 2026-09-30 evening (Lee): Shoreline's tour boats, the First Lady fleet,
     # Anita Dee, Chicago Line Cruises, one more water taxi, and a sailboat that broadcasts

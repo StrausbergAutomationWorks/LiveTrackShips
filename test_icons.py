@@ -120,8 +120,8 @@ check("tow ignored for any other key", icons.BARGE in icons.render(
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("77 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 38 named)",
-      len(icons.ICON_KEYS), 77)
+check("76 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 37 named)",
+      len(icons.ICON_KEYS), 76)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -319,7 +319,7 @@ _clash = sorted((c, sorted(u)) for c, u in _uses.items()
                 and u - _state)
 check("no colour shared between icons of different companies (outline excepted)", _clash, [])
 check("the companies", icons.COMPANY_FOR, {
-    "odyssey": "citycruises", "elite": "citycruises", "seadogry": "citycruises",
+    "odyssey": "citycruises", "elite": "citycruises",
     "seadogyr": "citycruises", "wendella": "wendella", "cwttaxi": "wendella",
     "shorelinetaxi": "shoreline", "cityview": "shoreline", "shorelinetour": "shoreline",
     "firstlady": "firstlady", "classiclady": "firstlady", "emeraldlady": "firstlady",
@@ -350,7 +350,8 @@ _NAMED = {
     "367521420": ("wendella", 0.75), "367360260": ("odyssey", 0.90),
     "368039870": ("odyssey", 0.85), "367409940": ("elite", 0.85),
     "367148850": ("elite", 0.90), "367350360": ("elite", 0.85),
-    "366848350": ("seadogry", 0.70), "367350620": ("seadogyr", 0.70)}
+    "366848350": ("seadogyr", 0.70), "367350620": ("seadogyr", 0.70),
+    "367401440": ("seadogyr", 0.70)}   # Lee 2026-10-20: SEADOG III, IV, V all the yellow-deck Seadog
 _NAMED.update({
     "367627830": ("cityview", 0.8),
     "366897080": ("shorelinetour", 0.78),
@@ -397,7 +398,7 @@ _NAMED.update({   # batch 4, 2026-10-20
     "367107610": ("paddlewheelgreen", 0.80),
     "368285150": ("ladycaroline", 0.80),
 })
-check("63 boats", len(_NAMED), 63)
+check("64 boats", len(_NAMED), 64)
 check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
@@ -535,6 +536,8 @@ check("paddlewheelgreen: gaps the water blue, one step off", "#AAD3E0" in open(i
 check("paddles twice as tall (6.8)", all('height="6.8"' in open(icons.icon_path(k), encoding="utf-8").read() for k in ("paddlewheel", "paddlewheelgreen")), True)
 check("RIVER VIEW draws CITYVIEW", icons.named_for("367578130"), icons.named_for("367627830"))
 _lc = open(icons.icon_path("ladycaroline"), encoding="utf-8").read()
+check("seadogry is retired: no key, no file", ("seadogry" in icons.ICON_KEYS, os.path.exists(os.path.join(icons.icon_dir(), "seadogry.svg"))), (False, False))
+check("SEADOG III, IV, V draw the same icon", {icons.named_for(m)[0] for m in ("367401440", "366848350", "367350620")}, {"seadogyr"})
 check("LADY CAROLINE: no letters (Lee)", "<text" in _lc, False)
 check("LADY CAROLINE: the empty circle is there", 'r="12" fill="#123730"' in _lc, True)
 check("NAUTICA QUEEN: white outline, white pilot house", "#FDFDFC" in open(icons.icon_path("nauticaqueen"), encoding="utf-8").read(), True)
