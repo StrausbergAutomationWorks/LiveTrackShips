@@ -120,8 +120,8 @@ check("tow ignored for any other key", icons.BARGE in icons.render(
 
 print("\n=== every icon exists; nothing else is servable ===")
 files = {p.stem for p in (_PKG / "icons").glob("*.svg")}
-check("74 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 35 named)",
-      len(icons.ICON_KEYS), 74)
+check("76 keys (22 vessels + netbuoy + sarheli + sarplane + 14 state + 37 named)",
+      len(icons.ICON_KEYS), 76)
 check("every key has a file", sorted(k for k in icons.ICON_KEYS if k not in files), [])
 check("lng dropped", "lng" in icons.ICON_KEYS, False)
 every_pick = {icons.pick(c, L) for c in range(0, 100) for L in (None, 20, 200)}
@@ -326,7 +326,8 @@ check("the companies", icons.COMPANY_FOR, {
     "fairlady": "firstlady", "littlelady": "firstlady", "anitadee": "anitadee",
     "anitadee2": "anitadee", "innisfree": "chicagoline", "ftdearborn": "chicagoline",
     "marquette": "chicagoline",
-    "capstreeter": "shoreline",    "starofchicago": "shoreline",    "skyview": "shoreline",    "fireboat": "fire",    "fireinflatable": "fire",    "versluis": "chicago",    "summerofgeorge": "lakefront",    "ouilmette": "wendella",    "lakeexpress": "lakeexpress",    "viking": "viking",    "vikingtender": "viking",    "paddlewheel": "paddlewheel",    "victory": "victory",    "windy": "windy",    "detroitprincess": "detroitprincess",})
+    "capstreeter": "shoreline",    "starofchicago": "shoreline",    "skyview": "shoreline",    "fireboat": "fire",    "fireinflatable": "fire",    "versluis": "chicago",    "summerofgeorge": "lakefront",    "ouilmette": "wendella",    "lakeexpress": "lakeexpress",    "viking": "viking",    "vikingtender": "viking",    "paddlewheel": "paddlewheel",    "victory": "victory",    "windy": "windy",    "detroitprincess": "detroitprincess",
+    "nauticaqueen": "nauticaqueen", "paddlewheelgreen": "paddlewheelgreen",})
 check("the barge colours are in no icon file", sorted(c for c in (icons.BARGE, icons.BARGE_HATCH, icons.BARGE_COAMING)
       if c.upper() in _uses), [])
 check("City Cruises share their blue #124A60", {"odyssey", "elite"} <= _uses.get("#124A60", set()), True)
@@ -389,7 +390,12 @@ _NAMED.update({
     "366964380": ("detroitprincess", 0.9),
     "338236842": ("tug", 0.45),
 })
-check("59 boats", len(_NAMED), 59)
+_NAMED.update({   # batch 4, 2026-10-20
+    "367164090": ("nauticaqueen", 0.80),
+    "367578130": ("cityview", 0.8),
+    "367107610": ("paddlewheelgreen", 0.80),
+})
+check("62 boats", len(_NAMED), 62)
 check("the table is exactly the named boats", icons.NAMED_BY_MMSI, _NAMED)
 for _m, _want in _NAMED.items():
     check(f"MMSI {_m} -> {_want}", icons.named_for(_m), _want)
@@ -423,7 +429,7 @@ for _k in sorted(icons.NAMED_KEYS):
     check(f"{_k}: the military tone does not tint it", "#8C9A4B" in _out, "#8C9A4B" in _cols)
 check("islandtime animates", "<animate" in open(icons.icon_path("islandtime"), encoding="utf-8").read(), True)
 print("  batch 2 (Lee 2026-09-30 evening)")
-check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833', 'capstreeter': '#00559C', 'starofchicago': '#00559C', 'skyview': '#00559C', 'fireboat': '#FF002F', 'fireinflatable': '#FF002F', 'versluis': '#41B6E6', 'summerofgeorge': '#21C3F9', 'lakeexpress': '#425E8C', 'vikingtender': '#B10A32', 'paddlewheel': '#013CA3', 'victory': '#08264B'})
+check("Shoreline outlines brand blue, First Lady gold, uae grey", icons.EDGE_FOR, {'uae': '#9AA0A6', 'shorelinetaxi': '#00559C', 'cityview': '#00559C', 'shorelinetour': '#00559C', 'firstlady': '#BB8833', 'classiclady': '#BB8833', 'emeraldlady': '#BB8833', 'fairlady': '#BB8833', 'littlelady': '#BB8833', 'capstreeter': '#00559C', 'starofchicago': '#00559C', 'skyview': '#00559C', 'fireboat': '#FF002F', 'fireinflatable': '#FF002F', 'versluis': '#41B6E6', 'summerofgeorge': '#21C3F9', 'lakeexpress': '#425E8C', 'vikingtender': '#B10A32', 'paddlewheel': '#013CA3', 'victory': '#08264B', 'nauticaqueen': '#FDFDFC', 'paddlewheelgreen': '#00B669'})
 for _k, _c in icons.EDGE_FOR.items():
     check(f"{_k}: its outline colour is served", _c in icons.render(icons.icon_path(_k), _k, None, 64, "default", 0.8, False), True)
 check("338503254 sails at the 8 m ramp", icons.named_for("338503254"), ("sailing", icons.weight_for("sailing", 8)))
@@ -481,7 +487,7 @@ for _k in sorted(icons.FX_KEYS):
     check(f"{_k}: fx after the filtered group", _r.rfind(_fxb) > _r.rfind('filter="url(#e)"'), True)
     check(f"{_k}: fx at the art's scale", '<g transform="translate(10.0000 10.0000) scale(0.900000)">' + _fxb in _r, True)
 _rest = lambda k, **kw: icons.render(icons.icon_path(k), k, None, 64, "default", 0.9, False, **kw)
-check("wake keys", sorted(icons.WAKE_KEYS), ["lakeexpress", "paddlewheel"])
+check("wake keys", sorted(icons.WAKE_KEYS), ["lakeexpress", "paddlewheel", "paddlewheelgreen"])
 check("lakeexpress at rest: no wake", "lewk" in _rest("lakeexpress"), False)
 check("lakeexpress moving: wake", "lewk" in _rest("lakeexpress", moving=True), True)
 check("paddlewheel at rest: no wake", "animateTransform attributeName=\"transform\" type=\"translate\" from=\"0 0\" to=\"0 9\"" in _rest("paddlewheel"), False)
@@ -489,7 +495,7 @@ check("paddlewheel at rest: paddles still turn", "to=\"0 6\"" in _rest("paddlewh
 check("detroitprincess at rest: glow stays", "dpg" in _rest("detroitprincess"), True)
 check("is_moving", [icons.is_moving(v) for v in (None, 0, 3.7, icons.SLOW_KMH, 20, "x")], [False, False, False, True, True, False])
 check("338236842 is the stock tug at the 7 m ramp", icons.named_for("338236842"), ("tug", icons.weight_for("tug", 7)))
-check("fx keys are exactly the three", sorted(icons.FX_KEYS), ["detroitprincess", "lakeexpress", "paddlewheel"])
+check("fx keys are exactly the four", sorted(icons.FX_KEYS), ["detroitprincess", "lakeexpress", "paddlewheel", "paddlewheelgreen"])
 check("every _fx file belongs to an FX key", sorted(f[:-7] for f in os.listdir(icons.icon_dir()) if f.endswith("_fx.svg")),
       sorted(icons.FX_KEYS))
 _f = icons.render(icons.icon_path("fireboat"), "fireboat", None, 64, "default", 0.8, False)
@@ -512,6 +518,15 @@ check("windy is UPRIGHT, so the URL carries s=", "windy" in icons.UPRIGHT, True)
 check("only windy is side view", sorted(icons.SIDEVIEW), ["windy"])
 check("cargo never mirrored", _MIR in icons.render(icons.icon_path("cargo"), "cargo", None, 64, "default", 0.9, False, 200), False)
 check("paddlewheel paddles animate", "<animateTransform" in open(icons.icon_path("paddlewheel"), encoding="utf-8").read(), True)
+print("  batch 4 (Lee 2026-10-20)")
+_pg = open(icons.icon_path("paddlewheelgreen"), encoding="utf-8").read()
+check("paddlewheelgreen: Lee's green, no Saugatuck blue", ("#00B669" in _pg, "#013CA3" in _pg.upper()), (True, False))
+check("paddlewheelgreen: paddles animate", "<animateTransform" in _pg, True)
+check("paddlewheelgreen: its own gradient and clip ids", ("pgw" in _pg, "pww" in _pg, "pgc" in _pg, "pwc" in _pg), (True, False, True, False))
+check("paddlewheelgreen at rest: no wake", "to=\"0 9\"" in _rest("paddlewheelgreen"), False)
+check("paddlewheelgreen moving: wake", "to=\"0 9\"" in _rest("paddlewheelgreen", moving=True), True)
+check("RIVER VIEW draws CITYVIEW", icons.named_for("367578130"), icons.named_for("367627830"))
+check("NAUTICA QUEEN: white outline, white pilot house", "#FDFDFC" in open(icons.icon_path("nauticaqueen"), encoding="utf-8").read(), True)
 
 print("\n=== render: strict XML for every icon, angle, tone and mode ===")
 bad = []

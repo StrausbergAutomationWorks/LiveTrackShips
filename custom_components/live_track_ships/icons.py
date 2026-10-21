@@ -43,7 +43,9 @@ ICON_KEYS = frozenset((
     "cityview", "shorelinetour", "firstlady", "classiclady", "emeraldlady",
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
     "marquette",
-    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess"))
+    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
+    # Batch 4, 2026-10-20 (Lee)
+    "nauticaqueen", "paddlewheelgreen"))
 
 # ! NOT A VESSEL: a fishing-gear buoy (sources/base.py object_kind). A salmon
 # seen from the side, mouth north, drawn IN ITS OWN COLOURS - salmon body,
@@ -77,7 +79,9 @@ NAMED_KEYS = frozenset((
     "fairlady", "littlelady", "anitadee2", "anitadee", "innisfree", "ftdearborn",
     "marquette",
     # Batch 3, 2026-10-03 (Lee, Ships 20_Research/MMSI.docx)
-    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess"))
+    "capstreeter", "starofchicago", "skyview", "fireboat", "fireinflatable", "versluis", "summerofgeorge", "ouilmette", "lakeexpress", "viking", "vikingtender", "paddlewheel", "victory", "windy", "detroitprincess",
+    # Batch 4, 2026-10-20 (Lee)
+    "nauticaqueen", "paddlewheelgreen"))
 PAINTED = PAINTED | VESSEL_PAINTED | NAMED_KEYS
 # ! "Same company, same color" (Lee, 2026-09-30): the no-shared-colour rule
 # (test_icons.py) holds only BETWEEN companies. A key not listed is its own
@@ -107,6 +111,10 @@ COMPANY_FOR = {
     "victory": "victory",
     "windy": "windy",
     "detroitprincess": "detroitprincess",
+    # Batch 4 (2026-10-20). 367107610's operator is not known: its own company,
+    # so its copy of STAR OF SAUGATUCK's art carries colours nudged one step.
+    "nauticaqueen": "nauticaqueen",
+    "paddlewheelgreen": "paddlewheelgreen",
 }
 SMALLEST_AIRCRAFT_WEIGHT = 0.47
 NETBUOY_WEIGHT = SMALLEST_AIRCRAFT_WEIGHT
@@ -284,11 +292,15 @@ NAMED_BY_MMSI = {
     "259070000": ("viking", 1.0),           # VIKING OCTANTIS, IMO 9863194
     "982570174": ("vikingtender", 0.5),     # OCTANTIS TENDER 1
     "982570175": ("vikingtender", 0.5),     # OCTANTIS TENDER 2
-    "368081650": ("paddlewheel", 0.75),     # a sternwheeler, 80 ft (name not in our data)
+    "368081650": ("paddlewheel", 0.75),     # STAR OF SAUGATUCK, a sternwheeler, 80 ft (name from our statics, 2026-10-20)
     "311050400": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213129
     "311050300": ("victory", 0.95),         # Victory Cruise Lines, IMO 9213131
     "367505190": ("windy", 0.9),            # WINDY (side view, mirrors)
     "366964380": ("detroitprincess", 0.9),
+    # Batch 4, 2026-10-20 (Lee; drafts bin\ship_icons\draft_nautica\).
+    "367164090": ("nauticaqueen", 0.80),    # NAUTICA QUEEN, 32 x 9 m, Cleveland (draft b)
+    "367578130": ("cityview", 0.8),         # RIVER VIEW (Lee: same icon as CITYVIEW; broadcasts 7 x 5 m)
+    "367107610": ("paddlewheelgreen", 0.80),  # 26 x 8 m passenger, not yet heard by us
     "338236842": ("tug", 0.45),           # a 7 x 4 m towing vessel that rarely broadcasts its type (Lee); the 7 m ramp  # DETROIT PRINCESS
 }
 
@@ -661,11 +673,11 @@ UPRIGHT = frozenset(SYMBOL_FOR) | {"sailing"} | SIDEVIEW
 # ! EFFECTS LAYER (Lee, 2026-10-03): <key>_fx.svg - wakes, glow - drawn at the
 # art's scale but OUTSIDE the outline filter, so it stays soft, as the police
 # flash does. Not servable on its own: "_fx" fails valid_key().
-FX_KEYS = frozenset({"lakeexpress", "paddlewheel", "detroitprincess"})
+FX_KEYS = frozenset({"lakeexpress", "paddlewheel", "detroitprincess", "paddlewheelgreen"})
 # ! A WAKE shows only while the boat is moving (Lee, 2026-10-03 03:18): at or
 # above SLOW_KMH, the line below which course is noise. The URL carries m=1.
 # Detroit Princess's glow is not a wake: it shows at rest too.
-WAKE_KEYS = frozenset({"lakeexpress", "paddlewheel"})
+WAKE_KEYS = frozenset({"lakeexpress", "paddlewheel", "paddlewheelgreen"})
 
 
 def is_moving(speed_kmh) -> bool:
@@ -863,6 +875,9 @@ EDGE_FOR = {
     "vikingtender": "#B10A32",
     "paddlewheel": "#013CA3",
     "victory": "#08264B",
+    # Batch 4 (Lee, 2026-10-20): Nautica Queen white, the green sternwheeler #00B669.
+    "nauticaqueen": "#FDFDFC",
+    "paddlewheelgreen": "#00B669",
 }
 BADGE = "#1F2327"
 OUTLINE_PX = 2.0
