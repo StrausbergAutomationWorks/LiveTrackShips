@@ -52,6 +52,19 @@ TOKEN_REFRESH_MARGIN_S = 300
 BACKOFF_START_S = 2.0
 BACKOFF_MAX_S = 300.0
 
+# ⚠ A STREAM CAN DIE WITHOUT CLOSING, and before 2026-10-20 this adapter read
+# it with timeout=None, so a dead one would have hung forever with no log -
+# exactly what the aisstream socket did that day (SSOT.md item 23). SSE has no
+# ping, so the guard is a READ timeout, which is safe here and only here:
+# measured 2026-10-20 over a 10 km circle on Hardangervidda (no vessels
+# possible), the server sent `: start` and then `: keep-alive` every 50 s
+# (49.99-50.32 s, five in 252 s). A live stream always speaks within 50 s.
+# 150 s is three intervals, so one late or lost keepalive never trips it.
+# ⚠ If BarentsWatch ever lengthens its keepalive past this, every quiet entry
+# will reconnect every 150 s - re-measure (bin\lts_bw_keepalive_probe.py).
+KEEPALIVE_INTERVAL_S = 50
+SSE_READ_TIMEOUT_S = 3 * KEEPALIVE_INTERVAL_S
+
 # ⚠ Sentinels. Same ITU values as everywhere else - an unmapped sentinel is
 # indistinguishable from a measurement downstream. B3 in 05_SHARED_LESSONS.md.
 COG_UNAVAILABLE = 360.0
@@ -306,15 +319,20 @@ class BarentsWatchSource:
         `data: {...}`, records separated by a blank line, and `:` alone is a
         keepalive comment that must be ignored rather than parsed.
         """
+        import aiohttp
+
         token = await self._access_token()
         body = {"geometry": self._geometry, "modelType": "Full",
                 "modelFormat": "Json", "downsample": True}
+        # ⚠ No TOTAL timeout - the stream is meant to run for hours - but a
+        # READ timeout, so silence past three keepalives ends it.
         async with self._session.post(
                 SSE_COMBINED, json=body,
                 headers={"Authorization": f"Bearer {token}",
                          "Accept": "text/event-stream",
                          "User-Agent": USER_AGENT},
-                timeout=None) as resp:
+                timeout=aiohttp.ClientTimeout(
+                    total=None, sock_read=SSE_READ_TIMEOUT_S)) as resp:
             if resp.status == 401:
                 # ⚠ Force a refresh and let the caller reconnect. A 401
                 # mid-stream means the token aged out despite the margin.
@@ -322,24 +340,33 @@ class BarentsWatchSource:
                 await self._access_token(force=True)
                 return
             resp.raise_for_status()
-            async for raw in resp.content:
-                if self._closing:
-                    return
-                line = raw.decode("utf-8", errors="replace").strip()
-                if not line or line.startswith(":"):
-                    continue                      # blank or keepalive comment
-                if not line.startswith("data:"):
-                    continue                      # event:, id:, retry:
-                payload = line[5:].strip()
-                if not payload:
-                    continue
-                try:
-                    row = json.loads(payload)
-                except json.JSONDecodeError:
-                    continue
-                obs = self._to_observation(row)
-                if obs is not None:
-                    yield obs
+            try:
+                async for raw in resp.content:
+                    if self._closing:
+                        return
+                    line = raw.decode("utf-8", errors="replace").strip()
+                    if not line or line.startswith(":"):
+                        continue                  # blank or keepalive comment
+                    if not line.startswith("data:"):
+                        continue                  # event:, id:, retry:
+                    payload = line[5:].strip()
+                    if not payload:
+                        continue
+                    try:
+                        row = json.loads(payload)
+                    except json.JSONDecodeError:
+                        continue
+                    obs = self._to_observation(row)
+                    if obs is not None:
+                        yield obs
+            except (asyncio.TimeoutError, TimeoutError):
+                # ⚠ WARNING, so a stream that died silently leaves a line in a
+                # default log. Returning lets observations() reconnect.
+                if not self._closing:
+                    _LOGGER.warning(
+                        "BarentsWatch stream silent for %s s (no keepalive); "
+                        "reconnecting", SSE_READ_TIMEOUT_S)
+                return
 
     async def close(self):
         self._closing = True
