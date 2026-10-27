@@ -224,7 +224,15 @@ check("the FULL case sits on SPIRIT OF CHICAGO's MMSI and draws elite", a.get("i
 x, p = attrs_of("367360261", name="ODYSSEY LAKE MI_IGAN", ship_type=60, length_m=61.0)
 check("the name alone draws nothing: a neighbour MMSI is a passenger", x.get("icon_category"), "passenger")
 check("and keeps the length ramp", "w=0.90" in (p or ""), False)
-check("named pictures carry the artwork version 17", "v=17" in (p or ""), True)
+# The CURRENT artwork version, not a number copied here: this read "v=17" and
+# went stale when the art moved on (ARTWORK_VERSION was 22 by 2026-10-21).
+from live_track_ships.web import ARTWORK_VERSION                     # noqa: E402
+import re as _re                                                     # noqa: E402
+# A NAMED boat's picture (SEADOG V); `p` here is the neighbour MMSI's passenger.
+_, _pn = attrs_of("367350620", name="SEADOG V", ship_type=60, length_m=21.0)
+_v = _re.search(r"[?&]v=([^&]+)", _pn or "")
+check(f"named pictures carry the artwork version ({ARTWORK_VERSION})",
+      _v and _v.group(1), str(ARTWORK_VERSION))
 x, p = attrs_of("366853070", name="EVENING STAR", ship_type=69, length_m=30.0)
 check("EVENING STAR draws the Shoreline tour boat at 0.78", (x.get("icon_category"), "w=0.78" in (p or "")), ("shorelinetour", True))
 x, p = attrs_of("367688370", name="THE ANITA DEE II", ship_type=60, length_m=42.0)
