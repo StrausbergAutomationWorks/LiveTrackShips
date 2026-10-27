@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_FINAL_WRITE
@@ -34,8 +35,11 @@ from . import held as _held
 from .sources import statics as _statics
 from .quota import effective_ceiling
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
+from .shared_map_card import async_offer_map_card, async_withdraw_map_card
 
 _LOGGER = logging.getLogger(__name__)
+
+HERE = Path(__file__).parent
 
 def instance_ceiling(hass) -> int:
     """INSTANCE_MAX_VESSELS as lowered by the users' sliders (item 264): the
@@ -316,6 +320,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # The vessel icons (SSOT item 254). Registered once per HA run.
     from .web import register as register_views
     register_views(hass)
+    # LiveTrackMapCard, shipped in frontend/: served once per run, offered, and
+    # the one dashboard resource row reconciled (backlog 291). Never raises.
+    await async_offer_map_card(hass, DOMAIN, HERE / "frontend")
     feed = ShipFeed(hass, entry)
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
@@ -325,12 +332,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload one area. The map card is NOT withdrawn here: every restart
+    and reload unloads, and that is not an uninstall (card SSOT 67.6);
+    async_remove_entry does it."""
     unloaded = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS)
     feed = hass.data[DOMAIN].pop(entry.entry_id, None)
     if feed is not None:
         await feed.stop()
     return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """An area was deleted. The domain's LAST one withdraws the map card."""
+    if not [e for e in hass.config_entries.async_entries(DOMAIN)
+            if e.entry_id != entry.entry_id]:
+        await async_withdraw_map_card(hass, DOMAIN)
 
 
 async def _reload(hass: HomeAssistant, entry: ConfigEntry) -> None:

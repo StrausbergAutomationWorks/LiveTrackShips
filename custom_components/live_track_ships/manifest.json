@@ -8,6 +8,7 @@
   "config_flow": true,
   "iot_class": "cloud_push",
   "integration_type": "service",
-  "requirements": [],
-  "dependencies": ["http"]
+  "requirements": ["saw-livetrack>=0.2.8,<0.3"],
+  "dependencies": ["http"],
+  "after_dependencies": ["lovelace"]
 }
