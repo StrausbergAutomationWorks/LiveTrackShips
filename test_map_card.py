@@ -147,7 +147,7 @@ check("manifest: http in dependencies", "http" in man.get("dependencies", []))
 check("manifest: lovelace in after_dependencies", "lovelace" in man.get("after_dependencies", []))
 check("manifest: the saw-livetrack requirement",
       [r for r in man.get("requirements", []) if r.startswith("saw-livetrack")],
-      ["saw-livetrack>=0.2.8,<0.3"])
+      ["saw-livetrack>=0.2.19,<0.3"])
 for rel in ("strings.json", "translations/en.json"):
     issues = json.loads((COMP / rel).read_text(encoding="utf-8")).get("issues", {})
     yml = issues.get("map_card_yaml_resource", {})

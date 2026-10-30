@@ -33,6 +33,7 @@ from .const_flow import attribution_for
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes
 from . import held as _held
 from .sources import statics as _statics
+from saw_livetrack import aisstream as _aisstream
 from .quota import effective_ceiling
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
 from .shared_map_card import async_offer_map_card, async_withdraw_map_card
@@ -63,7 +64,9 @@ class StaticsHolder:
     def __init__(self, hass):
         self.hass = hass
         self.path = hass.config.path(".storage", _statics.FILE_NAME)
-        self.cache = _statics.StaticCache()
+        # ⚠ THE SHARED aisstream CLIENT'S cache (backlog 315): its connections
+        # parse into it, so this is the one that is loaded and saved.
+        self.cache = _aisstream.shared(hass.data).statics
         self._loaded: asyncio.Future | None = None
         self._lock = asyncio.Lock()
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_FINAL_WRITE,
@@ -253,10 +256,17 @@ class ShipFeed:
         # ⚠ The service takes BOXES; the user asked for a CIRCLE. We request
         # the circumscribing box and the store enforces the circle - a corner
         # is 1.41x the radius out.
+        # ⚠ The connection is the instance's shared aisstream client's
+        # (backlog 315): entries on one key share ONE connection. The task
+        # is Home Assistant's, not this entry's: the connection outlives it.
         return AisStreamSource(session, self._cfg[CONF_API_KEY],
                                bounding_boxes(self.lat, self.lon, self.radius),
                                statics=(self._statics.cache
-                                        if self._statics else None))
+                                        if self._statics else None),
+                               store=self.hass.data,
+                               consumer=f"{DOMAIN}:{self.entry.entry_id}",
+                               create_task=lambda coro, name:
+                               self.hass.async_create_background_task(coro, name))
 
     async def start(self):
         # ⚠ Only aisstream learns statics from the air. BarentsWatch sends

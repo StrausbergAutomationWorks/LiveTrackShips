@@ -1,7 +1,8 @@
 """SSOT item 23: an aisstream socket that dies without closing.
 
-⚠ Runs INSIDE the Home Assistant container (the package imports
-homeassistant), like test_throttle.py. %USERPROFILE%\\bin\\lts_boxtest.py.
+⚠ Since 2026-10-30 (backlog 315) the connection is saw_livetrack.aisstream's
+and this drives it through Ships' adapter, `sources` loaded BY PATH, so it
+runs anywhere with aiohttp and saw-livetrack 0.2.19 (and still in the box).
 
 A local WebSocket server stands in for aisstream. What it pins down:
   * a QUIET but live server (answers pings, sends no data) is NOT dropped -
@@ -14,17 +15,23 @@ A local WebSocket server stands in for aisstream. What it pins down:
     never noticed - proves the dead-server check can fail
 """
 import asyncio
+import importlib
 import json
 import logging
 import pathlib
 import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+import types
 
 import aiohttp                                                       # noqa: E402
 from aiohttp import web                                              # noqa: E402
 
-from live_track_ships.sources import aisstream as A                  # noqa: E402
+from saw_livetrack import aisstream as A                             # noqa: E402
+
+_pkg = types.ModuleType("lts_src")
+_pkg.__path__ = [str(pathlib.Path(__file__).parent / "custom_components"
+                     / "live_track_ships" / "sources")]
+sys.modules["lts_src"] = _pkg
+S = importlib.import_module("lts_src.aisstream")                   # Ships' adapter
 
 passed = failed = 0
 KEY = "test-key-0123456789abcdef"
@@ -111,7 +118,7 @@ async def run_case(mode, seconds, heartbeat):
     A._LOGGER.setLevel(logging.DEBUG)
     got = []
     async with aiohttp.ClientSession() as session:
-        src = A.AisStreamSource(session, KEY, [[[39, -4], [41, -2]]])
+        src = S.AisStreamSource(session, KEY, [[[39, -4], [41, -2]]])
 
         async def consume():
             async for o in src.observations():

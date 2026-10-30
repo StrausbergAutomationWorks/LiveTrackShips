@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import logging
 import os
-import re
 import sqlite3
 import time
 
@@ -44,151 +43,23 @@ _LOGGER = logging.getLogger(__name__)
 FILE_NAME = "saw_vessel_statics.sqlite"
 SCHEMA_VERSION = "1"
 
-# Written to disk, in column order. `name` is kept for the reassignment guard.
-PERSISTED = ("name", "type", "call_sign", "imo", "length_m", "beam_m")
-HULL = PERSISTED[1:]
-VOYAGE = ("destination", "draught_m")
-
-RETENTION_DAYS = 90
-MAX_ENTRIES = 50_000
-
-_NAME_KEY = re.compile(r"[^A-Z0-9]")
-
-
-def name_key(name) -> str | None:
-    """A name compared on letters and digits only, so padding, spacing and
-    punctuation are not a difference. Both names come from the same
-    transponder, mangling included, so nothing is repaired (SSOT section 6)."""
-    if not name:
-        return None
-    key = _NAME_KEY.sub("", str(name).upper())
-    return key or None
-
-
-class StaticRecord:
-    """One vessel's statics. Slots, because a busy entry holds tens of
-    thousands of these."""
-
-    __slots__ = PERSISTED + VOYAGE + ("first_seen", "last_seen")
-
-    def __init__(self, first_seen: int, last_seen: int):
-        for k in PERSISTED + VOYAGE:
-            setattr(self, k, None)
-        self.first_seen = first_seen
-        self.last_seen = last_seen
-
-    def has_hull(self) -> bool:
-        return any(getattr(self, k) is not None for k in HULL)
-
-
-class StaticCache:
-    """The MMSI join table: in memory, loaded from and flushed to SQLite."""
-
-    def __init__(self, retention_s: float = RETENTION_DAYS * 86400,
-                 max_entries: int = MAX_ENTRIES, clock=time.time):
-        self._d: dict[str, StaticRecord] = {}
-        self._fresh: set[str] = set()      # heard since this start
-        self._dirty: set[str] = set()      # to write at the next flush
-        self._retention = retention_s
-        self._max = max_entries
-        self._clock = clock
-
-    def __len__(self) -> int:
-        return len(self._d)
-
-    def __contains__(self, mmsi) -> bool:
-        return mmsi in self._d
-
-    # -- from the air ------------------------------------------------------
-    def update(self, mmsi: str, fields: dict) -> StaticRecord:
-        """Record what one static message carried. Fields it did not carry
-        keep their values; a field it carried as None is cleared, exactly as
-        the vessel declared it."""
-        now = int(self._clock())
-        rec = self._d.get(mmsi)
-        if rec is None:
-            rec = self._d[mmsi] = StaticRecord(now, now)
-        for k, v in fields.items():
-            if k in PERSISTED or k in VOYAGE:
-                setattr(rec, k, v)
-        rec.last_seen = now
-        self._fresh.add(mmsi)
-        self._dirty.add(mmsi)
-        return rec
-
-    def set_name(self, mmsi: str, name) -> None:
-        """A Class B Part A carries only the name. It never creates a record
-        (a name alone is not worth a row), but it gives an existing one the
-        name the reassignment guard compares."""
-        rec = self._d.get(mmsi)
-        if rec is not None and name:
-            rec.name = name
-            self._dirty.add(mmsi)
-
-    def lookup(self, mmsi: str, current_name=None) -> StaticRecord | None:
-        """The record to join onto a position, or None.
-
-        ⚠ A record read back from disk and not yet re-heard is refused when
-        its name and the name broadcast now both exist and differ."""
-        rec = self._d.get(mmsi)
-        if rec is None:
-            return None
-        if mmsi not in self._fresh:
-            old, new = name_key(rec.name), name_key(current_name)
-            if old and new and old != new:
-                return None
-        return rec
-
-    # -- eviction ----------------------------------------------------------
-    def evict(self) -> list[str]:
-        """Drop records not heard for the retention window, then the least
-        recently heard past the ceiling. Returns the MMSIs dropped."""
-        cutoff = self._clock() - self._retention
-        dead = [m for m, r in self._d.items() if r.last_seen < cutoff]
-        over = len(self._d) - len(dead) - self._max
-        if over > 0:
-            gone = set(dead)
-            alive = sorted((r.last_seen, m) for m, r in self._d.items()
-                           if m not in gone)
-            dead.extend(m for _ls, m in alive[:over])
-        for m in dead:
-            del self._d[m]
-            self._fresh.discard(m)
-            self._dirty.discard(m)
-        return dead
-
-    # -- to and from disk ----------------------------------------------------
-    def load_rows(self, rows) -> int:
-        """Rows as returned by load(). Never overwrites a record already heard
-        since this start. Returns how many were taken."""
-        taken = 0
-        for row in rows:
-            mmsi = row[0]
-            if mmsi in self._d:
-                continue
-            *values, first_seen, last_seen = row[1:]
-            rec = StaticRecord(int(first_seen), int(last_seen))
-            for k, v in zip(PERSISTED, values):
-                setattr(rec, k, v)
-            self._d[mmsi] = rec
-            taken += 1
-        return taken
-
-    def take_dirty(self) -> list[tuple]:
-        """Rows to upsert, and forget them. Only records with a hull field
-        are written."""
-        rows = []
-        for m in self._dirty:
-            rec = self._d.get(m)
-            if rec is not None and rec.has_hull():
-                rows.append((m, *(getattr(rec, k) for k in PERSISTED),
-                             rec.first_seen, rec.last_seen))
-        self._dirty.clear()
-        return rows
-
-    def mark_dirty(self, mmsis) -> None:
-        """Put rows back after a failed write."""
-        self._dirty.update(m for m in mmsis if m in self._d)
+# ⚠ MOVED TO saw-livetrack 0.2.19 (backlog 315, 2026-10-30), VERBATIM from
+# this file at ccebaee: the in-memory join table (PERSISTED, HULL, VOYAGE, the
+# retention and ceiling, name_key, StaticRecord, StaticCache). The instance's
+# one cache is the shared aisstream client's `statics`; Ships keeps what is
+# below, the SQLite file it is loaded from and saved to. Do not define any of
+# the imported names again here.
+from saw_livetrack.ais import (  # noqa: F401
+    HULL,
+    MAX_ENTRIES,
+    PERSISTED,
+    RETENTION_DAYS,
+    VOYAGE,
+    StaticCache,
+    StaticRecord,
+    _NAME_KEY,
+    name_key,
+)
 
 
 # ---------------------------------------------------------------------------
