@@ -15,12 +15,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import timedelta
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_FINAL_WRITE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession, async_get_clientsession
+from homeassistant.helpers.event import async_track_time_interval
 
 from .const_flow import (
     CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_INSTANCE_MAX,
@@ -34,6 +36,8 @@ from .geo import DEFAULT_RADIUS_KM, bounding_boxes
 from . import held as _held
 from .sources import statics as _statics
 from saw_livetrack import aisstream as _aisstream
+from saw_livetrack import enforcement_list as _el
+from saw_livetrack import enforcement_vessels as _ev
 from .quota import effective_ceiling
 from .store import DEFAULT_PRUNE_INTERVAL_S, VesselStore
 from .shared_map_card import async_offer_map_card, async_withdraw_map_card
@@ -41,6 +45,19 @@ from .shared_map_card import async_offer_map_card, async_withdraw_map_card
 _LOGGER = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
+# The EnforcementVessels list (backlog 315 task 5): asked every hour; the reader holds a good check for 6 h
+# and a failed one for 15 min, so several entries and Live Track SALT asking costs one request.
+LIST_TICK = timedelta(hours=1)
+
+
+def _list_session(hass):
+    """The lists' own session with the raised header limits (05_SHARED_LESSONS.md B17): GitHub's release
+    redirect carries a header over aiohttp's default. Shared with every SAW integration that reads a list."""
+    session = hass.data.get(_el.SESSION_KEY)
+    if session is None or session.closed:
+        session = async_create_clientsession(hass, **_el.SESSION_KWARGS)
+        hass.data[_el.SESSION_KEY] = session
+    return session
 
 def instance_ceiling(hass) -> int:
     """INSTANCE_MAX_VESSELS as lowered by the users' sliders (item 264): the
@@ -203,6 +220,7 @@ class ShipFeed:
         self._held: HeldHolder | None = None
         self._listeners: list = []
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
+        self.vessel_reader = None       # the EnforcementVessels list (backlog 315 task 5)
         # ⛔ Item 246: at most one listener pass per window. Instance
         # attribute so a test can shorten it.
         self.notify_window_s = NOTIFY_WINDOW_S
@@ -334,6 +352,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # the one dashboard resource row reconciled (backlog 291). Never raises.
     await async_offer_map_card(hass, DOMAIN, HERE / "frontend")
     feed = ShipFeed(hass, entry)
+    # ! THE EnforcementVessels LIST (backlog 315 task 5): a listed vessel is drawn with the list's look
+    # (enforcement.py). One reader per instance (saw_livetrack.enforcement_vessels), shared with Live Track SALT.
+    first = _ev.STORE_KEY not in hass.data
+    feed.vessel_reader = _ev.shared_list(hass.data, hass.config.path(".storage", _ev.CACHE_NAME))
+    if first:
+        await hass.async_add_executor_job(feed.vessel_reader.load_cache)
+
+    async def _check_list(_now=None) -> None:
+        await feed.vessel_reader.refresh(_list_session(hass), hass.async_add_executor_job)
+
+    hass.async_create_background_task(_check_list(), f"{DOMAIN}_vessel_list")
+    entry.async_on_unload(async_track_time_interval(hass, _check_list, LIST_TICK))
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

@@ -46,6 +46,9 @@ from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.const import UnitOfLength
 from homeassistant.core import callback
 
+from saw_livetrack import aisstream as _aisstream
+
+from . import enforcement as _enf
 from . import icons
 from . import instance_ceiling
 from .held import HELD
@@ -81,6 +84,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     demands: dict[str, int] = hass.data.setdefault(DEMANDS_KEY, {})
     me = entry.entry_id
     known: dict[str, ShipEvent] = {}
+    # ! CLAIMS (backlog 315 task 5): every vessel this entry draws, on the shared aisstream client, whatever the
+    # source; Live Track SALT skips them. Same name as this entry's aisstream consumer, whose remove() drops them too.
+    client = _aisstream.shared(hass.data)
+    consumer = f"{DOMAIN}:{me}"
 
     def _releaser(identity: str):
         @callback
@@ -137,7 +144,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             seen.add(identity)
             existing = known.get(identity)
             if existing is None:
-                entity = ShipEvent(obs, distance, feed.attribution)
+                entity = ShipEvent(obs, distance, feed.attribution, feed.vessel_reader)
                 known[identity] = entity
                 new.append(entity)
             elif existing.update_from(obs, distance):
@@ -146,6 +153,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         # ⚠ A vessel that fell out of the published set must be REMOVED, not
         # left stale. It has either departed, gone quiet past the retention
         # window, or been pushed out by the cap.
+        client.claim(consumer, seen)
         gone = [k for k in known if k not in seen]
         for identity in gone:
             entity = known.pop(identity)
@@ -185,6 +193,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         known.clear()
         # An unloaded entry claims no share of the ceiling (item 253).
         demands.pop(me, None)
+        # Nor any vessel: SALT may draw a listed one again (backlog 315 task 5).
+        client.release(consumer)
 
     entry.async_on_unload(feed.add_listener(_sync))
     entry.async_on_unload(_release_all)
@@ -227,7 +237,7 @@ class ShipEvent(GeolocationEvent):
     _attr_icon = "mdi:ferry"
 
     def __init__(self, obs: Observation, distance_km: float,
-                 attribution: str | None = None):
+                 attribution: str | None = None, reader=None):
         # ⚠ NO unique_id - see the module docstring. Identity lives in the
         # entity_id (suggested_object_id) and in the `identity` attribute.
         self._obs = obs
@@ -236,6 +246,10 @@ class ShipEvent(GeolocationEvent):
         self._attr_attribution = attribution
         self._attr_distance = distance_km
         self.retired = False
+        # The instance's EnforcementVessels reader (backlog 315 task 5, enforcement.py); the row is looked up with
+        # each observation, in _refresh_icon, so the picture and the attributes always agree.
+        self._reader = reader
+        self._listed = None
         # The angle held while the vessel is at rest (icons.resolve) is kept
         # per vessel in held.HELD, never on this object. Never a heading:
         # heading stays meaningful at rest and is published as it is
@@ -289,6 +303,10 @@ class ShipEvent(GeolocationEvent):
             elif basis == "held":
                 HELD.touch(o.identity)
         angle = icons.quantise(bearing)
+        # ! THE LIST'S LOOK, ANYWHERE THIS ENTRY DRAWS IT (backlog 315 task 5): this integration's own silhouette in
+        # the Coast Guard's fill, with the glow while sourced (enforcement.py).
+        listed = _enf.listed(self._reader, o.identity) if kind == "vessel" else None
+        self._listed = listed
         out: dict = {"icon_key": key}
         if angle is not None:
             out["icon_rotation_deg"] = angle
@@ -308,7 +326,7 @@ class ShipEvent(GeolocationEvent):
         out["entity_picture"] = picture_url(
             key,
             baked,
-            icons.tone_for(o.ship_type) if kind == "vessel"
+            _enf.LIST_TONE if listed else icons.tone_for(o.ship_type) if kind == "vessel"
             else icons.tone_for_kind(kind),
             icons.weight_for(key, o.length_m) if weight is None else weight,
             badge=False,
@@ -317,7 +335,8 @@ class ShipEvent(GeolocationEvent):
             moving=key in icons.WAKE_KEYS and icons.is_moving(o.speed_kmh),
             # A pushing tug at 60 m or more: the barge ahead of it (icons.tow_form).
             tow=icons.tow_for(o.ship_type, o.length_m, o.beam_m, o.nav_status)
-            if kind == "vessel" and key == "tug" else None)
+            if kind == "vessel" and key == "tug" else None,
+            lights=_enf.lights(listed) if listed else None)
         self._icon = out
 
     @property
@@ -345,7 +364,10 @@ class ShipEvent(GeolocationEvent):
         """What the user sees. ⚠ Safe to be the ship's name BECAUSE
         suggested_object_id owns the entity id. An earlier version returned
         "Vessel <MMSI>" here purely to protect the id, and the MMSI showed up
-        in the UI as a result."""
+        in the UI as a result. A listed vessel is the list's name (D4b rule 14:
+        `name` is the same text as the friendly name), never its label."""
+        if self._listed is not None:
+            return _enf.name(self._listed, self._obs.name) or self.marker_label
         return self.marker_label
 
     # -- platform-mandated ------------------------------------------------
@@ -461,7 +483,18 @@ class ShipEvent(GeolocationEvent):
                     "icon_counter_rotated"):
             if key in self._icon:
                 attrs[key] = self._icon[key]
+        # A listed vessel: the list's status, agency, entry and hull, and the hover's name and agency (D4b
+        # rule 14), as Live Track SALT publishes them; `name` becomes the list's.
+        if self._listed is not None:
+            attrs.update(_enf.attributes(self._listed, o.name))
         return attrs
+
+    @property
+    def attribution(self) -> str | None:
+        """The source's credit; a listed vessel adds the list's ODbL line."""
+        if self._listed is not None:
+            return _enf.attribution(self._attr_attribution)
+        return self._attr_attribution
 
     @property
     def marker_label(self) -> str:
@@ -471,7 +504,11 @@ class ShipEvent(GeolocationEvent):
 
         With no name, the type label ("Pleasure craft", "Tug"); with neither,
         "?". Never the MMSI - nine digits on a dot tell a user nothing (Lee,
-        2026-09-23). The MMSI stays in `identity` and the entity id."""
+        2026-09-23). The MMSI stays in `identity` and the entity id.
+
+        A listed vessel: the list's label, "USCG" (backlog 315 task 5)."""
+        if self._listed is not None:
+            return _enf.label(self._listed)
         name = (self._obs.name or "").strip()
         return name or ship_type_label(self._obs.ship_type) or "?"
 

@@ -485,6 +485,9 @@ TONES = {
     "military": "#8C9A4B",  # olive; haze grey read as "disabled" on a map
     "white": "#FFFFFF",     # the medical hull, under the red cross
     "sar": "#F26A1B",       # SAR orange: SAR aircraft, and 51's Star of Life
+    # ! The EnforcementVessels list's look (backlog 315 task 5, enforcement.py): saw_livetrack.aircraft_icons'
+    # army green for the military and the Coast Guard. NOT "military" (olive, a vessel's own AIS type).
+    "mil": "#5C6B32",
 }
 
 
@@ -966,6 +969,41 @@ def _tow_body(tug_body: str, length_m: float, beam_m: float) -> str:
     return "".join(out)
 
 
+# ! THE LIST'S GLOW (backlog 315 task 5, Lee 2026-10-30): saw_livetrack.aircraft_icons' sourced glow, PORTED here
+# as its police flash was ported there. A red glow round the silhouette, then a blue one, 0.6 s each, UNDER the
+# outlined art so the edge still separates fill from glow; the same colours, grow and blur in pixels. On a
+# listed police or fire boat it REPLACES that boat's own flash: the list's lights, not two sets.
+LIGHTS_GLOW = "glow"
+GLOW_RED, GLOW_BLUE = "#FF2020", "#2060FF"
+GLOW_PERIOD_S = 1.2
+GLOW_GROW_PX, GLOW_BLUR_PX = 3.0, 2.2
+# ! Ships' art has HOLES (deck openings in military and police). The glow under the art showed through them as
+# a light on deck (look sheet, 2026-10-30). It is cut out of the silhouette with holes up to this radius closed
+# (art units of the 200 box), so an opening shows the map, as it does unlisted.
+GLOW_CLOSE = 12.0
+_FLASH_KEYS = frozenset(("police", "fireboat"))
+
+
+def _glow(px: float) -> tuple[str, str]:
+    """(defs, drawn) for the glow; px is one screen pixel in art units."""
+    defs = ""
+    for fid, colour in (("lr", GLOW_RED), ("lb", GLOW_BLUE)):
+        defs += ('<filter id="%s" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">'
+                 '<feMorphology in="SourceAlpha" operator="dilate" radius="%.4f" result="cd"/>'
+                 '<feMorphology in="cd" operator="erode" radius="%.4f" result="closed"/>'
+                 '<feMorphology in="SourceAlpha" operator="dilate" radius="%.4f"/>'
+                 '<feGaussianBlur stdDeviation="%.4f" result="g"/>'
+                 '<feFlood flood-color="%s"/><feComposite in2="g" operator="in" result="h"/>'
+                 '<feComposite in="h" in2="closed" operator="out"/></filter>'
+                 % (fid, GLOW_CLOSE, GLOW_CLOSE, GLOW_GROW_PX * px, GLOW_BLUR_PX * px, colour))
+    drawn = "".join(
+        '<g opacity="%s"><use href="#art" filter="url(#%s)"/><use href="#art" filter="url(#%s)"/>'
+        '<animate attributeName="opacity" values="%s" dur="%gs" calcMode="discrete" '
+        'repeatCount="indefinite"/></g>' % (values[0], fid, fid, values, GLOW_PERIOD_S)
+        for fid, values in (("lr", "1;0"), ("lb", "0;1")))
+    return "<defs>" + defs + "</defs>", drawn
+
+
 def decolour(body: str) -> str:
     body = _PAINT_ATTR.sub(" ", body)
     return _PAINT_STYLE.sub("", body)
@@ -973,8 +1011,11 @@ def decolour(body: str) -> str:
 
 def render(path: str, key: str, degrees: int | None, size: int = 64,
            tone: str = "default", weight: float = 0.70, badge: bool = True,
-           counter: int | None = None, tow=None, moving: bool = False) -> str:
+           counter: int | None = None, tow=None, moving: bool = False,
+           lights: str | None = None) -> str:
     """One icon: coloured, sized, rotated, and its symbol upright.
+
+    `lights` LIGHTS_GLOW draws the list's red/blue glow (outlined form only; a badge ignores it).
 
     `tow` = (length, beam) in metres draws the stock tug pushing a barge
     (tow_for); honoured for key `tug` only.
@@ -1002,7 +1043,10 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
             parts.append("matrix(-1 0 0 1 200 0)")
     head = ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
             'viewBox="0 0 200 200">' % (size, size))
-    if key in PAINTED:
+    # ! The list's tone ("mil", enforcement.py) is used ONLY for a listed vessel and decolours even a PAINTED hull
+    # (police is painted white): Ships' own shape in the Coast Guard's fill (backlog 315 task 5, decision B; the
+    # look sheet drew a listed type-55 cutter white before this).
+    if key in PAINTED and tone != "mil":
         art = '<g transform="%s">%s</g>' % (" ".join(parts), body)
     else:
         fill = TONES.get(tone, TONES["default"])
@@ -1018,12 +1062,17 @@ def render(path: str, key: str, degrees: int | None, size: int = 64,
             if fm:
                 fx = '<g transform="%s">%s</g>' % (
                     " ".join(parts), fsrc[fm.end():fsrc.rfind("</svg>")])
-    sym = fx + _symbol(SYMBOL_FOR.get(key, ""), k, counter) + _overlay(key, k, counter)
+    glowing = lights == LIGHTS_GLOW and not badge
+    if glowing:
+        art = art.replace("<g ", '<g id="art" ', 1)
+    overlay = "" if glowing and key in _FLASH_KEYS else _overlay(key, k, counter)
+    sym = fx + _symbol(SYMBOL_FOR.get(key, ""), k, counter) + overlay
     if badge:
         return (head + '<circle cx="100" cy="100" r="100" fill="%s"/>' % BADGE
                 + art + sym + '</svg>')
     radius = OUTLINE_PX * 200.0 / size
-    return (head + _OUTLINE_FILTER % (radius, EDGE_FOR.get(key, EDGE))
+    gdefs, gdrawn = _glow(200.0 / size) if glowing else ("", "")
+    return (head + _OUTLINE_FILTER % (radius, EDGE_FOR.get(key, EDGE)) + gdefs + gdrawn
             + '<g filter="url(#e)">' + art + '</g>' + sym + '</svg>')
 
 

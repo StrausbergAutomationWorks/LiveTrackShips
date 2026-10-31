@@ -29,7 +29,8 @@ ARTWORK_VERSION = "22"
 
 def picture_url(key: str, degrees: int | None, tone: str = "default",
                 weight: float | None = None, badge: bool = True,
-                counter: int | None = None, tow=None, moving: bool = False) -> str:
+                counter: int | None = None, tow=None, moving: bool = False,
+                lights: str | None = None) -> str:
     """The entity_picture for one icon. `tow` = (length, beam), whole metres,
     from icons.tow_for: the tug pushing a barge.
 
@@ -51,6 +52,10 @@ def picture_url(key: str, degrees: int | None, tone: str = "default",
         extra.append("tl=%d&tb=%d" % tow)
     if moving:
         extra.append("m=1")
+    # The list's glow (backlog 315 task 5): only on a listed vessel, so every other URL is unchanged and
+    # ARTWORK_VERSION stands (no existing picture changed).
+    if lights == icons.LIGHTS_GLOW:
+        extra.append("l=g")
     return url + "?" + "&".join(extra)
 
 
@@ -95,6 +100,7 @@ class ShipIconView(HomeAssistantView):
         # The barge: both numbers or neither, whole metres, clamped to what
         # icons.tow_for can send; for the tug only. Anything else: a plain tug.
         moving = q.get("m") == "1"
+        lights = icons.LIGHTS_GLOW if q.get("l") == "g" else None
         tow = None
         if key == "tug" and "tl" in q and "tb" in q:
             try:
@@ -108,7 +114,7 @@ class ShipIconView(HomeAssistantView):
         try:
             svg = await request.app["hass"].async_add_executor_job(
                 icons.render, path, key, degrees, 64, tone, weight, badge,
-                counter, tow, moving)
+                counter, tow, moving, lights)
         except Exception:  # noqa: BLE001
             _LOGGER.exception("Could not render %s at %s", key, angle)
             return web.Response(status=500, text="render failed")
