@@ -1,6 +1,6 @@
 """Backlog 315 task 5: a vessel on the EnforcementVessels list, drawn by this integration with the list's look.
 
-Runs anywhere with saw-livetrack 0.2.20 (no Home Assistant): enforcement.py and icons.py are loaded by path.
+Runs anywhere with saw-livetrack 0.2.21 (no Home Assistant): enforcement.py and icons.py are loaded by path.
   * enforcement.py: listed or not, the glow, the label, the hover's name and agency, the attributes, the credit
   * the list's tone is saw_livetrack.aircraft_icons' "mil", here and in icons.TONES
   * icons.render with the glow: red then blue under the art, cut out of the closed silhouette, police flash replaced,

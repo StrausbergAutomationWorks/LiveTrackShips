@@ -5,7 +5,7 @@ test_geo_location.py does). What it pins down:
   * a vessel the list does not hold, a cleared one, and a non-vessel are drawn exactly as before
   * the claims: every vessel the entry draws, released at unload (source wiring)
   * web.py: l=g only on a listed picture; the view reads it
-Run: python test_listed_geo.py   (in the container; saw-livetrack 0.2.20 on the path)
+Run: python test_listed_geo.py   (in the container; saw-livetrack 0.2.21 on the path)
 """
 import datetime as dt
 import json
