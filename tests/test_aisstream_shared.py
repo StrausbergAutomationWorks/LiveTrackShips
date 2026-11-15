@@ -19,7 +19,7 @@ import types
 from saw_livetrack import aisstream as L
 from saw_livetrack.ais import Observation
 
-HERE = pathlib.Path(__file__).parent
+HERE = pathlib.Path(__file__).resolve().parents[1]
 _pkg = types.ModuleType("lts_src")
 _pkg.__path__ = [str(HERE / "custom_components" / "live_track_ships" / "sources")]
 sys.modules["lts_src"] = _pkg

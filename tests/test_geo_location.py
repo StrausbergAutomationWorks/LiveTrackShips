@@ -14,7 +14,7 @@ import datetime as dt
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 
 from homeassistant.components.geo_location import GeolocationEvent  # noqa: E402
 from homeassistant.util import slugify                              # noqa: E402

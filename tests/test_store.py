@@ -3,7 +3,7 @@ import datetime as dt
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from live_track_ships.store import (                        # noqa: E402

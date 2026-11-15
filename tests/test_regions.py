@@ -1,7 +1,7 @@
 """Tests for the region registry. Run: python test_regions.py"""
 import sys, pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]
                        / "custom_components" / "live_track_ships"))
 import regions as R
 

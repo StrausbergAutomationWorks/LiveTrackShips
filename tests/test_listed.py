@@ -19,7 +19,7 @@ from saw_livetrack import aircraft_icons as AI
 from saw_livetrack import enforcement_vessels as ev
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-HERE = pathlib.Path(__file__).parent
+HERE = pathlib.Path(__file__).resolve().parents[1]
 _PKG = HERE / "custom_components" / "live_track_ships"
 
 

@@ -28,7 +28,7 @@ from aiohttp import web                                              # noqa: E40
 from saw_livetrack import aisstream as A                             # noqa: E402
 
 _pkg = types.ModuleType("lts_src")
-_pkg.__path__ = [str(pathlib.Path(__file__).parent / "custom_components"
+_pkg.__path__ = [str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"
                      / "live_track_ships" / "sources")]
 sys.modules["lts_src"] = _pkg
 S = importlib.import_module("lts_src.aisstream")                   # Ships' adapter

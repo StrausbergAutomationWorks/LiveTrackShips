@@ -9,12 +9,11 @@ import pathlib
 import sys
 from collections import Counter
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]
                        / "custom_components" / "live_track_ships"))
-sys.path.insert(0, r"%USERPROFILE%\bin")
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from secrets_store import get_secret                                # noqa: E402
+from _keys import key_or_skip                                       # noqa: E402
 from sources.barentswatch import (                              # noqa: E402
     BarentsWatchSource, circle_geometry)
 from sources.base import Observation                            # noqa: E402
@@ -48,13 +47,19 @@ print(f"   lat span {span_lat:.3f}°   lon span {span_lon:.3f}°")
 check("⚠ longitude span widened for latitude", span_lon > span_lat * 2)
 
 
+BW_ID, BW_SECRET = key_or_skip(
+    "test_barentswatch_live",
+    ["BARENTSWATCH_CLIENT_ID", "BARENTSWATCH_CLIENT_SECRET"],
+    ["barentswatch_client_id", "barentswatch_client_secret"])
+
+
 async def main():
     import aiohttp
     async with aiohttp.ClientSession() as session:
         src = BarentsWatchSource(
             session,
-            get_secret("barentswatch_client_id"),
-            get_secret("barentswatch_client_secret"),
+            BW_ID,
+            BW_SECRET,
             TROMSO[0], TROMSO[1], radius_km=200)
 
         print("\n=== the token ===")

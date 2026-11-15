@@ -8,13 +8,13 @@ import sys
 import pathlib
 import types
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 
 from live_track_ships.config_flow import (                        # noqa: E402
     LiveTrackShipsConfigFlow)
 from live_track_ships.const_flow import (                         # noqa: E402
     CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_LATITUDE,
-    CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
+    CONF_LOCATION, CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
     SOURCE_AISSTREAM, SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC)
 from live_track_ships.geo import (                                # noqa: E402
     MAX_RADIUS_KM, MAX_VESSELS, MIN_RADIUS_KM, RadiusError,
@@ -67,8 +67,15 @@ check("api_key default is the existing key",
 check("⚠ api_key is Optional, so it can be cleared",
       any(str(k) == CONF_API_KEY and k.__class__.__name__ == "Optional"
           for k in schema.schema))
-check("latitude defaults to the HA location",
-      defaults.get(CONF_LATITUDE), 41.8995)
+check("the map marker defaults to the HA location",
+      defaults.get(CONF_LOCATION), {"latitude": 41.8995, "longitude": -87.9403})
+check("no latitude or longitude field: one marker instead (item 268)",
+      {CONF_LATITUDE, CONF_LONGITUDE} & {str(k) for k in schema.schema}, set())
+check("a re-render keeps the marker where it was put",
+      {str(k): k.default() for k in f._schema(
+          {CONF_LOCATION: {"latitude": 33.73, "longitude": -118.27}}).schema
+       if hasattr(k, "default") and k.default is not None}.get(CONF_LOCATION),
+      {"latitude": 33.73, "longitude": -118.27})
 
 print("\n=== ⚠ prior input beats the pre-fill ===")
 f = make_flow([entry(**{CONF_API_KEY: "prefilled"})])

@@ -9,7 +9,7 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # In the clone and in /config on the box alike, the component sits here.
 COMP = os.path.join(HERE, "custom_components", "live_track_ships")
 

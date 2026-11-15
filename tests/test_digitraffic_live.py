@@ -11,7 +11,7 @@ import pathlib
 from collections import Counter
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-sys.path.insert(0, str(pathlib.Path(__file__).parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]
                        / "custom_components" / "live_track_ships"))
 
 from sources.digitraffic import DigitrafficSource               # noqa: E402

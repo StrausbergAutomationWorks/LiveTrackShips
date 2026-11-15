@@ -21,7 +21,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 # has it). So every other test file in this repo currently fails at the import
 # line before running a single check. Both modules under test import nothing
 # but the standard library, so they load standalone.
-_PKG = pathlib.Path(__file__).parent / "custom_components" / "live_track_ships"
+_PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "live_track_ships"
 
 
 def _load(name, path):

@@ -1,7 +1,7 @@
 """SSOT item 23, BarentsWatch: an SSE stream that dies without closing.
 
 ⚠ Runs INSIDE the Home Assistant container (the package imports
-homeassistant), like test_aisstream_heartbeat.py. %USERPROFILE%\\bin\\lts_boxtest.py.
+homeassistant), like test_aisstream_heartbeat.py. the maintainer's box-test runner.
 
 A local server stands in for BarentsWatch (token, snapshot and SSE). It pins:
   * a QUIET stream that keeps sending `: keep-alive` is NOT dropped - empty
@@ -18,7 +18,7 @@ import logging
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 
 import aiohttp                                                       # noqa: E402
 from aiohttp import web                                              # noqa: E402

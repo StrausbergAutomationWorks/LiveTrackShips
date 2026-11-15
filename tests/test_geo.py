@@ -5,7 +5,7 @@ pole, both antimeridian directions, and the box-vs-circle corner gap.
 """
 import math, sys, pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]
                        / "custom_components" / "live_track_ships"))
 import geo as G
 

@@ -10,7 +10,7 @@ import pathlib
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-_PKG = pathlib.Path(__file__).parent / "custom_components" / "live_track_ships"
+_PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "live_track_ships"
 
 
 def _load(name, path):
@@ -68,8 +68,8 @@ multi = {"type": "MultiPolygon", "coordinates": [square["coordinates"],
          [[[30, 50], [40, 50], [40, 60], [30, 60], [30, 50]]]]}
 check("second polygon of a multipolygon counts", cov.in_area(55, 35, multi), True)
 
-real = r"%USERPROFILE%\bin\bw_openaisarea.json"
-if os.path.exists(real):
+real = os.environ.get("LTS_BW_OPENAISAREA", "")  # a saved copy of BarentsWatch's v1/openaisarea
+if real and os.path.exists(real):
     print("\n=== coverage against BarentsWatch's real published area (saved 2026-09-23) ===")
     area = json.load(open(real, encoding="utf-8"))
     osl = cov.outside_share(59.5, 10.5, 30, area)
@@ -80,7 +80,7 @@ if os.path.exists(real):
     sk = cov.outside_share(57.72, 10.58, 20, area)
     check("Skagen, 20 km -> mostly outside", sk > 0.5, True)
 else:
-    print("  skip real BarentsWatch area not on this machine")
+    print("  skip real BarentsWatch area: set LTS_BW_OPENAISAREA to a saved copy")
 
 # -- item 264: the user's slider can only LOWER the instance ceiling ---------
 eff = _load("lts_quota_eff", _PKG / "quota.py").effective_ceiling

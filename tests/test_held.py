@@ -10,7 +10,7 @@ import sqlite3
 import sys
 import tempfile
 
-_PKG = pathlib.Path(__file__).parent / "custom_components" / "live_track_ships"
+_PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "live_track_ships"
 spec = importlib.util.spec_from_file_location("lts_held", _PKG / "held.py")
 held = importlib.util.module_from_spec(spec)
 sys.modules["lts_held"] = held

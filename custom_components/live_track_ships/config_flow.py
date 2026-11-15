@@ -19,9 +19,11 @@ from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
+from .centre import from_form, to_form
 from .const_flow import (
     CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_INSTANCE_MAX,
-    CONF_LATITUDE, CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM,
+    CONF_LATITUDE, CONF_LOCATION, CONF_LONGITUDE, CONF_MAX_VESSELS,
+    CONF_RADIUS_KM,
     INSTANCE_MAX_STEP, INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS,
     CONF_SOURCE, DEFAULT_MAX_VESSELS, DOMAIN, SOURCE_AISSTREAM,
     SOURCE_BARENTSWATCH, SOURCES,
@@ -77,15 +79,27 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            # The map marker arrives as one CONF_LOCATION; the entry stores
+            # CONF_LATITUDE and CONF_LONGITUDE (centre.py). The raw input is
+            # kept for a re-render, so the marker stays where it was put.
+            shown = user_input
+            values, loc_error = from_form(user_input)
+            if loc_error:
+                errors[CONF_LOCATION] = loc_error
+                user_input = {k: v for k, v in user_input.items()
+                              if k != CONF_LOCATION}
+            else:
+                user_input = values
             source = user_input[CONF_SOURCE]
             try:
-                validate_centre(user_input[CONF_LATITUDE],
-                                user_input[CONF_LONGITUDE])
+                if not loc_error:
+                    validate_centre(user_input[CONF_LATITUDE],
+                                    user_input[CONF_LONGITUDE])
                 validate_radius(user_input[CONF_RADIUS_KM])
             except RadiusError:
                 errors[CONF_RADIUS_KM] = "radius_out_of_range"
             except ValueError:
-                errors["base"] = "invalid_location"
+                errors[CONF_LOCATION] = "invalid_location"
 
             if source == SOURCE_AISSTREAM and not user_input.get(CONF_API_KEY):
                 errors[CONF_API_KEY] = "key_required"
@@ -117,7 +131,7 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self._schema(user_input),
+            data_schema=self._schema(shown if user_input is not None else None),
             errors=errors,
             description_placeholders={
                 "radius_min": str(int(MIN_RADIUS_KM)),
@@ -183,14 +197,16 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # change it.
                 default=prior.get(CONF_API_KEY) or self._existing(CONF_API_KEY)):
                 cv.string,
+            # ONE map marker, not two number fields (backlog 317, item 268).
+            # A re-render after an error shows the marker where it was put.
             vol.Required(
-                CONF_LATITUDE,
-                default=prior.get(CONF_LATITUDE,
-                                  self.hass.config.latitude)): cv.latitude,
-            vol.Required(
-                CONF_LONGITUDE,
-                default=prior.get(CONF_LONGITUDE,
-                                  self.hass.config.longitude)): cv.longitude,
+                CONF_LOCATION,
+                default=(prior.get(CONF_LOCATION)
+                         if isinstance(prior.get(CONF_LOCATION), dict)
+                         else to_form(prior, self.hass.config.latitude,
+                                      self.hass.config.longitude))):
+                selector.LocationSelector(selector.LocationSelectorConfig(
+                    radius=False, icon="mdi:ferry")),
             vol.Required(
                 CONF_RADIUS_KM,
                 default=prior.get(CONF_RADIUS_KM, DEFAULT_RADIUS_KM)):

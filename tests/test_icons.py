@@ -13,7 +13,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-_PKG = pathlib.Path(__file__).parent / "custom_components" / "live_track_ships"
+_PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "live_track_ships"
 
 
 def _load(name, path):

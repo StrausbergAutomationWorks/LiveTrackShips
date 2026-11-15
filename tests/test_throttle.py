@@ -1,7 +1,7 @@
 """Item 246: the notify window and changed-only writes.
 
 ⚠ Runs INSIDE the Home Assistant container (the package imports
-homeassistant), like test_geo_location.py. %USERPROFILE%\\bin\\lts_boxtest.py.
+homeassistant), like test_geo_location.py. the maintainer's box-test runner.
 
 What it pins down:
   * many notifies inside one window -> ONE listener pass
@@ -18,7 +18,7 @@ import datetime as dt
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 
 from live_track_ships import ShipFeed                                # noqa: E402
 from live_track_ships import geo_location as gl                      # noqa: E402

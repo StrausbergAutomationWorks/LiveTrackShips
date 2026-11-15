@@ -10,6 +10,9 @@ CONF_SOURCE = "source"
 CONF_API_KEY = "api_key"
 CONF_LATITUDE = "latitude"
 CONF_LONGITUDE = "longitude"
+# The setup dialog's map marker (centre.py). Never stored: the entry keeps
+# CONF_LATITUDE and CONF_LONGITUDE, as it always has.
+CONF_LOCATION = "location"
 CONF_RADIUS_KM = "radius_km"
 CONF_MAX_VESSELS = "max_vessels"
 # ⚠ BarentsWatch is the only source needing TWO credentials - OAuth2

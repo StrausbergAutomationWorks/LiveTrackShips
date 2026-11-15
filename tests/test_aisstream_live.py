@@ -13,12 +13,11 @@ import pathlib
 import sys
 from collections import Counter
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]
                        / "custom_components" / "live_track_ships"))
-sys.path.insert(0, r"%USERPROFILE%\bin")
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from secrets_store import get_secret                              # noqa: E402
+from _keys import key_or_skip                                     # noqa: E402
 from sources.aisstream import AisStreamSource                 # noqa: E402
 from sources.base import Observation                          # noqa: E402
 
@@ -36,11 +35,14 @@ def check(label, got, want=True):
           + ("" if ok else f"   got {got!r} want {want!r}"))
 
 
+(AIS_KEY,) = key_or_skip("test_aisstream_live", ["AISSTREAM_API_KEY"], ["aisstream"])
+
+
 async def main():
     import aiohttp
     obs = []
     async with aiohttp.ClientSession() as session:
-        src = AisStreamSource(session, get_secret("aisstream"), BOXES)
+        src = AisStreamSource(session, AIS_KEY, BOXES)
 
         async def drain():
             async for o in src.observations():

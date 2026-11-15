@@ -13,7 +13,7 @@ import pathlib
 import sys
 import tempfile
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "custom_components"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_components"))
 
 from saw_livetrack import enforcement_vessels as ev                 # noqa: E402
 from live_track_ships import enforcement as enf                      # noqa: E402
@@ -81,7 +81,7 @@ check("the listing is for vessels only (a non-vessel kind is never listed)",
 check("an entity with no reader is not listed", ShipEvent(obs("338926432"), 1.0, CREDIT)._listed, None)
 
 print("\n=== the claims (backlog 315 task 5) ===")
-src = (pathlib.Path(__file__).parent / "custom_components/live_track_ships/geo_location.py").read_text(encoding="utf-8")
+src = (pathlib.Path(__file__).resolve().parents[1] / "custom_components/live_track_ships/geo_location.py").read_text(encoding="utf-8")
 sync = src[src.index("    def _sync():"):src.index("    def _release_all()")]
 check("every drawn vessel claimed, each pass", "client.claim(consumer, seen)" in sync)
 check("each entity is given the instance's reader",
@@ -89,7 +89,7 @@ check("each entity is given the instance's reader",
 check("claimed after the pass decides what it draws", sync.index("owners[identity] = me") < sync.index("client.claim("))
 check("released at unload", "client.release(consumer)" in src[src.index("    def _release_all()"):])
 check("named as the entry's aisstream consumer", 'consumer = f"{DOMAIN}:{me}"' in src)
-init = (pathlib.Path(__file__).parent / "custom_components/live_track_ships/__init__.py").read_text(encoding="utf-8")
+init = (pathlib.Path(__file__).resolve().parents[1] / "custom_components/live_track_ships/__init__.py").read_text(encoding="utf-8")
 check("one reader per instance, the library's",
       '_ev.shared_list(hass.data, hass.config.path(".storage", _ev.CACHE_NAME))' in init)
 check("the cache loaded only by the first", "first = _ev.STORE_KEY not in hass.data" in init)
@@ -99,7 +99,7 @@ check("refreshed hourly and at start", "async_track_time_interval(hass, _check_l
 print("\n=== web.py ===")
 check("l=g only with the glow", "l=g" in picture_url("military", None, "mil", 0.72, False, lights="glow"))
 check("no l= otherwise", "l=" in picture_url("military", None, "mil", 0.72, False), False)
-web = (pathlib.Path(__file__).parent / "custom_components/live_track_ships/web.py").read_text(encoding="utf-8")
+web = (pathlib.Path(__file__).resolve().parents[1] / "custom_components/live_track_ships/web.py").read_text(encoding="utf-8")
 check("the view reads l=g", 'lights = icons.LIGHTS_GLOW if q.get("l") == "g" else None' in web)
 check("and passes it to render", "counter, tow, moving, lights)" in web)
 

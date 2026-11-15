@@ -12,7 +12,7 @@ import sys
 import tempfile
 import types
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COMP = os.path.join(HERE, "custom_components", "live_track_ships")
 pkg = types.ModuleType("lts_src")
 pkg.__path__ = [os.path.join(COMP, "sources")]
