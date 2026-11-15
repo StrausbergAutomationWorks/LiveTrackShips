@@ -37,6 +37,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Where a user gets a free aisstream key; a placeholder in the dialog's texts.
 AISSTREAM_ACCOUNT_URL = "https://aisstream.io/account"
+ISSUES_URL = "https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues"
 
 # Warn when at least this share of the circle is outside what the source can
 # show. Below it the gap is an edge sliver, not a surprise.
@@ -142,6 +143,9 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # hassfest refuses a URL inside strings.json; the account page
                 # is passed in, for the field description and the error alike.
                 "aisstream_url": AISSTREAM_ACCOUNT_URL,
+                # Where to ask for a ship's own picture, or report a mistake
+                # in a translation (the dialog's description says both).
+                "issues_url": ISSUES_URL,
             },
         )
 
@@ -238,22 +242,50 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
     second closes the aisstream connection."""
 
     async def async_step_init(self, user_input=None):
-        if user_input is not None:
-            # ⚠ Item 249: a larger radius can push the circle past what
-            # BarentsWatch shows. Checked only when the radius changed.
-            data = {**self.config_entry.data, **self.config_entry.options}
-            if user_input.get(CONF_RADIUS_KM) != data.get(CONF_RADIUS_KM):
-                share = await outside_share_for(
-                    self.hass, {**data, **user_input})
-                if share is not None and share >= COVERAGE_WARN_SHARE:
-                    self._pending, self._share = user_input, share
-                    return await self.async_step_coverage()
-            return self.async_create_entry(data=user_input)
-
+        errors: dict[str, str] = {}
         current = {**self.config_entry.data, **self.config_entry.options}
+        if user_input is not None:
+            # The centre can move (Lee 2026-11-15). It is stored in options as
+            # CONF_LATITUDE and CONF_LONGITUDE, which override data everywhere
+            # the entry is read ({**data, **options}).
+            values, loc_error = from_form(user_input)
+            if loc_error:
+                errors[CONF_LOCATION] = loc_error
+            else:
+                moved = (values[CONF_LATITUDE] != current.get(CONF_LATITUDE)
+                         or values[CONF_LONGITUDE] != current.get(CONF_LONGITUDE))
+                if moved and self._uid_taken(values):
+                    # The same source already watches that centre in another
+                    # entry: two would double every vessel and spend a connection.
+                    errors[CONF_LOCATION] = "already_watched"
+            if not errors:
+                # ⚠ Item 249: a larger radius or a moved centre can push the
+                # circle past what BarentsWatch shows.
+                if (moved or values.get(CONF_RADIUS_KM)
+                        != current.get(CONF_RADIUS_KM)):
+                    share = await outside_share_for(
+                        self.hass, {**current, **values})
+                    if share is not None and share >= COVERAGE_WARN_SHARE:
+                        self._pending, self._share = values, share
+                        return await self.async_step_coverage()
+                return self._save(values)
+
         return self.async_show_form(
             step_id="init",
+            errors=errors,
+            description_placeholders={"issues_url": ISSUES_URL},
             data_schema=vol.Schema({
+                # The same map marker as at setup (centre.py); it starts at
+                # the area's centre, or where it was put if a re-render.
+                vol.Required(
+                    CONF_LOCATION,
+                    default=(user_input.get(CONF_LOCATION)
+                             if user_input and isinstance(
+                                 user_input.get(CONF_LOCATION), dict)
+                             else to_form(current, self.hass.config.latitude,
+                                          self.hass.config.longitude))):
+                    selector.LocationSelector(selector.LocationSelectorConfig(
+                        radius=False, icon="mdi:ferry")),
                 vol.Required(
                     CONF_RADIUS_KM,
                     default=current.get(CONF_RADIUS_KM, DEFAULT_RADIUS_KM)):
@@ -278,11 +310,41 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
             }),
         )
 
+    def _uid_taken(self, values) -> bool:
+        """Another entry of this source already has the moved centre's id."""
+        uid = self._uid(values)
+        return any(e.unique_id == uid and e.entry_id != self.config_entry.entry_id
+                   for e in self.hass.config_entries.async_entries(DOMAIN))
+
+    def _uid(self, values) -> str:
+        """The setup flow's unique_id shape: source and centre to 4 places."""
+        source = self.config_entry.data.get(CONF_SOURCE, SOURCE_AISSTREAM)
+        return (f"{source}:{values[CONF_LATITUDE]:.4f}:"
+                f"{values[CONF_LONGITUDE]:.4f}")
+
+    def _save(self, values):
+        """Save the options; a moved centre also moves the entry's title and
+        unique_id, in the SAME update, so the entry reloads once.
+
+        ⚠ ONE update, not two: async_create_entry then writes the same options
+        again, which changes nothing and so does not reload a second time. Two
+        reloads within a second would re-subscribe aisstream faster than it
+        allows. The vessel entities are keyed by MMSI, not by the centre, so
+        none is renamed."""
+        current = {**self.config_entry.data, **self.config_entry.options}
+        if (values[CONF_LATITUDE] != current.get(CONF_LATITUDE)
+                or values[CONF_LONGITUDE] != current.get(CONF_LONGITUDE)):
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, options=values, unique_id=self._uid(values),
+                title=f"Ships near {values[CONF_LATITUDE]:.3f}, "
+                      f"{values[CONF_LONGITUDE]:.3f}")
+        return self.async_create_entry(data=values)
+
     async def async_step_coverage(self, user_input=None):
         """The same warning as at setup; submitting saves the options as
         entered."""
         if user_input is not None:
-            return self.async_create_entry(data=self._pending)
+            return self._save(self._pending)
         return self.async_show_form(
             step_id="coverage", data_schema=vol.Schema({}),
             description_placeholders={"percent": str(round(self._share * 100))})

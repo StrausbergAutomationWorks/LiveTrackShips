@@ -132,5 +132,39 @@ check("client_secret pre-fills", f._existing(CONF_CLIENT_SECRET), "sekret")
 check("⚠ an absent credential returns empty, not None",
       f._existing(CONF_API_KEY), "")
 
+print("\n=== an area's settings can move its centre (Lee 2026-11-15) ===")
+from live_track_ships.config_flow import LiveTrackShipsOptionsFlow   # noqa: E402
+
+
+class _Opts(LiveTrackShipsOptionsFlow):
+    config_entry = None   # HA's property, replaced by a plain attribute here
+
+
+def make_opts(source, others=()):
+    o = _Opts()
+    o.config_entry = types.SimpleNamespace(
+        entry_id="me", unique_id=f"{source}:60.0000:25.0000",
+        data={CONF_SOURCE: source, CONF_LATITUDE: 60.0, CONF_LONGITUDE: 25.0}, options={})
+    o.hass = types.SimpleNamespace(config_entries=types.SimpleNamespace(
+        async_entries=lambda domain: [o.config_entry, *others]))
+    return o
+
+
+o = make_opts(SOURCE_DIGITRAFFIC)
+check("the moved centre's id has the setup flow's shape",
+      o._uid({CONF_LATITUDE: 59.5, CONF_LONGITUDE: 24.75}), "digitraffic:59.5000:24.7500")
+other = types.SimpleNamespace(entry_id="other", unique_id="digitraffic:59.5000:24.7500")
+o = make_opts(SOURCE_DIGITRAFFIC, [other])
+check("another entry of the same source already there -> taken",
+      o._uid_taken({CONF_LATITUDE: 59.5, CONF_LONGITUDE: 24.75}), True)
+o = make_opts(SOURCE_AISSTREAM, [other])
+check("the same centre on ANOTHER source is free",
+      o._uid_taken({CONF_LATITUDE: 59.5, CONF_LONGITUDE: 24.75}), False)
+me = types.SimpleNamespace(entry_id="me", unique_id="digitraffic:59.5000:24.7500")
+o = make_opts(SOURCE_DIGITRAFFIC)
+o.hass.config_entries.async_entries = lambda domain: [me]
+check("the entry's own id never blocks it",
+      o._uid_taken({CONF_LATITUDE: 59.5, CONF_LONGITUDE: 24.75}), False)
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
