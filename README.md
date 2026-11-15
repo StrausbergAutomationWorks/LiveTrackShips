@@ -1,6 +1,6 @@
 # Live Track Ships
 
-**English** · [Suomi](README.fi.md) · [Svenska](README.sv.md) · [Norsk](README.nb.md) · [Español](README.es.md) · [Nederlands](README.nl.md) · [Gaeilge](README.ga.md)
+**English** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md) · [All languages](#languages)
 
 **AIS ship, boat and vessel tracking for Home Assistant.** Ships near you, or
 anywhere in the world you choose, as live markers on your map. Part of Live
@@ -178,11 +178,12 @@ The same source cannot watch the same centre twice. When at least 5% of a
 BarentsWatch circle lies outside the waters BarentsWatch publishes, the dialog
 says how much before the area is created; submit to keep that circle anyway.
 
-**Settings of an area** (Configure on its entry): the radius, the maximum
-vessels to track, and *Maximum vessels on the map, all Live Track Ships entries
-together*, a slider from 100 to 2,500 in steps of 100 (default 2,500). The
-centre is fixed when the area is created: to watch somewhere else, add another
-area there.
+**Settings of an area** (Configure on its entry): the centre, on the same map
+marker; the radius; the maximum vessels to track; and *Maximum vessels on the
+map, all Live Track Ships entries together*, a slider from 100 to 2,500 in
+steps of 100 (default 2,500). Moving the centre renames the area to its new
+position and reloads it. The same source still cannot watch one centre from
+two areas.
 
 ## What it creates
 
@@ -287,6 +288,33 @@ your source covers your water before assuming the integration is broken.
 A vessel that stops appearing has not necessarily left. None of these sources
 guarantees delivery, so the integration shows when each vessel was last heard
 and removes it only after a period of silence.
+
+## Ships worth their own picture
+
+Most vessels are drawn by type. Some get their own picture: royal and state
+yachts, and well-known boats such as Chicago's tour boats, water taxis and
+fireboats. Know a ship that deserves one, anywhere in the world? Open an issue
+at <https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues> with
+its name and MMSI or IMO number, and a photo or a link if you have one.
+
+## Languages
+
+This README: **English**, [Deutsch](README.de.md), [Français](README.fr.md),
+[Nederlands](README.nl.md), [简体中文](README.zh-Hans.md),
+[Español](README.es.md) and [Italiano](README.it.md). The README is translated
+only into the languages most Home Assistant users read; the English one is the
+full reference.
+
+The setup dialog and the area's settings appear in your Home Assistant
+language when it is one of these: English, Dansk, Deutsch, Español, Français,
+Gaeilge, Íslenska, Italiano, Nederlands, Norsk Bokmål, Polski, Português,
+Português (BR), Suomi, Svenska and 简体中文. Any other language shows the
+English dialog.
+
+Found a mistake in a translation that changes the meaning or reads badly?
+Please tell us at <https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues>.
+The translations were written for this project and not all of them have been
+read by a native speaker yet.
 
 ## Part of Live Track
 
