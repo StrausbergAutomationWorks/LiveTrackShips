@@ -35,6 +35,9 @@ from .geo import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Where a user gets a free aisstream key; a placeholder in the dialog's texts.
+AISSTREAM_ACCOUNT_URL = "https://aisstream.io/account"
+
 # Warn when at least this share of the circle is outside what the source can
 # show. Below it the gap is an edge sliver, not a surprise.
 COVERAGE_WARN_SHARE = 0.05
@@ -136,6 +139,9 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders={
                 "radius_min": str(int(MIN_RADIUS_KM)),
                 "radius_max": str(int(MAX_RADIUS_KM)),
+                # hassfest refuses a URL inside strings.json; the account page
+                # is passed in, for the field description and the error alike.
+                "aisstream_url": AISSTREAM_ACCOUNT_URL,
             },
         )
 

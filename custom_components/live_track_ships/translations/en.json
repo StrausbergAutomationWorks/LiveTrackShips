@@ -15,7 +15,7 @@
         },
         "data_description": {
           "source": "aisstream.io covers the whole world and needs a free API key. Fintraffic Digitraffic needs no key but only covers Finnish and Baltic waters. BarentsWatch covers Norwegian waters and gives the best data of the three — names and vessel types arrive with every position — but needs a free client registration.",
-          "api_key": "Required for aisstream.io. Get one free at https://aisstream.io/account — it is shown once, so copy it before closing the page.",
+          "api_key": "Required for aisstream.io. Get one free at {aisstream_url} — it is shown once, so copy it before closing the page.",
           "radius_km": "Between {radius_min} and {radius_max} km. How many vessels this contains depends far more on which water than on how large — a 50 km circle held about 4 vessels over Chicago and about 340 over the Solent.",
           "max_vessels": "A safety limit, not a display setting. The map handles large numbers; this protects Home Assistant from a very large radius over very busy water.",
           "client_id": "BarentsWatch only. Register a free AIS-client at barentswatch.no/minside — the ID looks like your.email@example.com:live_track_ships. Enter it exactly as shown.",
@@ -30,7 +30,7 @@
     },
     "error": {
       "radius_out_of_range": "Radius must be between 1 and 500 km.",
-      "key_required": "aisstream.io needs an API key. Get one free at https://aisstream.io/account, or choose Digitraffic instead.",
+      "key_required": "aisstream.io needs an API key. Get one free at {aisstream_url}, or choose Digitraffic instead.",
       "invalid_location": "That point is not on the globe. Move the marker and try again.",
       "client_id_required": "BarentsWatch needs a client ID. Register a free AIS-client at barentswatch.no/minside.",
       "client_secret_required": "BarentsWatch needs a client secret. It is shown once when the client is created; generate a new one if you did not keep it."
