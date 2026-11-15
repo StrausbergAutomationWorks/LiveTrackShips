@@ -1,14 +1,25 @@
 {
   "domain": "live_track_ships",
   "name": "Live Track Ships",
-  "version": "0.0.1",
-  "documentation": "https://github.com/StrausbergAutomationWorks/LiveTrackShips",
-  "issue_tracker": "https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues",
-  "codeowners": ["@StrausbergAutomationWorks"],
+  "after_dependencies": [
+    "lovelace"
+  ],
+  "categories": [
+    "vehicles_transport"
+  ],
+  "codeowners": [
+    "@LeeS773-prog"
+  ],
   "config_flow": true,
-  "iot_class": "cloud_push",
+  "dependencies": [
+    "http"
+  ],
+  "documentation": "https://github.com/StrausbergAutomationWorks/LiveTrackShips",
   "integration_type": "service",
-  "requirements": ["saw-livetrack>=0.2.21,<0.3"],
-  "dependencies": ["http"],
-  "after_dependencies": ["lovelace"]
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues",
+  "requirements": [
+    "saw-livetrack>=0.2.21,<0.3"
+  ],
+  "version": "0.1.0"
 }
