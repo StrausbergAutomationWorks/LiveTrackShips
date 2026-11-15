@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Schepen rond een punt, uit live AIS-gegevens. Niet voor navigatie.\n\nKen je een schip dat een eigen afbeelding op de kaart verdient, zoals een koninklijk of staatsjacht, een bekende veerboot of een blusboot? Laat het ons weten op {issues_url}, dan tekenen we het. Meld daar ook een fout in deze vertaling.",
+        "data": {
+          "source": "Gegevensbron",
+          "api_key": "API-sleutel",
+          "location": "Middelpunt",
+          "radius_km": "Straal (km)",
+          "max_vessels": "Maximaal aantal gevolgde schepen",
+          "client_id": "Client-ID",
+          "client_secret": "Client-secret"
+        },
+        "data_description": {
+          "source": "aisstream.io dekt de hele wereld en heeft een gratis API-sleutel nodig. Fintraffic Digitraffic heeft geen sleutel nodig, maar dekt alleen Finse en Baltische wateren. BarentsWatch dekt Noorse wateren en geeft de beste gegevens van de drie, met naam en scheepstype bij elke positie, maar heeft een gratis clientregistratie nodig.",
+          "api_key": "Nodig voor aisstream.io. Gratis op {aisstream_url}. Hij wordt één keer getoond, dus kopieer hem voordat je de pagina sluit.",
+          "radius_km": "Tussen {radius_min} en {radius_max} km. Hoeveel schepen erin liggen, hangt veel meer af van welk water dan van hoe groot: een cirkel van 50 km bevatte boven Chicago ongeveer 4 schepen en boven de Solent ongeveer 340.",
+          "max_vessels": "Een veiligheidsgrens, geen weergave-instelling. De kaart kan grote aantallen aan; dit beschermt Home Assistant tegen een heel grote straal boven heel druk water.",
+          "client_id": "Alleen BarentsWatch. Registreer een gratis AIS-client op barentswatch.no/minside. De ID ziet eruit als jouw.email@example.com:live_track_ships; vul hem precies zo in.",
+          "client_secret": "Alleen BarentsWatch. Eén keer getoond bij het aanmaken van de client; maak een nieuwe als je hem niet hebt bewaard.",
+          "location": "Sleep de markering naar het midden van het water dat je wilt volgen. Hij begint bij je huis. De cirkel is de straal hieronder; die wordt hier niet getekend."
+        }
+      },
+      "coverage": {
+        "title": "Een deel van dit gebied heeft geen dekking",
+        "description": "Ongeveer {percent}% van deze cirkel ligt buiten het gebied dat BarentsWatch publiceert, de Noorse wateren. Schepen daar verschijnen nooit, hoe druk het water ook is. Verstuur om deze cirkel toch te gebruiken, of sluit dit venster en kies een kleinere straal of een andere bron."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "De straal moet tussen 1 en 500 km liggen.",
+      "key_required": "aisstream.io heeft een API-sleutel nodig. Gratis op {aisstream_url}, of kies Digitraffic.",
+      "invalid_location": "Dat punt ligt niet op de aardbol. Verplaats de markering en probeer het opnieuw.",
+      "client_id_required": "BarentsWatch heeft een client-ID nodig. Registreer een gratis AIS-client op barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch heeft een client-secret nodig. Het wordt één keer getoond bij het aanmaken van de client; maak een nieuw als je het niet hebt bewaard."
+    },
+    "abort": {
+      "already_configured": "Deze bron volgt dat middelpunt al."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Een wijziging laadt de verbinding opnieuw. Het middelpunt verplaatsen geeft het gebied ook een nieuwe naam.\n\nKen je een schip dat een eigen afbeelding op de kaart verdient? Laat het ons weten op {issues_url}.",
+        "data": {
+          "radius_km": "Straal (km)",
+          "max_vessels": "Maximaal aantal gevolgde schepen",
+          "instance_max_vessels": "Maximaal aantal schepen op de kaart, alle Live Track Ships-items samen",
+          "location": "Middelpunt"
+        },
+        "data_description": {
+          "instance_max_vessels": "Verlaag dit op een kleine machine. Het telt elk Live Track Ships-item, welke bron ook. Met meer dan één item geldt de laagste instelling.",
+          "location": "Sleep de markering om dit gebied te verplaatsen. Dezelfde bron kan niet twee keer hetzelfde middelpunt volgen."
+        }
+      },
+      "coverage": {
+        "title": "Een deel van dit gebied heeft geen dekking",
+        "description": "Ongeveer {percent}% van deze cirkel ligt buiten het gebied dat BarentsWatch publiceert, de Noorse wateren. Schepen daar verschijnen nooit, hoe druk het water ook is. Verstuur om deze instellingen toch op te slaan, of sluit dit venster om de huidige te houden."
+      }
+    },
+    "error": {
+      "invalid_location": "Dat punt ligt niet op de aardbol. Verplaats de markering en probeer het opnieuw.",
+      "already_watched": "Een ander gebied met dezelfde bron volgt dit middelpunt al."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Waargenomen",
+              "interpolated": "Geïnterpoleerd tussen twee waargenomen posities",
+              "estimated": "Geschat",
+              "satellite": "Satelliet"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Voeg de Live Track-kaartkaart toe aan je bronnen",
+      "description": "De bronnen van je dashboards zijn in YAML ingesteld, dus de kaartkaart kan niet automatisch worden geregistreerd. Voeg dit toe onder lovelace: resources: in configuration.yaml en herstart daarna:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "De Live Track-kaartkaart is meer dan eens geregistreerd",
+      "description": "Deze dashboardbronnen laden de kaartkaart ook: {urls}. Er wordt er maar één gebruikt en de andere doen niets. Verwijder ze in Instellingen > Dashboards > Bronnen."
+    }
+  }
+}

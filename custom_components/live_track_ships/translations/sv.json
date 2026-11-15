@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Fartyg nära en punkt, från AIS-data i realtid. Inte för navigering.\n\nKänner du till ett fartyg som förtjänar en egen bild på kartan, som en kunglig eller statlig jakt, en känd färja eller en brandbåt? Berätta för oss på {issues_url}, så ritar vi det. Rapportera även fel i den här översättningen där.",
+        "data": {
+          "source": "Datakälla",
+          "api_key": "API-nyckel",
+          "location": "Mittpunkt",
+          "radius_km": "Radie (km)",
+          "max_vessels": "Högsta antal följda fartyg",
+          "client_id": "Klient-ID",
+          "client_secret": "Klienthemlighet"
+        },
+        "data_description": {
+          "source": "aisstream.io täcker hela världen och kräver en gratis API-nyckel. Fintraffic Digitraffic kräver ingen nyckel men täcker bara finska vatten och Östersjön. BarentsWatch täcker norska vatten och ger de bästa uppgifterna av de tre, med namn och fartygstyp vid varje position, men kräver en gratis klientregistrering.",
+          "api_key": "Krävs för aisstream.io. Gratis på {aisstream_url}. Den visas bara en gång, så kopiera den innan du stänger sidan.",
+          "radius_km": "Mellan {radius_min} och {radius_max} km. Hur många fartyg den rymmer beror mycket mer på vilket vatten än på storleken: en cirkel på 50 km rymde ungefär 4 fartyg över Chicago och ungefär 340 över Solent.",
+          "max_vessels": "En säkerhetsgräns, inte en visningsinställning. Kartan klarar stora antal; detta skyddar Home Assistant mot en mycket stor radie över mycket trafikerat vatten.",
+          "client_id": "Endast BarentsWatch. Registrera en gratis AIS-klient på barentswatch.no/minside. ID:t ser ut som din.epost@example.com:live_track_ships; skriv det exakt så.",
+          "client_secret": "Endast BarentsWatch. Visas en gång när klienten skapas; skapa en ny om du inte sparade den.",
+          "location": "Dra markören till mitten av vattnet du vill följa. Den börjar vid ditt hem. Cirkeln är radien nedan; den ritas inte här."
+        }
+      },
+      "coverage": {
+        "title": "En del av området saknar täckning",
+        "description": "Ungefär {percent} % av cirkeln ligger utanför området som BarentsWatch publicerar, alltså norska vatten. Fartyg där visas aldrig, hur trafikerat vattnet än är. Skicka för att ändå använda cirkeln, eller stäng dialogen och välj en mindre radie eller en annan källa."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Radien måste vara mellan 1 och 500 km.",
+      "key_required": "aisstream.io kräver en API-nyckel. Gratis på {aisstream_url}, eller välj Digitraffic i stället.",
+      "invalid_location": "Den punkten ligger inte på jordklotet. Flytta markören och försök igen.",
+      "client_id_required": "BarentsWatch kräver ett klient-ID. Registrera en gratis AIS-klient på barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch kräver en klienthemlighet. Den visas en gång när klienten skapas; skapa en ny om du inte sparade den."
+    },
+    "abort": {
+      "already_configured": "Den här källan följer redan den mittpunkten."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "En ändring läser in anslutningen på nytt. Flyttas mittpunkten byter området också namn.\n\nKänner du till ett fartyg som förtjänar en egen bild på kartan? Berätta för oss på {issues_url}.",
+        "data": {
+          "radius_km": "Radie (km)",
+          "max_vessels": "Högsta antal följda fartyg",
+          "instance_max_vessels": "Högsta antal fartyg på kartan, alla Live Track Ships-poster tillsammans",
+          "location": "Mittpunkt"
+        },
+        "data_description": {
+          "instance_max_vessels": "Sänk den på en liten maskin. Den räknar alla Live Track Ships-poster, oavsett källa. Med flera poster gäller den lägsta inställningen.",
+          "location": "Dra markören för att flytta området. Samma källa kan inte följa samma mittpunkt två gånger."
+        }
+      },
+      "coverage": {
+        "title": "En del av området saknar täckning",
+        "description": "Ungefär {percent} % av cirkeln ligger utanför området som BarentsWatch publicerar, alltså norska vatten. Fartyg där visas aldrig, hur trafikerat vattnet än är. Skicka för att ändå spara inställningarna, eller stäng dialogen för att behålla de nuvarande."
+      }
+    },
+    "error": {
+      "invalid_location": "Den punkten ligger inte på jordklotet. Flytta markören och försök igen.",
+      "already_watched": "Ett annat område med samma källa följer redan den här mittpunkten."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Observerad",
+              "interpolated": "Interpolerad mellan två observerade positioner",
+              "estimated": "Uppskattad",
+              "satellite": "Satellit"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Lägg till Live Tracks kartkort bland dina resurser",
+      "description": "Resurserna för dina instrumentpaneler är inställda i YAML, så kartkortet kan inte registreras automatiskt. Lägg till detta under lovelace: resources: i configuration.yaml och starta sedan om:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Live Tracks kartkort är registrerat mer än en gång",
+      "description": "Dessa resurser läser också in kartkortet: {urls}. Bara en används och de andra gör ingenting. Ta bort dem under Inställningar > Instrumentpaneler > Resurser."
+    }
+  }
+}

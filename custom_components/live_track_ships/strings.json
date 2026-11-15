@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Live Track Ships",
-        "description": "Vessels near a point, from live AIS data. Not for navigation.",
+        "description": "Vessels near a point, from live AIS data. Not for navigation.\n\nKnow a ship that deserves its own picture on the map, such as a royal or state yacht, a well-known ferry or a fireboat? Tell us at {issues_url} and we will draw it.",
         "data": {
           "source": "Data source",
           "api_key": "API key",
@@ -14,11 +14,11 @@
           "client_secret": "Client secret"
         },
         "data_description": {
-          "source": "aisstream.io covers the whole world and needs a free API key. Fintraffic Digitraffic needs no key but only covers Finnish and Baltic waters. BarentsWatch covers Norwegian waters and gives the best data of the three — names and vessel types arrive with every position — but needs a free client registration.",
-          "api_key": "Required for aisstream.io. Get one free at {aisstream_url} — it is shown once, so copy it before closing the page.",
-          "radius_km": "Between {radius_min} and {radius_max} km. How many vessels this contains depends far more on which water than on how large — a 50 km circle held about 4 vessels over Chicago and about 340 over the Solent.",
+          "source": "aisstream.io covers the whole world and needs a free API key. Fintraffic Digitraffic needs no key but only covers Finnish and Baltic waters. BarentsWatch covers Norwegian waters and gives the best data of the three, with names and vessel types on every position, but needs a free client registration.",
+          "api_key": "Required for aisstream.io. Get one free at {aisstream_url}. It is shown once, so copy it before closing the page.",
+          "radius_km": "Between {radius_min} and {radius_max} km. How many vessels this holds depends far more on which water than on how large: a 50 km circle held about 4 vessels over Chicago and about 340 over the Solent.",
           "max_vessels": "A safety limit, not a display setting. The map handles large numbers; this protects Home Assistant from a very large radius over very busy water.",
-          "client_id": "BarentsWatch only. Register a free AIS-client at barentswatch.no/minside — the ID looks like your.email@example.com:live_track_ships. Enter it exactly as shown.",
+          "client_id": "BarentsWatch only. Register a free AIS client at barentswatch.no/minside. The ID looks like your.email@example.com:live_track_ships; enter it exactly as shown.",
           "client_secret": "BarentsWatch only. Shown once when the client is created; generate a new one if you did not keep it.",
           "location": "Drag the marker to the middle of the water you want to watch. It starts at your home. The circle is the radius below; it is not drawn here."
         }
@@ -32,31 +32,37 @@
       "radius_out_of_range": "Radius must be between 1 and 500 km.",
       "key_required": "aisstream.io needs an API key. Get one free at {aisstream_url}, or choose Digitraffic instead.",
       "invalid_location": "That point is not on the globe. Move the marker and try again.",
-      "client_id_required": "BarentsWatch needs a client ID. Register a free AIS-client at barentswatch.no/minside.",
+      "client_id_required": "BarentsWatch needs a client ID. Register a free AIS client at barentswatch.no/minside.",
       "client_secret_required": "BarentsWatch needs a client secret. It is shown once when the client is created; generate a new one if you did not keep it."
     },
     "abort": {
-      "already_configured": "This source is already tracking that location."
+      "already_configured": "This source is already watching that centre."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Live Track Ships",
-        "description": "Changing these reloads the connection.",
+        "description": "Changing these reloads the connection. Moving the centre also renames the area.\n\nKnow a ship that deserves its own picture on the map? Tell us at {issues_url}.",
         "data": {
           "radius_km": "Radius (km)",
           "max_vessels": "Maximum vessels to track",
-          "instance_max_vessels": "Maximum vessels on the map, all Live Track Ships entries together"
+          "instance_max_vessels": "Maximum vessels on the map, all Live Track Ships entries together",
+          "location": "Centre"
         },
         "data_description": {
-          "instance_max_vessels": "Lower this on a small machine. It counts every Live Track Ships entry, whatever its source. With more than one entry, the lowest setting applies."
+          "instance_max_vessels": "Lower this on a small machine. It counts every Live Track Ships entry, whatever its source. With more than one entry, the lowest setting applies.",
+          "location": "Drag the marker to move this area. The same source cannot watch the same centre twice."
         }
       },
       "coverage": {
         "title": "Part of this area has no coverage",
-        "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to save this radius anyway, or close this dialog to keep the current one."
+        "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to save these settings anyway, or close this dialog to keep the current ones."
       }
+    },
+    "error": {
+      "invalid_location": "That point is not on the globe. Move the marker and try again.",
+      "already_watched": "Another area with the same source already watches this centre."
     }
   },
   "entity": {

@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Schiffe in der Nähe eines Punktes, aus Live-AIS-Daten. Nicht zur Navigation.\n\nKennen Sie ein Schiff, das ein eigenes Bild auf der Karte verdient, etwa eine königliche oder staatliche Jacht, eine bekannte Fähre oder ein Feuerlöschboot? Sagen Sie es uns unter {issues_url}, dann zeichnen wir es. Einen Fehler in dieser Übersetzung bitte ebenfalls dort melden.",
+        "data": {
+          "source": "Datenquelle",
+          "api_key": "API-Schlüssel",
+          "location": "Mittelpunkt",
+          "radius_km": "Radius (km)",
+          "max_vessels": "Höchstzahl verfolgter Schiffe",
+          "client_id": "Client-ID",
+          "client_secret": "Client-Secret"
+        },
+        "data_description": {
+          "source": "aisstream.io deckt die ganze Welt ab und braucht einen kostenlosen API-Schlüssel. Fintraffic Digitraffic braucht keinen Schlüssel, deckt aber nur finnische und baltische Gewässer ab. BarentsWatch deckt norwegische Gewässer ab und liefert die besten Daten der drei, mit Namen und Schiffstyp bei jeder Position, braucht aber eine kostenlose Client-Registrierung.",
+          "api_key": "Für aisstream.io erforderlich. Kostenlos unter {aisstream_url}. Er wird nur einmal angezeigt, kopieren Sie ihn also, bevor Sie die Seite schließen.",
+          "radius_km": "Zwischen {radius_min} und {radius_max} km. Wie viele Schiffe darin liegen, hängt viel mehr vom Gewässer ab als von der Größe: ein Kreis von 50 km enthielt über Chicago etwa 4 Schiffe und über dem Solent etwa 340.",
+          "max_vessels": "Eine Sicherheitsgrenze, keine Anzeigeeinstellung. Die Karte verkraftet große Zahlen; dies schützt Home Assistant vor einem sehr großen Radius über sehr belebtem Wasser.",
+          "client_id": "Nur BarentsWatch. Registrieren Sie einen kostenlosen AIS-Client unter barentswatch.no/minside. Die ID sieht aus wie ihre.email@example.com:live_track_ships; geben Sie sie genau so ein.",
+          "client_secret": "Nur BarentsWatch. Wird einmal angezeigt, wenn der Client erstellt wird; erzeugen Sie ein neues, wenn Sie es nicht aufbewahrt haben.",
+          "location": "Ziehen Sie die Markierung in die Mitte des Gewässers, das Sie beobachten möchten. Sie beginnt bei Ihrem Zuhause. Der Kreis ist der Radius darunter; er wird hier nicht gezeichnet."
+        }
+      },
+      "coverage": {
+        "title": "Ein Teil dieses Gebiets hat keine Abdeckung",
+        "description": "Etwa {percent} % dieses Kreises liegen außerhalb des Gebiets, das BarentsWatch veröffentlicht, also der norwegischen Gewässer. Schiffe dort erscheinen nie, wie belebt das Wasser auch ist. Senden Sie ab, um diesen Kreis trotzdem zu verwenden, oder schließen Sie den Dialog und wählen Sie einen kleineren Radius oder eine andere Quelle."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Der Radius muss zwischen 1 und 500 km liegen.",
+      "key_required": "aisstream.io braucht einen API-Schlüssel. Kostenlos unter {aisstream_url}, oder wählen Sie stattdessen Digitraffic.",
+      "invalid_location": "Dieser Punkt liegt nicht auf der Erdkugel. Verschieben Sie die Markierung und versuchen Sie es erneut.",
+      "client_id_required": "BarentsWatch braucht eine Client-ID. Registrieren Sie einen kostenlosen AIS-Client unter barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch braucht ein Client-Secret. Es wird einmal angezeigt, wenn der Client erstellt wird; erzeugen Sie ein neues, wenn Sie es nicht aufbewahrt haben."
+    },
+    "abort": {
+      "already_configured": "Diese Quelle beobachtet diesen Mittelpunkt bereits."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Eine Änderung lädt die Verbindung neu. Wird der Mittelpunkt verschoben, ändert sich auch der Name des Gebiets.\n\nKennen Sie ein Schiff, das ein eigenes Bild auf der Karte verdient? Sagen Sie es uns unter {issues_url}.",
+        "data": {
+          "radius_km": "Radius (km)",
+          "max_vessels": "Höchstzahl verfolgter Schiffe",
+          "instance_max_vessels": "Höchstzahl der Schiffe auf der Karte, alle Live-Track-Ships-Einträge zusammen",
+          "location": "Mittelpunkt"
+        },
+        "data_description": {
+          "instance_max_vessels": "Auf einem kleinen Rechner verringern. Es zählt jeden Live-Track-Ships-Eintrag, gleich welcher Quelle. Bei mehreren Einträgen gilt die niedrigste Einstellung.",
+          "location": "Ziehen Sie die Markierung, um dieses Gebiet zu verschieben. Dieselbe Quelle kann denselben Mittelpunkt nicht zweimal beobachten."
+        }
+      },
+      "coverage": {
+        "title": "Ein Teil dieses Gebiets hat keine Abdeckung",
+        "description": "Etwa {percent} % dieses Kreises liegen außerhalb des Gebiets, das BarentsWatch veröffentlicht, also der norwegischen Gewässer. Schiffe dort erscheinen nie, wie belebt das Wasser auch ist. Senden Sie ab, um diese Einstellungen trotzdem zu speichern, oder schließen Sie den Dialog, um die bisherigen zu behalten."
+      }
+    },
+    "error": {
+      "invalid_location": "Dieser Punkt liegt nicht auf der Erdkugel. Verschieben Sie die Markierung und versuchen Sie es erneut.",
+      "already_watched": "Ein anderes Gebiet mit derselben Quelle beobachtet diesen Mittelpunkt bereits."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Beobachtet",
+              "interpolated": "Zwischen zwei beobachteten Positionen interpoliert",
+              "estimated": "Geschätzt",
+              "satellite": "Satellit"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Die Live-Track-Kartenkarte zu Ihren Ressourcen hinzufügen",
+      "description": "Die Ressourcen Ihrer Dashboards sind in YAML festgelegt, daher kann die Kartenkarte nicht automatisch registriert werden. Fügen Sie dies unter lovelace: resources: in configuration.yaml ein und starten Sie dann neu:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Die Live-Track-Kartenkarte ist mehrfach registriert",
+      "description": "Diese Dashboard-Ressourcen laden die Kartenkarte ebenfalls: {urls}. Nur eine wird verwendet, die anderen bewirken nichts. Entfernen Sie sie unter Einstellungen > Dashboards > Ressourcen."
+    }
+  }
+}

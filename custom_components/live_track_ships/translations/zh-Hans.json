@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "某一地点附近的船只，来自实时 AIS 数据。不可用于导航。\n\n知道哪艘船值得在地图上拥有专属图标吗？例如皇家或国家游艇、著名渡轮或消防船。请在 {issues_url} 告诉我们，我们会为它绘制。如发现本翻译有误，也请在那里告诉我们。",
+        "data": {
+          "source": "数据来源",
+          "api_key": "API 密钥",
+          "location": "中心点",
+          "radius_km": "半径（公里）",
+          "max_vessels": "最多跟踪船只数",
+          "client_id": "客户端 ID",
+          "client_secret": "客户端密钥"
+        },
+        "data_description": {
+          "source": "aisstream.io 覆盖全球，需要免费的 API 密钥。Fintraffic Digitraffic 无需密钥，但只覆盖芬兰和波罗的海水域。BarentsWatch 覆盖挪威水域，数据质量是三者中最好的，每个位置都带有船名和船型，但需要免费注册客户端。",
+          "api_key": "使用 aisstream.io 时必填。可在 {aisstream_url} 免费获取。密钥只显示一次，请在关闭页面前复制。",
+          "radius_km": "{radius_min} 到 {radius_max} 公里。圈内有多少船只，取决于哪片水域，远多于取决于圆圈大小：同样 50 公里的圆圈，在芝加哥上空约有 4 艘，在索伦特海峡约有 340 艘。",
+          "max_vessels": "这是安全上限，不是显示设置。地图可以显示大量船只；此项防止在非常繁忙的水域设置过大的半径而拖垮 Home Assistant。",
+          "client_id": "仅限 BarentsWatch。请在 barentswatch.no/minside 免费注册 AIS 客户端。ID 形如 your.email@example.com:live_track_ships，请原样输入。",
+          "client_secret": "仅限 BarentsWatch。创建客户端时只显示一次；如未保存，请重新生成。",
+          "location": "将标记拖到你想观察的水域中央。初始位置是你的家。圆圈是下方设置的半径，这里不会画出。"
+        }
+      },
+      "coverage": {
+        "title": "该区域有一部分没有覆盖",
+        "description": "此圆圈约有 {percent}% 位于 BarentsWatch 公布的区域（挪威水域）之外。无论那里多么繁忙，那里的船只都不会出现。提交即可仍使用此圆圈，或关闭此对话框，选择更小的半径或其他来源。"
+      }
+    },
+    "error": {
+      "radius_out_of_range": "半径必须在 1 到 500 公里之间。",
+      "key_required": "aisstream.io 需要 API 密钥。可在 {aisstream_url} 免费获取，或改选 Digitraffic。",
+      "invalid_location": "该点不在地球上。请移动标记后重试。",
+      "client_id_required": "BarentsWatch 需要客户端 ID。请在 barentswatch.no/minside 免费注册 AIS 客户端。",
+      "client_secret_required": "BarentsWatch 需要客户端密钥。创建客户端时只显示一次；如未保存，请重新生成。"
+    },
+    "abort": {
+      "already_configured": "该来源已在观察此中心点。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "更改后会重新加载连接。移动中心点也会重命名该区域。\n\n知道哪艘船值得在地图上拥有专属图标吗？请在 {issues_url} 告诉我们。",
+        "data": {
+          "radius_km": "半径（公里）",
+          "max_vessels": "最多跟踪船只数",
+          "instance_max_vessels": "地图上最多显示的船只数（所有 Live Track Ships 条目合计）",
+          "location": "中心点"
+        },
+        "data_description": {
+          "instance_max_vessels": "在性能较弱的设备上请调低。它统计所有 Live Track Ships 条目，不论来源。有多个条目时，以最低的设置为准。",
+          "location": "拖动标记即可移动该区域。同一来源不能重复观察同一中心点。"
+        }
+      },
+      "coverage": {
+        "title": "该区域有一部分没有覆盖",
+        "description": "此圆圈约有 {percent}% 位于 BarentsWatch 公布的区域（挪威水域）之外。无论那里多么繁忙，那里的船只都不会出现。提交即可仍保存这些设置，或关闭此对话框以保留当前设置。"
+      }
+    },
+    "error": {
+      "invalid_location": "该点不在地球上。请移动标记后重试。",
+      "already_watched": "另一个使用相同来源的区域已在观察此中心点。"
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "实测",
+              "interpolated": "在两个实测位置之间插值",
+              "estimated": "估算",
+              "satellite": "卫星"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "将 Live Track 地图卡片添加到资源",
+      "description": "你的仪表盘资源是用 YAML 设置的，因此无法自动注册地图卡片。请在 configuration.yaml 的 lovelace: resources: 下添加以下内容，然后重启：\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Live Track 地图卡片被注册了不止一次",
+      "description": "这些仪表盘资源也加载了地图卡片：{urls}。只有一个会被使用，其余的不起作用。请在 设置 > 仪表盘 > 资源 中删除它们。"
+    }
+  }
+}

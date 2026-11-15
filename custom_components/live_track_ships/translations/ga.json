@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Soithí in aice le pointe, ó shonraí AIS beo. Ní le haghaidh loingseoireachta.\n\nAn bhfuil aithne agat ar long ar cheart di a pictiúr féin a bheith aici ar an léarscáil, mar shampla luamh ríoga nó stáit, bád farantóireachta cáiliúil nó bád dóiteáin? Inis dúinn ag {issues_url} agus tarraingeoimid í. Inis dúinn ansin freisin má tá botún san aistriúchán seo.",
+        "data": {
+          "source": "Foinse sonraí",
+          "api_key": "Eochair API",
+          "location": "Lár",
+          "radius_km": "Ga (km)",
+          "max_vessels": "Uasmhéid soithí le rianú",
+          "client_id": "Client ID",
+          "client_secret": "Client secret"
+        },
+        "data_description": {
+          "source": "Clúdaíonn aisstream.io an domhan ar fad agus tá eochair API saor in aisce ag teastáil. Níl eochair ag teastáil ó Fintraffic Digitraffic, ach ní chlúdaíonn sé ach uiscí na Fionlainne agus na Mara Baltaí. Clúdaíonn BarentsWatch uiscí na hIorua agus tugann sé na sonraí is fearr den triúr, le hainm agus cineál an tsoithigh le gach suíomh, ach tá clárú cliaint saor in aisce ag teastáil.",
+          "api_key": "Riachtanach do aisstream.io. Saor in aisce ag {aisstream_url}. Ní thaispeántar í ach uair amháin, mar sin cóipeáil í sula ndúnann tú an leathanach.",
+          "radius_km": "Idir {radius_min} agus {radius_max} km. Braitheann líon na soithí i bhfad níos mó ar an uisce ná ar an méid: bhí thart ar 4 shoitheach i gciorcal 50 km os cionn Chicago agus thart ar 340 os cionn an Solent.",
+          "max_vessels": "Teorainn sábháilteachta, ní socrú taispeána. Láimhseálann an léarscáil líon mór; cosnaíonn sé seo Home Assistant ar gha an-mhór os cionn uisce an-ghnóthach.",
+          "client_id": "BarentsWatch amháin. Cláraigh cliant AIS saor in aisce ag barentswatch.no/minside. Tá cuma mar seo ar an ID: do.ríomhphost@example.com:live_track_ships; cuir isteach díreach mar sin é.",
+          "client_secret": "BarentsWatch amháin. Taispeántar é uair amháin nuair a chruthaítear an cliant; gin ceann nua mura gcoinnigh tú é.",
+          "location": "Tarraing an marcóir go lár an uisce is mian leat a fhaire. Tosaíonn sé ag do theach. Is é an ciorcal an ga thíos; ní tharraingítear anseo é."
+        }
+      },
+      "coverage": {
+        "title": "Níl clúdach ar chuid den limistéar seo",
+        "description": "Tá thart ar {percent}% den chiorcal seo lasmuigh den limistéar a fhoilsíonn BarentsWatch, is é sin uiscí na hIorua. Ní thaispeánfar soithí ansin choíche, is cuma cé chomh gnóthach is atá an t-uisce. Seol isteach chun an ciorcal seo a úsáid mar sin féin, nó dún an dialóg agus roghnaigh ga níos lú nó foinse eile."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Caithfidh an ga a bheith idir 1 agus 500 km.",
+      "key_required": "Tá eochair API ag teastáil ó aisstream.io. Saor in aisce ag {aisstream_url}, nó roghnaigh Digitraffic ina háit.",
+      "invalid_location": "Níl an pointe sin ar an domhan. Bog an marcóir agus bain triail eile as.",
+      "client_id_required": "Tá client ID ag teastáil ó BarentsWatch. Cláraigh cliant AIS saor in aisce ag barentswatch.no/minside.",
+      "client_secret_required": "Tá client secret ag teastáil ó BarentsWatch. Taispeántar é uair amháin nuair a chruthaítear an cliant; gin ceann nua mura gcoinnigh tú é."
+    },
+    "abort": {
+      "already_configured": "Tá an fhoinse seo ag faire an láir sin cheana."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Athlódálann athrú an ceangal. Má bhogtar an lár, athraítear ainm an limistéir freisin.\n\nAn bhfuil aithne agat ar long ar cheart di a pictiúr féin a bheith aici ar an léarscáil? Inis dúinn ag {issues_url}.",
+        "data": {
+          "radius_km": "Ga (km)",
+          "max_vessels": "Uasmhéid soithí le rianú",
+          "instance_max_vessels": "Uasmhéid soithí ar an léarscáil, iontrálacha uile Live Track Ships le chéile",
+          "location": "Lár"
+        },
+        "data_description": {
+          "instance_max_vessels": "Ísligh é seo ar ríomhaire beag. Áiríonn sé gach iontráil Live Track Ships, cibé foinse atá aici. Má tá níos mó ná iontráil amháin ann, is é an socrú is ísle a bhíonn i bhfeidhm.",
+          "location": "Tarraing an marcóir chun an limistéar seo a bhogadh. Ní féidir leis an bhfoinse chéanna an lár céanna a fhaire faoi dhó."
+        }
+      },
+      "coverage": {
+        "title": "Níl clúdach ar chuid den limistéar seo",
+        "description": "Tá thart ar {percent}% den chiorcal seo lasmuigh den limistéar a fhoilsíonn BarentsWatch, is é sin uiscí na hIorua. Ní thaispeánfar soithí ansin choíche, is cuma cé chomh gnóthach is atá an t-uisce. Seol isteach chun na socruithe seo a shábháil mar sin féin, nó dún an dialóg chun na socruithe reatha a choinneáil."
+      }
+    },
+    "error": {
+      "invalid_location": "Níl an pointe sin ar an domhan. Bog an marcóir agus bain triail eile as.",
+      "already_watched": "Tá limistéar eile leis an bhfoinse chéanna ag faire an láir seo cheana."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Breathnaithe",
+              "interpolated": "Idirshuite idir dhá shuíomh bhreathnaithe",
+              "estimated": "Measta",
+              "satellite": "Satailít"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Cuir cárta léarscáile Live Track le d'acmhainní",
+      "description": "Socraítear acmhainní do dheais i YAML, mar sin ní féidir an cárta léarscáile a chlárú go huathoibríoch. Cuir é seo faoi lovelace: resources: in configuration.yaml, agus atosaigh ansin:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Tá cárta léarscáile Live Track cláraithe níos mó ná uair amháin",
+      "description": "Lódálann na hacmhainní deais seo an cárta léarscáile freisin: {urls}. Ní úsáidtear ach ceann amháin agus ní dhéanann na cinn eile faic. Bain iad i Socruithe > Deais > Acmhainní."
+    }
+  }
+}

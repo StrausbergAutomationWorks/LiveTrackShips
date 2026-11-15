@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Les navires autour d'un point, d'après les données AIS en direct. Ne pas utiliser pour la navigation.\n\nVous connaissez un navire qui mérite sa propre image sur la carte, comme un yacht royal ou d'État, un ferry connu ou un bateau-pompe ? Dites-le-nous sur {issues_url} et nous le dessinerons. Signalez-y aussi toute erreur dans cette traduction.",
+        "data": {
+          "source": "Source des données",
+          "api_key": "Clé API",
+          "location": "Centre",
+          "radius_km": "Rayon (km)",
+          "max_vessels": "Nombre maximal de navires suivis",
+          "client_id": "ID client",
+          "client_secret": "Secret client"
+        },
+        "data_description": {
+          "source": "aisstream.io couvre le monde entier et demande une clé API gratuite. Fintraffic Digitraffic ne demande pas de clé mais ne couvre que les eaux finlandaises et baltes. BarentsWatch couvre les eaux norvégiennes et donne les meilleures données des trois, avec le nom et le type du navire à chaque position, mais demande l'enregistrement gratuit d'un client.",
+          "api_key": "Obligatoire pour aisstream.io. Gratuite sur {aisstream_url}. Elle n'est affichée qu'une fois : copiez-la avant de fermer la page.",
+          "radius_km": "Entre {radius_min} et {radius_max} km. Le nombre de navires dépend bien plus de l'eau choisie que de la taille : un cercle de 50 km contenait environ 4 navires au-dessus de Chicago et environ 340 au-dessus du Solent.",
+          "max_vessels": "Une limite de sécurité, pas un réglage d'affichage. La carte supporte de grands nombres ; ceci protège Home Assistant d'un très grand rayon sur une eau très fréquentée.",
+          "client_id": "BarentsWatch uniquement. Enregistrez un client AIS gratuit sur barentswatch.no/minside. L'ID ressemble à votre.email@example.com:live_track_ships ; saisissez-le exactement tel quel.",
+          "client_secret": "BarentsWatch uniquement. Affiché une seule fois à la création du client ; générez-en un nouveau si vous ne l'avez pas gardé.",
+          "location": "Faites glisser le repère au milieu de l'eau que vous voulez surveiller. Il part de votre domicile. Le cercle est le rayon ci-dessous ; il n'est pas dessiné ici."
+        }
+      },
+      "coverage": {
+        "title": "Une partie de cette zone n'est pas couverte",
+        "description": "Environ {percent} % de ce cercle se trouve hors de la zone que publie BarentsWatch, c'est-à-dire les eaux norvégiennes. Les navires qui s'y trouvent n'apparaîtront jamais, aussi fréquentée que soit l'eau. Validez pour utiliser ce cercle quand même, ou fermez cette fenêtre et choisissez un rayon plus petit ou une autre source."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Le rayon doit être compris entre 1 et 500 km.",
+      "key_required": "aisstream.io demande une clé API. Gratuite sur {aisstream_url}, ou choisissez Digitraffic.",
+      "invalid_location": "Ce point n'est pas sur le globe. Déplacez le repère et réessayez.",
+      "client_id_required": "BarentsWatch demande un ID client. Enregistrez un client AIS gratuit sur barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch demande un secret client. Il n'est affiché qu'une fois à la création du client ; générez-en un nouveau si vous ne l'avez pas gardé."
+    },
+    "abort": {
+      "already_configured": "Cette source surveille déjà ce centre."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Toute modification recharge la connexion. Déplacer le centre renomme aussi la zone.\n\nVous connaissez un navire qui mérite sa propre image sur la carte ? Dites-le-nous sur {issues_url}.",
+        "data": {
+          "radius_km": "Rayon (km)",
+          "max_vessels": "Nombre maximal de navires suivis",
+          "instance_max_vessels": "Nombre maximal de navires sur la carte, toutes les entrées Live Track Ships ensemble",
+          "location": "Centre"
+        },
+        "data_description": {
+          "instance_max_vessels": "Baissez-le sur une petite machine. Il compte toutes les entrées Live Track Ships, quelle que soit leur source. Avec plusieurs entrées, le réglage le plus bas s'applique.",
+          "location": "Faites glisser le repère pour déplacer cette zone. Une même source ne peut pas surveiller deux fois le même centre."
+        }
+      },
+      "coverage": {
+        "title": "Une partie de cette zone n'est pas couverte",
+        "description": "Environ {percent} % de ce cercle se trouve hors de la zone que publie BarentsWatch, c'est-à-dire les eaux norvégiennes. Les navires qui s'y trouvent n'apparaîtront jamais, aussi fréquentée que soit l'eau. Validez pour enregistrer ces réglages quand même, ou fermez cette fenêtre pour garder les réglages actuels."
+      }
+    },
+    "error": {
+      "invalid_location": "Ce point n'est pas sur le globe. Déplacez le repère et réessayez.",
+      "already_watched": "Une autre zone avec la même source surveille déjà ce centre."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Observée",
+              "interpolated": "Interpolée entre deux positions observées",
+              "estimated": "Estimée",
+              "satellite": "Satellite"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Ajoutez la carte Live Track à vos ressources",
+      "description": "Les ressources de vos tableaux de bord sont définies en YAML : la carte ne peut donc pas être enregistrée automatiquement. Ajoutez ceci sous lovelace: resources: dans configuration.yaml, puis redémarrez :\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "La carte Live Track est enregistrée plusieurs fois",
+      "description": "Ces ressources de tableau de bord chargent aussi la carte : {urls}. Une seule est utilisée et les autres ne font rien. Supprimez-les dans Paramètres > Tableaux de bord > Ressources."
+    }
+  }
+}

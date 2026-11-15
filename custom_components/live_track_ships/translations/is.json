@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Skip nálægt tilteknum punkti, úr rauntíma AIS-gögnum. Ekki til siglinga.\n\nÞekkir þú skip sem verðskuldar eigin mynd á kortinu, til dæmis konungs- eða ríkissnekkju, þekkta ferju eða slökkvibát? Láttu okkur vita á {issues_url} og við teiknum það. Láttu okkur líka vita þar ef þú finnur villu í þessari þýðingu.",
+        "data": {
+          "source": "Gagnaveita",
+          "api_key": "API-lykill",
+          "location": "Miðja",
+          "radius_km": "Radíus (km)",
+          "max_vessels": "Hámarksfjöldi skipa sem fylgst er með",
+          "client_id": "Biðlaraauðkenni (client ID)",
+          "client_secret": "Biðlaraleyndarmál (client secret)"
+        },
+        "data_description": {
+          "source": "aisstream.io nær yfir allan heiminn og þarf ókeypis API-lykil. Fintraffic Digitraffic þarf engan lykil en nær aðeins yfir finnsk hafsvæði og Eystrasalt. BarentsWatch nær yfir norsk hafsvæði og gefur bestu gögnin af þessum þremur, með nafni og gerð skips við hverja staðsetningu, en þarf ókeypis skráningu biðlara.",
+          "api_key": "Nauðsynlegur fyrir aisstream.io. Ókeypis á {aisstream_url}. Hann birtist aðeins einu sinni, svo afritaðu hann áður en þú lokar síðunni.",
+          "radius_km": "Á bilinu {radius_min} til {radius_max} km. Hversu mörg skip eru í honum fer miklu frekar eftir hafsvæðinu en stærðinni: 50 km hringur náði yfir um 4 skip yfir Chicago og um 340 yfir Solent.",
+          "max_vessels": "Öryggismörk, ekki birtingarstilling. Kortið ræður við háar tölur; þetta verndar Home Assistant gegn mjög stórum radíus yfir mjög fjölförnu hafsvæði.",
+          "client_id": "Aðeins BarentsWatch. Skráðu ókeypis AIS-biðlara á barentswatch.no/minside. Auðkennið lítur út eins og netfang@example.com:live_track_ships; sláðu það inn nákvæmlega svona.",
+          "client_secret": "Aðeins BarentsWatch. Birtist einu sinni þegar biðlarinn er búinn til; búðu til nýtt ef þú geymdir það ekki.",
+          "location": "Dragðu merkið á mitt hafsvæðið sem þú vilt fylgjast með. Það byrjar heima hjá þér. Hringurinn er radíusinn hér fyrir neðan; hann er ekki teiknaður hér."
+        }
+      },
+      "coverage": {
+        "title": "Hluti svæðisins er utan þjónustusvæðis",
+        "description": "Um {percent}% af þessum hring liggja utan svæðisins sem BarentsWatch birtir, það er norskra hafsvæða. Skip þar birtast aldrei, sama hversu fjölfarið hafsvæðið er. Sendu inn til að nota hringinn samt, eða lokaðu glugganum og veldu minni radíus eða aðra gagnaveitu."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Radíusinn verður að vera á bilinu 1 til 500 km.",
+      "key_required": "aisstream.io þarf API-lykil. Ókeypis á {aisstream_url}, eða veldu Digitraffic í staðinn.",
+      "invalid_location": "Þessi punktur er ekki á jörðinni. Færðu merkið og reyndu aftur.",
+      "client_id_required": "BarentsWatch þarf biðlaraauðkenni. Skráðu ókeypis AIS-biðlara á barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch þarf biðlaraleyndarmál. Það birtist einu sinni þegar biðlarinn er búinn til; búðu til nýtt ef þú geymdir það ekki."
+    },
+    "abort": {
+      "already_configured": "Þessi gagnaveita fylgist þegar með þessari miðju."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Breyting endurhleður tenginguna. Ef miðjan er færð breytist líka heiti svæðisins.\n\nÞekkir þú skip sem verðskuldar eigin mynd á kortinu? Láttu okkur vita á {issues_url}.",
+        "data": {
+          "radius_km": "Radíus (km)",
+          "max_vessels": "Hámarksfjöldi skipa sem fylgst er með",
+          "instance_max_vessels": "Hámarksfjöldi skipa á kortinu, allar Live Track Ships-færslur samanlagt",
+          "location": "Miðja"
+        },
+        "data_description": {
+          "instance_max_vessels": "Lækkaðu þetta á lítilli vél. Það telur allar Live Track Ships-færslur, óháð gagnaveitu. Ef færslurnar eru fleiri en ein gildir lægsta stillingin.",
+          "location": "Dragðu merkið til að færa svæðið. Sama gagnaveita getur ekki fylgst tvisvar með sömu miðju."
+        }
+      },
+      "coverage": {
+        "title": "Hluti svæðisins er utan þjónustusvæðis",
+        "description": "Um {percent}% af þessum hring liggja utan svæðisins sem BarentsWatch birtir, það er norskra hafsvæða. Skip þar birtast aldrei, sama hversu fjölfarið hafsvæðið er. Sendu inn til að vista stillingarnar samt, eða lokaðu glugganum til að halda núverandi stillingum."
+      }
+    },
+    "error": {
+      "invalid_location": "Þessi punktur er ekki á jörðinni. Færðu merkið og reyndu aftur.",
+      "already_watched": "Annað svæði með sömu gagnaveitu fylgist þegar með þessari miðju."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Mæld",
+              "interpolated": "Brúuð milli tveggja mældra staðsetninga",
+              "estimated": "Áætluð",
+              "satellite": "Gervihnöttur"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Bættu kortaspjaldi Live Track við tilföngin þín",
+      "description": "Tilföng stjórnborðanna þinna eru stillt í YAML, svo ekki er hægt að skrá kortaspjaldið sjálfkrafa. Bættu þessu við undir lovelace: resources: í configuration.yaml og endurræstu svo:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Kortaspjald Live Track er skráð oftar en einu sinni",
+      "description": "Þessi tilföng hlaða líka kortaspjaldinu: {urls}. Aðeins eitt er notað og hin gera ekkert. Fjarlægðu þau í Stillingar > Stjórnborð > Tilföng."
+    }
+  }
+}

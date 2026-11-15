@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Alukset valitun pisteen lähellä reaaliaikaisista AIS-tiedoista. Ei navigointiin.\n\nTiedätkö aluksen, joka ansaitsee oman kuvan kartalle, esimerkiksi kuninkaallisen tai valtion jahdin, tunnetun lautan tai palolaivan? Kerro meille osoitteessa {issues_url}, niin piirrämme sen. Ilmoita samassa paikassa myös virheestä tässä käännöksessä.",
+        "data": {
+          "source": "Tietolähde",
+          "api_key": "API-avain",
+          "location": "Keskipiste",
+          "radius_km": "Säde (km)",
+          "max_vessels": "Seurattavien alusten enimmäismäärä",
+          "client_id": "Asiakastunnus (client ID)",
+          "client_secret": "Asiakassalaisuus (client secret)"
+        },
+        "data_description": {
+          "source": "aisstream.io kattaa koko maailman ja vaatii ilmaisen API-avaimen. Fintraffic Digitraffic ei vaadi avainta, mutta kattaa vain Suomen ja Itämeren vedet. BarentsWatch kattaa Norjan vedet ja antaa kolmesta parhaat tiedot, nimi ja alustyyppi jokaisen sijainnin mukana, mutta vaatii ilmaisen asiakasrekisteröinnin.",
+          "api_key": "Pakollinen aisstream.io:lle. Ilmainen osoitteesta {aisstream_url}. Se näytetään vain kerran, joten kopioi se ennen kuin suljet sivun.",
+          "radius_km": "{radius_min}–{radius_max} km. Alusten määrä riippuu paljon enemmän vesialueesta kuin koosta: 50 km:n ympyrässä oli Chicagon kohdalla noin 4 alusta ja Solentin kohdalla noin 340.",
+          "max_vessels": "Turvaraja, ei näyttöasetus. Kartta kestää suuria määriä; tämä suojaa Home Assistantia hyvin suurelta säteeltä hyvin vilkkaalla vesialueella.",
+          "client_id": "Vain BarentsWatch. Rekisteröi ilmainen AIS-asiakas osoitteessa barentswatch.no/minside. Tunnus on muotoa oma.sposti@example.com:live_track_ships; kirjoita se täsmälleen niin.",
+          "client_secret": "Vain BarentsWatch. Näytetään kerran, kun asiakas luodaan; luo uusi, jos et tallentanut sitä.",
+          "location": "Vedä merkki sen vesialueen keskelle, jota haluat seurata. Se alkaa kotisi kohdalta. Ympyrä on alla valittava säde; sitä ei piirretä tähän."
+        }
+      },
+      "coverage": {
+        "title": "Osalla alueesta ei ole kattavuutta",
+        "description": "Noin {percent} % tästä ympyrästä on BarentsWatchin julkaiseman alueen eli Norjan vesien ulkopuolella. Siellä olevat alukset eivät koskaan näy, olipa vesi kuinka vilkasta tahansa. Lähetä, jos haluat silti käyttää tätä ympyrää, tai sulje ikkuna ja valitse pienempi säde tai toinen lähde."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Säteen on oltava 1–500 km.",
+      "key_required": "aisstream.io vaatii API-avaimen. Ilmainen osoitteesta {aisstream_url}, tai valitse Digitraffic.",
+      "invalid_location": "Piste ei ole maapallolla. Siirrä merkkiä ja yritä uudelleen.",
+      "client_id_required": "BarentsWatch vaatii asiakastunnuksen. Rekisteröi ilmainen AIS-asiakas osoitteessa barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch vaatii asiakassalaisuuden. Se näytetään kerran, kun asiakas luodaan; luo uusi, jos et tallentanut sitä."
+    },
+    "abort": {
+      "already_configured": "Tämä lähde seuraa jo tätä keskipistettä."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Muutos lataa yhteyden uudelleen. Keskipisteen siirtäminen muuttaa myös alueen nimen.\n\nTiedätkö aluksen, joka ansaitsee oman kuvan kartalle? Kerro meille osoitteessa {issues_url}.",
+        "data": {
+          "radius_km": "Säde (km)",
+          "max_vessels": "Seurattavien alusten enimmäismäärä",
+          "instance_max_vessels": "Alusten enimmäismäärä kartalla, kaikki Live Track Ships -merkinnät yhteensä",
+          "location": "Keskipiste"
+        },
+        "data_description": {
+          "instance_max_vessels": "Laske tätä pienellä laitteella. Se laskee kaikki Live Track Ships -merkinnät lähteestä riippumatta. Jos merkintöjä on useita, alin asetus on voimassa.",
+          "location": "Siirrä aluetta vetämällä merkkiä. Sama lähde ei voi seurata samaa keskipistettä kahdesti."
+        }
+      },
+      "coverage": {
+        "title": "Osalla alueesta ei ole kattavuutta",
+        "description": "Noin {percent} % tästä ympyrästä on BarentsWatchin julkaiseman alueen eli Norjan vesien ulkopuolella. Siellä olevat alukset eivät koskaan näy, olipa vesi kuinka vilkasta tahansa. Lähetä, jos haluat silti tallentaa nämä asetukset, tai sulje ikkuna säilyttääksesi nykyiset."
+      }
+    },
+    "error": {
+      "invalid_location": "Piste ei ole maapallolla. Siirrä merkkiä ja yritä uudelleen.",
+      "already_watched": "Toinen saman lähteen alue seuraa jo tätä keskipistettä."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Havaittu",
+              "interpolated": "Interpoloitu kahden havaitun sijainnin välille",
+              "estimated": "Arvioitu",
+              "satellite": "Satelliitti"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Lisää Live Trackin karttakortti resursseihin",
+      "description": "Kojelautojesi resurssit on määritetty YAML-tiedostossa, joten karttakorttia ei voi rekisteröidä automaattisesti. Lisää tämä configuration.yaml-tiedostoon kohtaan lovelace: resources: ja käynnistä sitten uudelleen:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Live Trackin karttakortti on rekisteröity useammin kuin kerran",
+      "description": "Myös nämä kojelautaresurssit lataavat karttakortin: {urls}. Vain yhtä käytetään, eivätkä muut tee mitään. Poista ne kohdassa Asetukset > Kojelaudat > Resurssit."
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Live Track Ships",
+        "description": "Statki w pobliżu wybranego punktu, z danych AIS na żywo. Nie do nawigacji.\n\nZnasz statek, który zasługuje na własny obrazek na mapie, na przykład królewski lub państwowy jacht, znany prom albo łódź strażacką? Napisz do nas na {issues_url}, a go narysujemy. Tam też zgłoś błąd w tym tłumaczeniu.",
+        "data": {
+          "source": "Źródło danych",
+          "api_key": "Klucz API",
+          "location": "Środek",
+          "radius_km": "Promień (km)",
+          "max_vessels": "Maksymalna liczba śledzonych statków",
+          "client_id": "ID klienta",
+          "client_secret": "Sekret klienta"
+        },
+        "data_description": {
+          "source": "aisstream.io obejmuje cały świat i wymaga darmowego klucza API. Fintraffic Digitraffic nie wymaga klucza, ale obejmuje tylko wody fińskie i bałtyckie. BarentsWatch obejmuje wody norweskie i daje najlepsze dane z tych trzech, z nazwą i typem statku przy każdej pozycji, ale wymaga darmowej rejestracji klienta.",
+          "api_key": "Wymagany dla aisstream.io. Za darmo na {aisstream_url}. Wyświetla się tylko raz, więc skopiuj go przed zamknięciem strony.",
+          "radius_km": "Od {radius_min} do {radius_max} km. Liczba statków zależy dużo bardziej od akwenu niż od wielkości: okrąg 50 km zawierał około 4 statków nad Chicago i około 340 nad Solent.",
+          "max_vessels": "Limit bezpieczeństwa, nie ustawienie wyświetlania. Mapa radzi sobie z dużymi liczbami; to chroni Home Assistant przed bardzo dużym promieniem nad bardzo ruchliwą wodą.",
+          "client_id": "Tylko BarentsWatch. Zarejestruj darmowego klienta AIS na barentswatch.no/minside. ID wygląda jak twoj.email@example.com:live_track_ships; wpisz je dokładnie tak.",
+          "client_secret": "Tylko BarentsWatch. Wyświetla się raz przy tworzeniu klienta; wygeneruj nowy, jeśli go nie zachowałeś.",
+          "location": "Przeciągnij znacznik na środek wody, którą chcesz obserwować. Zaczyna się w Twoim domu. Okrąg to promień poniżej; nie jest tu rysowany."
+        }
+      },
+      "coverage": {
+        "title": "Część tego obszaru nie ma zasięgu",
+        "description": "Około {percent}% tego okręgu leży poza obszarem, który publikuje BarentsWatch, czyli poza wodami norweskimi. Statki tam nigdy się nie pojawią, choćby woda była bardzo ruchliwa. Zatwierdź, aby mimo to użyć tego okręgu, albo zamknij okno i wybierz mniejszy promień lub inne źródło."
+      }
+    },
+    "error": {
+      "radius_out_of_range": "Promień musi wynosić od 1 do 500 km.",
+      "key_required": "aisstream.io wymaga klucza API. Za darmo na {aisstream_url}; możesz też wybrać Digitraffic.",
+      "invalid_location": "Ten punkt nie leży na kuli ziemskiej. Przesuń znacznik i spróbuj ponownie.",
+      "client_id_required": "BarentsWatch wymaga ID klienta. Zarejestruj darmowego klienta AIS na barentswatch.no/minside.",
+      "client_secret_required": "BarentsWatch wymaga sekretu klienta. Wyświetla się raz przy tworzeniu klienta; wygeneruj nowy, jeśli go nie zachowałeś."
+    },
+    "abort": {
+      "already_configured": "To źródło już obserwuje ten środek."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live Track Ships",
+        "description": "Każda zmiana ponownie wczytuje połączenie. Przesunięcie środka zmienia też nazwę obszaru.\n\nZnasz statek, który zasługuje na własny obrazek na mapie? Napisz do nas na {issues_url}.",
+        "data": {
+          "radius_km": "Promień (km)",
+          "max_vessels": "Maksymalna liczba śledzonych statków",
+          "instance_max_vessels": "Maksymalna liczba statków na mapie, wszystkie wpisy Live Track Ships razem",
+          "location": "Środek"
+        },
+        "data_description": {
+          "instance_max_vessels": "Zmniejsz na słabszym komputerze. Liczy każdy wpis Live Track Ships, niezależnie od źródła. Przy kilku wpisach obowiązuje najniższe ustawienie.",
+          "location": "Przeciągnij znacznik, aby przesunąć ten obszar. To samo źródło nie może obserwować tego samego środka dwa razy."
+        }
+      },
+      "coverage": {
+        "title": "Część tego obszaru nie ma zasięgu",
+        "description": "Około {percent}% tego okręgu leży poza obszarem, który publikuje BarentsWatch, czyli poza wodami norweskimi. Statki tam nigdy się nie pojawią, choćby woda była bardzo ruchliwa. Zatwierdź, aby mimo to zapisać te ustawienia, albo zamknij okno, aby zachować obecne."
+      }
+    },
+    "error": {
+      "invalid_location": "Ten punkt nie leży na kuli ziemskiej. Przesuń znacznik i spróbuj ponownie.",
+      "already_watched": "Inny obszar z tym samym źródłem już obserwuje ten środek."
+    }
+  },
+  "entity": {
+    "geo_location": {
+      "vessel": {
+        "state_attributes": {
+          "position_source": {
+            "state": {
+              "observed": "Zaobserwowana",
+              "interpolated": "Interpolowana między dwiema zaobserwowanymi pozycjami",
+              "estimated": "Szacowana",
+              "satellite": "Satelitarna"
+            }
+          }
+        }
+      }
+    }
+  },
+  "issues": {
+    "map_card_yaml_resource": {
+      "title": "Dodaj kartę mapy Live Track do zasobów",
+      "description": "Zasoby Twoich dashboardów są ustawione w YAML, więc karty mapy nie da się zarejestrować automatycznie. Dodaj to w lovelace: resources: w pliku configuration.yaml, a potem uruchom ponownie:\n\n- url: {url}\n  type: module"
+    },
+    "map_card_duplicate_resources": {
+      "title": "Karta mapy Live Track jest zarejestrowana więcej niż raz",
+      "description": "Te zasoby dashboardów też wczytują kartę mapy: {urls}. Używany jest tylko jeden, pozostałe nic nie robią. Usuń je w Ustawienia > Dashboardy > Zasoby."
+    }
+  }
+}
