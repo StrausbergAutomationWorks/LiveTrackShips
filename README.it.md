@@ -1,155 +1,498 @@
 # Live Track Ships
 
-[English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · **Italiano** · [Dansk](README.da.md) · [Kalaallisut](README.kl.md)
+[English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · **Italiano** · [Dansk](README.da.md) · [Kalaallisut](README.kl.md) · [Tutte le lingue](#lingue)
 
-Navi, barche e altre imbarcazioni in tempo reale sulla mappa di Home
-Assistant. Live Track Ships è un'integrazione di Home Assistant (custom
-component, si installa dal Marketplace / HACS) che mostra i dati AIS delle navi
-nell'area che scegli: dove si trova ciascuna, nome, velocità, rotta, tipo e
-dimensioni quando la nave li trasmette. Ogni nave è un'entità `geo_location`
-che si sposta sulla mappa a ogni nuova posizione. Il centro dell'area può
-trovarsi ovunque nel mondo.
+**Tracciamento AIS di navi, barche e imbarcazioni per Home Assistant.** Le
+navi vicino a te, o in qualsiasi punto del mondo tu scelga, come segnaposto
+in diretta sulla tua mappa. Parte di Live Track: navi, aerei e treni su
+un'unica mappa.
 
-**Stato: 0.1.0, la prima versione.**
+Dati AIS marittimi in diretta da [aisstream.io](https://aisstream.io),
+[Fintraffic Digitraffic](https://www.digitraffic.fi/en/marine-traffic/) o
+[BarentsWatch](https://www.barentswatch.no/en/), mostrati come entità
+`geo_location` di Home Assistant e disegnati sulla mappa condivisa di Live
+Track.
 
-## Si vedono anche le imbarcazioni da diporto
+**Stato: 0.1.0, la prima versione.** Si aggiunge al Marketplace tramite link
+(sotto); non è ancora nel catalogo del Marketplace.
 
-L'integrazione mostra tutto ciò che la fonte invia e non si può filtrare
-nulla. Un'imbarcazione da diporto con transponder AIS compare sulla mappa come
-una nave da carico: nome, MMSI, nominativo radio e posizione con una precisione
-di circa un metro. Una barca che lascia il transponder acceso all'ormeggio
-resta sulla mappa all'ormeggio. L'AIS non ha una lista di esclusione. Per
-vedere meno imbarcazioni da diporto, riduci il raggio.
+## Che cos'è l'AIS
+
+L'AIS (Automatic Identification System, sistema di identificazione
+automatica) è una trasmissione VHF con cui le navi comunicano posizione,
+identità e viaggio alle altre navi e a terra. È l'equivalente marittimo
+dell'ADS-B. Le navi commerciali sono obbligate ad averlo; molte imbarcazioni
+da diporto lo hanno per scelta, di solito come apparato di classe B, meno
+potente.
+
+L'AIS viene trasmesso in chiaro. Chiunque abbia un ricevitore può sentirlo, e
+aggregatori pubblici lo ripubblicano.
+
+## Che cosa si vede
+
+**Tutto ciò che la fonte invia.** Non viene filtrato nulla, e non c'è
+un'impostazione per nascondere una categoria.
+
+| Nei dati | Mostrato |
+|---|---|
+| Navi da carico, petroliere, rimorchiatori, traghetti, navi passeggeri | sì |
+| Pescherecci, pilotine, mezzi delle autorità e altre imbarcazioni da lavoro | sì |
+| **Imbarcazioni da diporto private e barche a vela** | **sì, con nome e posizione** |
+| **Boe di attrezzi da pesca** che trasmettono AIS | **sì, disegnate come un pesce** |
+| Aerei di ricerca e soccorso (SAR) | quando la fonte li invia |
+| Aiuti alla navigazione: boe, mede, fari | quando la fonte li invia |
+| Stazioni base AIS a terra | quando la fonte li invia |
+
+### Si vedono le barche private, ed è bene che tu sappia che cosa significa
+
+Un'imbarcazione da diporto che trasmette AIS compare sulla mappa esattamente
+come una nave da carico. A seconda di ciò che trasmette, la sua entità può
+contenere:
+
+- il suo **nome**, che è anche l'etichetta sulla mappa
+- il suo **MMSI** e il suo **nominativo radio**, entrambi permanenti e
+  cercabili da chiunque
+- la sua **posizione** con una precisione di circa un metro, la posizione
+  precedente e quando ciascuna è stata sentita
+- velocità, rotta e prua, se trasmesse
+- lunghezza, larghezza e tipo, se trasmessi
+
+Una barca che lascia il transponder acceso all'ormeggio resta sulla mappa al
+suo posto finché continua a trasmettere.
+
+Per l'AIS non esiste un elenco di esclusione come per gli aerei, e questa
+integrazione non ne inventa uno. Se vuoi meno barche private sulla mappa,
+riduci il raggio.
+
+### Il tipo di nave manca spesso, soprattutto per le barche piccole
+
+Posizione e nome arrivano con quasi ogni messaggio. Tipo e dimensioni
+arrivano in un messaggio a parte, più raro, e molti apparati delle barche
+piccole (classe B) inviano di rado la parte che li contiene. Aspettati che una
+buona parte delle navi, tra cui la maggior parte delle piccole, compaia senza
+tipo né dimensioni, e che tutte siano incomplete per qualche minuto dopo il
+riavvio di Home Assistant. Sono i dati, non un guasto. Tipi e dimensioni già
+sentiti si conservano tra un riavvio e l'altro.
+
+### Non tutto ciò che trasmette AIS è una nave
+
+Ogni entità porta `object_kind`: `vessel`, `net_buoy`, `aton` (aiuto alla
+navigazione), `base_station`, `sar_aircraft` o `distress_beacon`. La maggior
+parte si riconosce dal formato dell'identificativo che l'ITU assegna loro. Le
+boe degli attrezzi da pesca no: trasmettono con identificativi da nave, e
+quindi si riconoscono dai nomi di fabbrica (FISHING BOUY, NET MARK, BUOY)
+insieme all'assenza di una lunghezza trasmessa.
+
+Tutto ciò che non è una nave compare senza tipo, dimensioni né stato di
+navigazione. Le boe degli attrezzi da pesca derivano con le loro lenze; per
+questo conservano velocità e rotta e sono disegnate come un salmone rivolto
+nella direzione in cui derivano.
+
+Che cosa compare dipende dalla fonte. Misurato in una serata:
+
+| Fonte | Boe di attrezzi da pesca | Aerei SAR | Aiuti alla navigazione, stazioni base |
+|---|---|---|---|
+| BarentsWatch | sì | sì | nessuno visto |
+| Digitraffic | nessuna vista | sì | nessuno visto |
+| aisstream.io | nessuna vista | nessuno visto | nessuno visto |
+
+aisstream.io ha consegnato solo messaggi di posizione e di dati della nave,
+sia sui Grandi Laghi sia sulle stesse acque norvegesi e danesi dove
+BarentsWatch mostra le boe.
 
 ## Fonti
 
-Scegli una fonte per ogni area.
+Scegli una fonte per ogni area che configuri.
 
 | Fonte | Copertura | Serve |
 |---|---|---|
-| aisstream.io | tutto il mondo, dove i volontari hanno ricevitori | una chiave API gratuita |
-| Fintraffic Digitraffic | acque finlandesi e del Baltico | niente |
-| BarentsWatch AIS Live | acque norvegesi | ID client e segreto gratuiti |
+| aisstream.io | tutto il mondo, dove ci sono volontari con ricevitori | una chiave API gratuita |
+| Fintraffic Digitraffic | acque finlandesi e baltiche | niente |
+| BarentsWatch AIS Live | acque norvegesi | un ID client e un segreto gratuiti |
 
-L'attributo `attribution` di ogni nave indica la sua fonte. Tutte le
-attribuzioni: [ATTRIBUTION.md](ATTRIBUTION.md).
+Quali categorie compaiono, quanto sono aggiornate le posizioni e quanto sono
+completi i dati delle navi dipende dalla fonte che scegli.
 
-La copertura è buona dove ci sono ricevitori, e nessuna impostazione crea una
-copertura che non c'è. Se nella tua area non vedi navi, forse mancano i
-ricevitori, non le barche.
+### Attribuzione
+
+Ogni entità nave, e il sensore `ships_in_range` di ogni area, porta un
+attributo `attribution` con la fonte che l'ha fornita; Home Assistant lo
+mostra nei dettagli dell'entità. Due delle fonti concedono i loro dati con una
+licenza che chiede di essere citate, e Live Track Ships modifica ciò che
+riceve (unità convertite, solo le navi dentro il tuo cerchio), quindi le loro
+righe lo dicono. Se mostri questi dati ad altri, per esempio su una dashboard
+pubblica, mantieni la citazione e leggi le condizioni della fonte:
+
+- **aisstream.io**: nessuna condizione pubblicata. <https://aisstream.io>
+- **Fintraffic Digitraffic**: CC BY 4.0.
+  <https://www.digitraffic.fi/en/terms-of-service/>
+- **BarentsWatch**: licenza norvegese per i dati pubblici aperti (NLOD).
+  <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **EnforcementVessels** (l'elenco dietro l'aspetto da guardia costiera,
+  sotto): ODbL v1.0.
+  <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
+
+Le righe esatte sono in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Requisiti
 
-- Home Assistant 2026.11 o successivo.
-- aisstream.io: una chiave API gratuita da
-  [aisstream.io](https://aisstream.io/account). aisstream consente tre
-  connessioni per account e per indirizzo IP pubblico.
-- BarentsWatch: ID client e segreto gratuiti. Inserisci l'ID client
-  esattamente come è stato emesso.
-- Digitraffic non richiede chiavi né account.
+- Home Assistant 2026.11 o successivo, con accesso a Internet.
+- Per aisstream.io: una chiave API gratuita da
+  [aisstream.io](https://aisstream.io/account). aisstream consente **tre
+  connessioni per account e tre per IP pubblico**; se usi altri strumenti con
+  la stessa chiave, tienine conto. Live Track SALT, se installato, usa una
+  seconda connessione con la stessa chiave.
+- Per BarentsWatch: un ID client e un segreto gratuiti, da registrare da te su
+  BarentsWatch. Inserisci l'ID client esattamente come ti è stato rilasciato.
+- Home Assistant installa il pacchetto Python necessario (`saw-livetrack`) la
+  prima volta che carica l'integrazione.
 
 ## Installazione
 
 ### Dal Marketplace
 
-L'integrazione non è ancora nel catalogo del Marketplace. Aggiungila tramite
-link:
+Live Track Ships non è ancora nel catalogo del Marketplace. Aggiungila
+tramite link:
 
-1. **Impostazioni > Marketplace**, poi aggiungi da link.
+1. **Impostazioni > Marketplace**, poi **Aggiungi da link**.
 2. Inserisci `StrausbergAutomationWorks/LiveTrackShips`. Se chiede il tipo,
    scegli **Integrazione**.
 3. Installa **Live Track Ships**.
-4. Riavvia Home Assistant. Il Marketplace offre il riavvio come riparazione in
-   **Impostazioni > Sistema > Riparazioni**.
+4. Riavvia Home Assistant. Il Marketplace propone il riavvio come
+   riparazione in **Impostazioni > Sistema > Riparazioni**.
 
 ### A mano
 
-1. Scarica il codice sorgente dell'[ultima
-   versione](https://github.com/StrausbergAutomationWorks/LiveTrackShips/releases/latest).
-2. Copia la cartella `custom_components/live_track_ships` nella cartella
+1. Scarica il codice sorgente dell'[ultima versione](https://github.com/StrausbergAutomationWorks/LiveTrackShips/releases/latest).
+2. Copia la sua cartella `custom_components/live_track_ships` nella cartella
    `custom_components` della directory di configurazione di Home Assistant.
 3. Riavvia Home Assistant.
 
 ## Configurazione
 
 **Impostazioni > Dispositivi e servizi > Aggiungi integrazione > Live Track
-Ships.** Scegli la fonte, inserisci la chiave se serve, trascina il segnaposto
-sulla mappa fino all'acqua che vuoi osservare e scegli il raggio (da 1 a 500
-km, 50 predefinito). Ogni area è una voce a sé. La finestra appare in italiano
-quando Home Assistant è in italiano.
+Ships**, poi **Tutte le navi di un'area** (l'altra scelta, le navi seguite, è
+[più sotto](#navi-seguite-segui-navi-scelte-ovunque)). Ogni area è una voce a
+sé, intitolata *Ships near <latitudine>, <longitudine>*. La finestra appare in
+italiano quando Home Assistant è in italiano.
 
-Nelle impostazioni di un'area puoi spostare il centro con lo stesso
-segnaposto; l'area viene rinominata e ricaricata. Tutte le aree insieme
-mostrano al massimo 2.500 navi; un cursore nelle impostazioni può solo
-abbassare questo limite. Usalo su una macchina lenta.
+| Campo | Che cosa accetta | Predefinito |
+|---|---|---|
+| Fonte dei dati | aisstream.io, Fintraffic Digitraffic o BarentsWatch AIS Live | aisstream.io |
+| Chiave API | solo aisstream.io. Presa da un'area già configurata; si può cambiare | vuota |
+| ID client, segreto client | solo BarentsWatch. Presi da un'area già configurata | vuoti |
+| Centro | un segnaposto su una mappa; trascinalo sull'acqua da osservare | casa tua |
+| Raggio (km) | da 1 a 500 | 50 |
+| Numero massimo di navi seguite | da 1 a 5.000; un limite di sicurezza per quest'area, restano le più vicine | 1.000 |
+
+La stessa fonte non può osservare due volte lo stesso centro. Quando almeno
+il 5 % di un cerchio BarentsWatch cade fuori dalle acque che BarentsWatch
+pubblica, la finestra dice quanto prima di creare l'area; invia per tenere
+comunque quel cerchio.
+
+**Impostazioni di un'area** (Configura sulla sua voce): il centro, con lo
+stesso segnaposto; il raggio; il numero massimo di navi seguite; e *Numero
+massimo di navi sulla mappa, tutte le voci Live Track Ships insieme*, un
+cursore da 100 a 2.500 a passi di 100 (2.500 predefinito). Spostare il centro
+rinomina l'area secondo la nuova posizione e la ricarica. La stessa fonte
+continua a non poter osservare un centro da due aree.
+
+## Che cosa crea
+
+- **Un'entità `geo_location` per nave**, `geo_location.vessel_<MMSI>`, il cui
+  stato è la distanza dal centro dell'area in chilometri. Gli attributi
+  comprendono nome, MMSI, nominativo, velocità, rotta, prua, lunghezza,
+  larghezza, tipo, destinazione, `object_kind`, `last_seen` e `attribution`,
+  ciascuno solo se la fonte l'ha inviato. Una nave vista da due aree è una
+  sola entità.
+- **Un sensore per area**, `sensor.ships_in_range`, che conta le navi
+  mostrate e lo dice quando il limite dell'area o dell'intera installazione
+  accorcia l'elenco.
+
+Una nave sentita fuori dal tuo cerchio lascia subito la mappa. Per sentirla, a
+ogni fonte si chiede un anello un po' più grande del tuo cerchio (il 10 %,
+almeno 1 km); si tengono solo le navi dentro il tuo cerchio. Una nave che non
+si sente più lascia la mappa dopo un periodo di silenzio, e una nave che
+smette di comparire non è detto che se ne sia andata (sotto).
 
 ## Eventi: una nave entra nella tua area o ne esce
 
-Ogni area genera due eventi di Home Assistant: `live_track_ships_entry` quando una nave entra nel
-cerchio e `live_track_ships_exit` quando ne esce. L'integrazione segnala ogni nave; la tua
-automazione sceglie quelle che ti interessano, per nome, tipo, lunghezza o
-velocità. I campi hanno gli stessi nomi e le stesse unità degli attributi della
-nave; l'elenco e un esempio sono nel [README in inglese](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+Ogni area genera due eventi di Home Assistant, perché un'automazione possa
+avvisarti quando arriva una nave che ti interessa:
 
-- Un arrivo viene segnalato solo se la nave è stata sentita prima fuori dal
-  cerchio, nell'anello che lo circonda. Una nave sentita per la prima volta
-  dentro potrebbe essere stata lì da sempre; per questo una nave che i
-  ricevitori non hanno sentito entrare non viene segnalata.
-- Un'uscita sentita fuori dal cerchio viene sempre segnalata. Una nave che
-  tace viene segnalata come uscita solo se il suo arrivo era stato segnalato.
-- L'uscita viene segnalata dopo 2 minuti; una nave che rientra prima non viene
-  segnalata come uscita e rientrata.
-- All'arrivo possono mancare nome, tipo e dimensioni, perché vengono trasmessi
-  meno spesso della posizione.
+- `live_track_ships_entry` quando una nave entra nel cerchio dell'area
+- `live_track_ships_exit` quando ne esce
+
+L'integrazione segnala ogni nave; la tua automazione sceglie quelle che
+contano. I dati dell'evento hanno gli stessi nomi e le stesse unità degli
+attributi della nave, e omettono ciò che la fonte non ha inviato:
+
+| Campo | Contenuto |
+|---|---|
+| `area_id`, `area` | l'ID della voce di configurazione dell'area e il suo titolo |
+| `identity` | l'MMSI |
+| `name`, `call_sign`, `imo` | se trasmessi |
+| `object_kind` | `vessel`, `net_buoy`, `aton`, `base_station`, `sar_aircraft` o `distress_beacon` |
+| `ship_type`, `ship_type_label`, `length_m`, `beam_m`, `draught_m`, `destination`, `nav_status` | solo navi, se trasmessi |
+| `speed_kmh`, `course_deg`, `heading_deg` | se trasmessi |
+| `latitude`, `longitude`, `distance_km`, `bearing_from_centre_deg`, `last_seen` | dove è stata sentita, dal centro dell'area |
+| `entity_id` | solo all'ingresso: `geo_location.vessel_<MMSI>`, quando la nave è sulla mappa |
+| `reason` | solo all'uscita: `left` (sentita fuori dal cerchio) o `silent` (non sentita per il tempo di conservazione, quindi forse ancora lì) |
+
+Quattro cose da sapere:
+
+- **Un arrivo viene segnalato solo se la nave è stata sentita prima fuori dal
+  cerchio**, nell'anello che lo circonda. Una nave sentita per la prima volta
+  dentro potrebbe essere stata lì da sempre: dopo un riavvio i ricevitori
+  continuano per molti minuti a consegnare navi che non si sono mai mosse. Una
+  nave che i ricevitori non hanno sentito entrare, o che accende il
+  transponder quando è già dentro, quindi non viene segnalata.
+- **Un'uscita sentita fuori viene sempre segnalata**, anche per una nave che
+  c'era già prima dell'avvio di Home Assistant. Una nave che tace viene
+  segnalata come uscita (`reason: silent`) solo se il suo arrivo era stato
+  segnalato.
+- **Un'uscita aspetta 2 minuti.** Una nave che rientra prima, lungo il bordo
+  del cerchio, non viene segnalata come uscita e rientrata.
+- **All'arrivo possono mancare dati.** Nome, tipo e dimensioni viaggiano in un
+  messaggio più raro della posizione (sopra). Una nave sentita per la prima
+  volta può arrivare con una posizione e nient'altro; una già sentita di solito
+  porta tipo e dimensioni.
+
+Due aree sulle stesse acque generano ciascuna i propri eventi. I limiti a
+quante navi disegna la mappa non fanno mai entrare né uscire una nave.
+
+Un'automazione che ti avvisa quando una nave di oltre 150 m entra in un'area:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: live_track_ships_entry
+conditions:
+  - condition: template
+    value_template: "{{ trigger.event.data.length_m | default(0) > 150 }}"
+actions:
+  - action: notify.notify
+    data:
+      title: "{{ trigger.event.data.name | default('Una nave') }}"
+      message: >-
+        {{ trigger.event.data.ship_type_label | default('Nave') }},
+        {{ trigger.event.data.length_m }} m,
+        a {{ trigger.event.data.distance_km }} km, entra in
+        {{ trigger.event.data.area }}.
+```
 
 ## Navi seguite: segui navi scelte ovunque
 
 Oltre alle aree puoi seguire un elenco di navi ovunque si trovino: la barca di
 un familiare, un traghetto che prendi, una nave da crociera che torna a casa.
-Scegli **Navi scelte, ovunque si trovino** quando aggiungi Live Track Ships.
-Serve una chiave di aisstream.io, e c'è un solo elenco di questo tipo per Home
-Assistant. Una nave per riga: il suo MMSI di 9 cifre e, se vuoi, un'etichetta
-tua, al massimo 100.
+**Impostazioni > Dispositivi e servizi > Aggiungi integrazione > Live Track
+Ships > Navi scelte, ovunque si trovino.** Serve una chiave di aisstream.io
+(quella di un'area già configurata è compilata), e c'è un solo elenco di
+questo tipo per Home Assistant.
 
-Le navi compaiono sulla mappa ovunque vengano sentite, e
-`sensor.watched_vessels` mostra ciascuna con il suo ultimo stato noto.
-L'evento `live_track_ships_watched` ha il campo `change`: `arrived`, `departed`, `silent`, `heard`, `destination`. Arrivo e partenza attendono che il
-nuovo stato duri 5 minuti. I dettagli sono nel [README in inglese](README.md#watched-vessels-follow-chosen-ships-anywhere).
+Una nave per riga: il suo MMSI di 9 cifre e, se vuoi, un'etichetta tua.
+
+```text
+244650000 Barca di papà
+366999999 Il traghetto
+```
+
+Al massimo 100 navi. aisstream segue al massimo 200 MMSI per chiave, e
+[Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT),
+se installato con la stessa chiave, ne usa una parte; un elenco che andrebbe
+oltre viene rifiutato al caricamento della voce, con il motivo. Modifica
+l'elenco nelle impostazioni della voce.
+
+Una nave seguita viene disegnata sulla mappa come le altre, ovunque venga
+sentita, e il suo stato è la distanza da casa tua. Un'area che la mostra già
+se la tiene: una nave, un segnaposto. La voce crea `sensor.watched_vessels`:
+quante delle navi dell'elenco si sentono adesso, con ciascuna di esse, la sua
+etichetta e il suo ultimo stato noto nell'attributo `vessels`.
+
+Genera un solo evento, `live_track_ships_watched`, il cui campo `change` dice
+che cosa è successo:
+
+| `change` | Quando |
+|---|---|
+| `arrived` | la nave si dichiara ormeggiata o alla fonda, o, senza stato, resta sotto i 2 nodi |
+| `departed` | è di nuovo in navigazione |
+| `silent` | non sentita per 30 minuti (6 ore se ormeggiata o alla fonda); lascia la mappa, e forse è ancora lì |
+| `heard` | sentita di nuovo dopo `silent` |
+| `destination` | l'equipaggio ha cambiato la destinazione; `destination_previous` contiene quella precedente |
+
+I dati portano `watch_id`, `watch`, `identity`, la tua etichetta `label` e gli
+stessi campi nave degli eventi di area, con distanza e rilevamento da casa
+tua. Arrivo e partenza attendono che il nuovo stato duri 5 minuti secondo
+l'orologio della nave stessa, perché una barca che deriva a 2 nodi non vada
+avanti e indietro. Dalla prima posizione di una nave dopo un riavvio non si
+segnala nulla: quella fissa il punto di partenza. Le destinazioni le digita
+l'equipaggio e spesso sono vecchie.
+
+## Scheda mappa
+
+Le navi le disegna [LiveTrackMapCard](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard)
+(`custom:live-track-map-card`), l'unica mappa su cui disegna ogni integrazione
+Live Track. Disegna l'immagine propria di ogni nave, la ruota secondo la sua
+prua e la fa scivolare tra posizioni reali lungo l'acqua invece che in linea
+retta sopra la terra.
+
+**La scheda si installa con l'integrazione.** Questa integrazione porta con sé
+una copia pubblicata della scheda, la serve e la registra come risorsa della
+dashboard all'avvio di Home Assistant; non c'è niente da scaricare né da
+copiare in `www`. Ogni integrazione Live Track fa lo stesso, e insieme tengono
+esattamente una riga di risorsa: la versione più alta della scheda che una di
+esse porta, mai una più vecchia. Una scheda installata dal Marketplace non
+viene toccata. Togliere l'ultima area di questa integrazione passa la riga a
+un'altra integrazione Live Track, o la toglie se non ne resta nessuna. Vedi il
+README della scheda, sezione
+[Live Track](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard#live-track).
+
+Se le risorse delle tue dashboard sono definite in YAML
+(`lovelace: resource_mode: yaml`), non si può registrare nulla per te. Una
+riparazione ti dà allora la riga esatta da aggiungere; è così, con l'indirizzo
+dell'integrazione al posto dei segnaposto:
+
+```yaml
+lovelace:
+  resource_mode: yaml
+  resources:
+    - url: /live_track_ships/map-card/<12 hex>/live-track-map-card.js?v=<version>&h=<12 hex>
+      type: module
+```
+
+Se i file dell'integrazione vengono rimossi (dal Marketplace, per esempio)
+mentre le sue aree sono ancora configurate, e non c'è un'altra integrazione
+Live Track installata, nessuno sistema la riga: toglila in Impostazioni >
+Dashboard > Risorse. Per installare la scheda a mano, segui il README della
+scheda; la riga di risorsa di una copia installata a mano in `/local/` viene
+puntata sulla copia di un'integrazione solo quando quella è una versione più
+recente.
+
+Dalle le navi con
+[auto-entities](https://github.com/thomasloven/lovelace-auto-entities),
+filtrando su `domain: geo_location` e `attributes: {source: live_track_ships}`.
+Con altre integrazioni Live Track installate, aggiungi un filtro per ciascuna
+delle loro fonti.
+
+Qualsiasi altra scheda mappa che mostra entità `geo_location` mostra anche le
+navi, senza le immagini e lo scorrimento di questa scheda.
+
+Una nave dell'elenco pubblico
+[EnforcementVessels](https://github.com/StrausbergAutomationWorks/EnforcementVessels)
+(navi della guardia costiera impiegate nel lavoro sull'immigrazione) viene
+disegnata con i colori della guardia costiera, con il nome e l'agenzia
+dell'elenco, ovunque si trovi.
+
+## Dove guarda
+
+Metti un **centro e un raggio** sulla mappa. Il centro può essere in qualsiasi
+punto del mondo; il raggio può andare da 1 a 500 km. Il predefinito è
+**50 km**. Lo stato di ogni nave è la sua distanza dal tuo centro.
+
+Quante navi ci sono in un cerchio dipende molto più da *quale acqua* che da
+*quanto grande*. Nelle prove, un cerchio di 50 km conteneva circa 4 navi su
+Chicago e circa 340 sul Solent, nel sud dell'Inghilterra: lo stesso raggio,
+circa 80 volte il traffico. Per questo l'integrazione tiene al massimo un
+numero fissato di navi (1.000 per impostazione predefinita, regolabile fino a
+5.000), tiene le più vicine quando sono di più e lo dice sul suo sensore
+`ships_in_range`.
+
+Tutte le tue aree **insieme** mostrano al massimo 2.500 navi, qualunque sia la
+loro fonte. Le impostazioni di ogni area hanno il cursore di sopra, che può
+solo abbassare quel limite; vale l'impostazione più bassa tra le aree
+attivate. Abbassalo su un hardware più lento.
+
+## Copertura, misurata e non promessa
+
+La copertura è buona dove ci sono ricevitori e assente dove non ci sono, e
+**nessuna impostazione può creare una copertura che non esiste**.
+
+Misurato il 2026-09-02 intorno a Chicago, con aisstream.io:
+
+- **Grandi Laghi**: 100 navi diverse in 120 secondi, tutti e cinque i laghi e
+  le acque che li collegano.
+- **Chicago River, centro**: trafficato e affidabile.
+- **Chicago Sanitary and Ship Canal, Cal-Sag Channel, Calumet River**: un'ora
+  di ascolto, **zero navi**. Il canale non è vuoto: i suoi convogli a spinta si
+  vedono sui servizi commerciali tramite AIS satellitare, che gli aggregatori
+  gratuiti non hanno. Il traffico è reale; la copertura da terra no.
+
+Nessuna nave nella tua area può voler dire nessun ricevitore piuttosto che
+nessuna barca. Verifica che la tua fonte copra le tue acque prima di pensare
+che l'integrazione sia guasta.
+
+Una nave che smette di comparire non è detto che se ne sia andata. Nessuna di
+queste fonti garantisce la consegna, quindi l'integrazione mostra quando ogni
+nave è stata sentita l'ultima volta e la toglie solo dopo un periodo di
+silenzio.
 
 ## Navi che meritano un'immagine tutta loro
 
-La maggior parte delle navi è disegnata secondo il tipo. Alcune hanno
+La maggior parte delle navi viene disegnata secondo il tipo. Alcune hanno
 un'immagine propria: yacht reali e di Stato, e barche famose come i battelli
-turistici, i taxi d'acqua e i battelli antincendio di Chicago. Conosci una nave
-che ne meriti una, in qualsiasi parte del mondo? Apri una issue su
-<https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues> con nome e
-numero MMSI o IMO, e una foto o un link se li hai.
+turistici, i taxi d'acqua e le motobarche antincendio di Chicago. Conosci una
+nave che ne merita una, in qualsiasi parte del mondo? Apri una issue su
+<https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues> con il
+nome e il numero MMSI o IMO, e una foto o un link se ce l'hai.
 
-Hai trovato un errore importante in questa traduzione o nella finestra in
-italiano? Segnalacelo allo stesso indirizzo.
+## Lingue
+
+Questo README: [English](README.md), [Deutsch](README.de.md),
+[Français](README.fr.md), [Nederlands](README.nl.md),
+[简体中文](README.zh-Hans.md), [Español](README.es.md), **Italiano**,
+[Dansk](README.da.md) e [Kalaallisut](README.kl.md) (una bozza, inviata per
+la revisione a Oqaasileriffik, la segreteria della lingua groenlandese; fino
+ad allora la pagina danese è quella affidabile). Il README è tradotto in un
+breve elenco di lingue: quelle che legge la maggior parte degli utenti di Home
+Assistant, e qualcun'altra quando c'è un buon motivo. Ogni README tradotto è
+completo: tutto ciò che c'è in quello inglese c'è in ciascuno, e nessuno ti
+rimanda all'inglese per i dettagli.
+
+La finestra di configurazione e le impostazioni di un'area compaiono nella
+lingua del tuo Home Assistant quando è una di queste: English, Dansk, Deutsch,
+Español, Français, Gaeilge, Íslenska, Italiano, Nederlands, Norsk Bokmål,
+Polski, Português, Português (BR), Suomi, Svenska e 简体中文. Qualsiasi altra
+lingua mostra la finestra in inglese. Il kalaallisut non è ancora una lingua di
+Home Assistant; abbiamo chiesto a Home Assistant di aggiungerlo, e la finestra
+seguirà appena potrà essere mostrata.
+
+Hai trovato in una traduzione un errore che cambia il senso o si legge male?
+Diccelo su <https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues>.
+Le traduzioni sono state scritte per questo progetto e non tutte sono state
+ancora lette da un madrelingua.
+
+**Fai fatica a seguire in una di queste lingue?** Chiedine un'altra allo stesso
+indirizzo, e cercheremo di accontentarti.
 
 ## Parte di Live Track
 
-Live Track è un insieme di integrazioni di Home Assistant, una per ogni tipo di
-cosa che si muove, e tutte disegnano sulla stessa mappa
-([LiveTrackMapCard](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard),
-installata con l'integrazione). Pubblicate:
+Live Track è un insieme di integrazioni di Home Assistant, una per ogni tipo
+di cosa che si muove, che disegnano tutte sulla stessa mappa. Condividono una
+libreria Python
+([saw-livetrack](https://github.com/StrausbergAutomationWorks/LiveTrackCore))
+e la scheda mappa, così installarne un'altra non aggiunge richieste a una
+fonte condivisa. Pubblicate:
 [Live Track Aircraft](https://github.com/StrausbergAutomationWorks/LiveTrackAircraft),
 [Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT),
 [Live Track Commuter Rail](https://github.com/StrausbergAutomationWorks/LiveTrackCommuterRail),
 [Live Track Intercity Rail](https://github.com/StrausbergAutomationWorks/LiveTrackIntercityRail)
-e Live Track Ships. Ognuna funziona da sola.
+e Live Track Ships. Ciascuna funziona anche da sola.
 
-## Dati e licenza
+## Nessuna affiliazione
 
-Le navi vengono lette mentre l'integrazione è in funzione, direttamente dalla
-fonte scelta; questo repository non contiene dati di quelle fonti. Codice: MIT.
+Non affiliata con aisstream.io, Fintraffic, BarentsWatch, MarineTraffic,
+VesselFinder, alcun armatore né alcuna autorità marittima. L'AIS è un sistema
+per la sicurezza della navigazione; **questa integrazione è per curiosità e non
+serve per la navigazione, per evitare collisioni né per alcuno scopo
+operativo.**
 
-Non affiliata con aisstream.io, Fintraffic, BarentsWatch né con alcuna
-autorità marittima. **Non per la navigazione né per evitare collisioni.** Tutti
-i dettagli e le lingue: [README in inglese](README.md#languages).
+## Licenza
+
+Codice: MIT, in [LICENSE](LICENSE). Crediti di dati e immagini:
+[ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Parole chiave
 
-Home Assistant AIS · navi sulla mappa · tracciamento navi · seguire le barche ·
-traffico marittimo in tempo reale · mappa AIS · integrazione HACS
+Home Assistant AIS · tracciamento navi · navi sulla mappa · tracciamento
+barche · traffico marittimo in diretta · mappa AIS · aisstream.io ·
+Digitraffic · BarentsWatch · geo_location · integrazione HACS

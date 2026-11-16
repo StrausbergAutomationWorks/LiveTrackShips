@@ -421,8 +421,9 @@ This README: **English**, [Deutsch](README.de.md), [Français](README.fr.md),
 [Kalaallisut](README.kl.md) (a draft, sent to Oqaasileriffik, Greenland's
 language secretariat, for review; until then the Danish page is the reliable
 one). The README is translated into a short list of languages: the ones most
-Home Assistant users read, and a few more where there is a solid reason. The
-English one is the full reference.
+Home Assistant users read, and a few more where there is a solid reason. Each
+translated README is complete: everything in this one is in each of them, and
+none sends you back to English for the details.
 
 The setup dialog and the area's settings appear in your Home Assistant
 language when it is one of these: English, Dansk, Deutsch, Español, Français,
