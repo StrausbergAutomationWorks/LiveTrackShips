@@ -1,6 +1,6 @@
 # Live Track Ships
 
-[English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · **简体中文** · [Español](README.es.md) · [Italiano](README.it.md)
+[English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · **简体中文** · [Español](README.es.md) · [Italiano](README.it.md) · [Dansk](README.da.md) · [Kalaallisut](README.kl.md)
 
 在 Home Assistant 地图上实时显示船舶、小艇和其他船只。Live Track Ships 是一个
 Home Assistant 集成（custom component，可通过 Marketplace / HACS 安装），显示你

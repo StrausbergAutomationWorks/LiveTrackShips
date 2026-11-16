@@ -1,6 +1,6 @@
 # Live Track Ships
 
-**English** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md) · [All languages](#languages)
+**English** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md) · [Dansk](README.da.md) · [Kalaallisut](README.kl.md) · [All languages](#languages)
 
 **AIS ship, boat and vessel tracking for Home Assistant.** Ships near you, or
 anywhere in the world you choose, as live markers on your map. Part of Live
@@ -301,20 +301,28 @@ its name and MMSI or IMO number, and a photo or a link if you have one.
 
 This README: **English**, [Deutsch](README.de.md), [Français](README.fr.md),
 [Nederlands](README.nl.md), [简体中文](README.zh-Hans.md),
-[Español](README.es.md) and [Italiano](README.it.md). The README is translated
-only into the languages most Home Assistant users read; the English one is the
-full reference.
+[Español](README.es.md), [Italiano](README.it.md), [Dansk](README.da.md) and
+[Kalaallisut](README.kl.md) (a draft, sent to Oqaasileriffik, Greenland's
+language secretariat, for review; until then the Danish page is the reliable
+one). The README is translated into a short list of languages: the ones most
+Home Assistant users read, and a few more where there is a solid reason. The
+English one is the full reference.
 
 The setup dialog and the area's settings appear in your Home Assistant
 language when it is one of these: English, Dansk, Deutsch, Español, Français,
 Gaeilge, Íslenska, Italiano, Nederlands, Norsk Bokmål, Polski, Português,
 Português (BR), Suomi, Svenska and 简体中文. Any other language shows the
-English dialog.
+English dialog. Kalaallisut is not a Home Assistant language yet; we have
+asked Home Assistant to add it, and the dialog will follow once it can be
+shown.
 
 Found a mistake in a translation that changes the meaning or reads badly?
 Please tell us at <https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues>.
 The translations were written for this project and not all of them have been
 read by a native speaker yet.
+
+**Struggling to follow this in any of these languages?** Ask for another one at
+the same address, and we will try to accommodate you.
 
 ## Part of Live Track
 

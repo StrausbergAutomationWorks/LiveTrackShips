@@ -1,6 +1,6 @@
 # Live Track Ships
 
-[English](README.md) · **Deutsch** · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md)
+[English](README.md) · **Deutsch** · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md) · [Dansk](README.da.md) · [Kalaallisut](README.kl.md)
 
 Schiffe, Boote und andere Wasserfahrzeuge live auf der Karte von Home
 Assistant. Live Track Ships ist eine Home-Assistant-Integration (Custom
