@@ -125,3 +125,65 @@ def label_for(code) -> str | None:
 def is_reportable(code) -> bool:
     """True when this code resolves to something worth showing a user."""
     return label_for(code) is not None
+
+
+# ---------------------------------------------------------------------------
+# MARKER GROUPS (06_MAP_CONTRACT.md D4f, backlog 345; Lee 2026-11-15: thirteen
+# groups). What the map's filter card offers to hide, one group per object.
+# The integration still shows everything; hiding is the viewer's, in the card.
+# (key, label, order). Keys are permanent: a viewer's browser stores them.
+GROUPS = {
+    "cargo": ("Cargo", 1),
+    "tanker": ("Tanker", 2),
+    "passenger": ("Passenger and ferry", 3),
+    "fishing": ("Fishing", 4),
+    "pleasure": ("Pleasure and sailing", 5),
+    "service": ("Tug, pilot and port service", 6),
+    "government": ("Government, SAR and law enforcement", 7),
+    "other": ("High speed and other", 8),
+    "type_unknown": ("Type not sent", 9),
+    "fishing_gear": ("Fishing-gear buoys", 10),
+    "aton": ("Aids to navigation", 11),
+    "base_station": ("Base stations", 12),
+    "sar_aircraft": ("SAR aircraft", 13),
+}
+_KIND_GROUP = {"net_buoy": "fishing_gear", "aton": "aton",
+               "base_station": "base_station", "sar_aircraft": "sar_aircraft"}
+_CODE_GROUP = {
+    # fishing
+    30: "fishing", 38: "fishing", 12: "fishing", 13: "fishing",
+    # pleasure
+    36: "pleasure", 37: "pleasure",
+    # tugs, pilots, port and offshore service: working craft
+    31: "service", 32: "service", 33: "service", 34: "service", 50: "service",
+    52: "service", 53: "service", 54: "service", 5: "service", 6: "service",
+    7: "service", 14: "service", 17: "service", 18: "service", 19: "service",
+    # government, search and rescue, law enforcement
+    3: "government", 4: "government", 35: "government", 39: "government",
+    51: "government", 55: "government", 58: "government", 59: "government",
+}
+_DECADE_GROUP = {6: "passenger", 7: "cargo", 8: "tanker", 2: "other", 4: "other", 9: "other"}
+
+
+def group_for(kind, code):
+    """The marker group key for an object, or None.
+
+    ⚠ A DISTRESS BEACON (AIS-SART, MOB, EPIRB) HAS NO GROUP, deliberately: no
+    viewer can hide one by hiding a class. Every vessel has a group; one whose
+    type is 0, reserved or not sent is "type_unknown"."""
+    if kind == "distress_beacon":
+        return None
+    if kind != "vessel":
+        return _KIND_GROUP.get(kind)
+    try:
+        value = int(code)
+    except (TypeError, ValueError):
+        return "type_unknown"
+    if value in _CODE_GROUP:
+        return _CODE_GROUP[value]
+    group = _DECADE_GROUP.get(value // 10) if 0 <= value <= 99 else None
+    if group:
+        return group
+    # 1 research, 2 training, 9 special purpose, 11 FPSO, 56/57 local vessel:
+    # labelled types that fit no class above.
+    return "other" if label_for(value) else "type_unknown"

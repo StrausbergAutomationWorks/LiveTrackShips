@@ -56,6 +56,7 @@ from .const_flow import DOMAIN
 from .geo import hold_rank
 from .quota import allocate
 from .ship_types import label_for as ship_type_label
+from .ship_types import GROUPS as SHIP_GROUPS, group_for as ship_group_for
 from .sources.base import (Observation, map_layer, object_ids, sar_airframe,
                            valid_imo)
 from .web import picture_url
@@ -445,6 +446,15 @@ class ShipEvent(GeolocationEvent):
             if kind in _FIXED_KINDS:
                 for key in _MOTION:
                     attrs.pop(key, None)
+
+        # 06_MAP_CONTRACT.md D4f (backlog 345): the group the map's filter card
+        # offers to hide. Never on a distress beacon (ship_types.group_for).
+        group = ship_group_for(kind, o.ship_type)
+        if group is not None:
+            label, order = SHIP_GROUPS[group]
+            attrs["marker_group"] = group
+            attrs["marker_group_label"] = label
+            attrs["marker_group_order"] = order
 
         # ⚠ max_extrapolation_s is DELIBERATELY ABSENT for ships. No field, no
         # motion. Vessels have course and speed on 76% of messages and still
