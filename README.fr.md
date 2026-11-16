@@ -83,6 +83,26 @@ repère ; la zone est alors renommée et rechargée. Toutes les zones ensemble
 affichent au plus 2 500 navires ; un curseur dans les réglages ne peut que
 baisser cette limite. Utilisez-le sur une machine lente.
 
+## Événements : un navire entre dans votre zone ou en sort
+
+Chaque zone déclenche deux événements Home Assistant : `live_track_ships_entry` quand un navire entre
+dans le cercle, et `live_track_ships_exit` quand il en sort. L'intégration annonce tous les
+navires ; votre automatisation choisit ceux qui comptent pour vous, par nom,
+type, longueur ou vitesse. Les champs portent les mêmes noms et unités que les
+attributs du navire ; la liste et un exemple figurent dans le
+[README anglais](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- Une arrivée n'est annoncée que si le navire a d'abord été entendu hors du
+  cercle, dans l'anneau qui l'entoure. Un navire entendu d'abord à
+  l'intérieur était peut-être là depuis le début ; un navire que les
+  récepteurs n'ont pas entendu en entrant n'est donc pas annoncé.
+- Une sortie entendue hors du cercle est toujours annoncée. Un navire qui se
+  tait n'est annoncé comme sorti que si son arrivée l'a été.
+- Une sortie n'est annoncée qu'au bout de 2 minutes ; un navire qui revient
+  avant n'est pas annoncé comme sorti puis rentré.
+- À l'arrivée, le nom, le type et la taille peuvent manquer : ils sont émis
+  moins souvent que la position.
+
 ## Les navires qui méritent leur propre image
 
 La plupart des navires sont dessinés selon leur type. Certains ont leur propre

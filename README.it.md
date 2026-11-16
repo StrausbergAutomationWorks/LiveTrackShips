@@ -83,6 +83,25 @@ segnaposto; l'area viene rinominata e ricaricata. Tutte le aree insieme
 mostrano al massimo 2.500 navi; un cursore nelle impostazioni può solo
 abbassare questo limite. Usalo su una macchina lenta.
 
+## Eventi: una nave entra nella tua area o ne esce
+
+Ogni area genera due eventi di Home Assistant: `live_track_ships_entry` quando una nave entra nel
+cerchio e `live_track_ships_exit` quando ne esce. L'integrazione segnala ogni nave; la tua
+automazione sceglie quelle che ti interessano, per nome, tipo, lunghezza o
+velocità. I campi hanno gli stessi nomi e le stesse unità degli attributi della
+nave; l'elenco e un esempio sono nel [README in inglese](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- Un arrivo viene segnalato solo se la nave è stata sentita prima fuori dal
+  cerchio, nell'anello che lo circonda. Una nave sentita per la prima volta
+  dentro potrebbe essere stata lì da sempre; per questo una nave che i
+  ricevitori non hanno sentito entrare non viene segnalata.
+- Un'uscita sentita fuori dal cerchio viene sempre segnalata. Una nave che
+  tace viene segnalata come uscita solo se il suo arrivo era stato segnalato.
+- L'uscita viene segnalata dopo 2 minuti; una nave che rientra prima non viene
+  segnalata come uscita e rientrata.
+- All'arrivo possono mancare nome, tipo e dimensioni, perché vengono trasmessi
+  meno spesso della posizione.
+
 ## Navi che meritano un'immagine tutta loro
 
 La maggior parte delle navi è disegnata secondo il tipo. Alcune hanno

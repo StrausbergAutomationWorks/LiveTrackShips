@@ -71,6 +71,11 @@ DEFAULT_PRUNE_INTERVAL_S = 300
 # Backlog 342: departures held for the events layer. It drains them every
 # pass; the cap only matters if nothing is listening.
 GONE_CAP = 10000
+# How recently a vessel must have been heard outside for its first fix inside
+# to count as an arrival: the moving retention window. And a bound on how many
+# "heard outside" times are held between prune passes.
+ARRIVAL_EVIDENCE_S = 1800
+OUTSIDE_CAP = 50000
 
 
 class VesselStore:
@@ -96,6 +101,10 @@ class VesselStore:
         # and when each was heard outside, so a late relay cannot revive it.
         self._gone: dict[str, tuple] = {}
         self._left_at: dict[str, _dt.datetime] = {}
+        # When each vessel was last heard outside the circle, and who came in
+        # from outside since events.AreaEvents last asked.
+        self._outside: dict[str, _dt.datetime] = {}
+        self._arrivals: set[str] = set()
 
     @staticmethod
     def is_berthed(obs) -> bool:
@@ -130,6 +139,7 @@ class VesselStore:
             return False
         if not within_radius(self._lat, self._lon, self._radius,
                              obs.latitude, obs.longitude):
+            self._heard_outside(obs)
             return self._left(obs)
         track = self._tracks.get(obs.identity)
         if track is None:
@@ -139,7 +149,33 @@ class VesselStore:
             if left_at is not None and obs.observed_at <= left_at:
                 return False
             track = self._tracks[obs.identity] = Track(obs.identity)
+            # ⚠ AN ARRIVAL NEEDS EVIDENCE (backlog 342, measured 2026-11-15):
+            # a vessel first heard INSIDE is not an arrival. After a restart
+            # aisstream kept delivering first fixes of vessels anchored 17-48
+            # km inside the Singapore circle well past ten minutes (40 of 40
+            # "entries" in the first two minutes after a 600 s warm-up were
+            # deep inside, most at anchor). Only a vessel heard OUTSIDE (in
+            # the listening ring) shortly before is taken as having come in.
+            out_at = self._outside.get(obs.identity)
+            if (out_at is not None
+                    and 0 <= (obs.observed_at - out_at).total_seconds()
+                    <= ARRIVAL_EVIDENCE_S):
+                self._arrivals.add(obs.identity)
         return track.add(obs)
+
+    def _heard_outside(self, obs: Observation) -> None:
+        """Remember when each vessel was last heard outside the circle."""
+        was = self._outside.get(obs.identity)
+        if was is None or obs.observed_at > was:
+            if was is None and len(self._outside) >= OUTSIDE_CAP:
+                self._outside.clear()          # pruned long before, normally
+            self._outside[obs.identity] = obs.observed_at
+
+    def take_arrivals(self) -> set:
+        """Vessels that came in from outside since the last call (heard in
+        the listening ring, then inside). Read by events.AreaEvents."""
+        arrivals, self._arrivals = self._arrivals, set()
+        return arrivals
 
     def _left(self, obs: Observation) -> bool:
         """A vessel we track, HEARD outside the circle: it has left (backlog
@@ -197,6 +233,9 @@ class VesselStore:
         for k in [k for k, at in self._left_at.items()
                   if (now - at).total_seconds() > horizon]:
             del self._left_at[k]
+        for k in [k for k, at in self._outside.items()
+                  if (now - at).total_seconds() > ARRIVAL_EVIDENCE_S]:
+            del self._outside[k]
         return len(dead)
 
     # -- publish -----------------------------------------------------------

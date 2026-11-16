@@ -82,6 +82,25 @@ zona cambia de nombre y se recarga. Todas las zonas juntas muestran como
 máximo 2.500 buques; un control deslizante en los ajustes solo puede bajar ese
 límite. Úsalo en un equipo más lento.
 
+## Eventos: un buque entra en tu zona o sale de ella
+
+Cada zona lanza dos eventos de Home Assistant: `live_track_ships_entry` cuando un buque entra en el
+círculo y `live_track_ships_exit` cuando sale. La integración avisa de todos los buques; tu
+automatización elige los que te importan, por nombre, tipo, eslora o velocidad.
+Los campos tienen los mismos nombres y unidades que los atributos del buque; la
+lista y un ejemplo están en el [README en inglés](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- Una llegada solo se anuncia si el buque se oyó primero fuera del círculo,
+  en el anillo que lo rodea. Un buque que se oye primero dentro puede haber
+  estado allí todo el tiempo; por eso no se anuncia un buque que los
+  receptores no oyeron al entrar.
+- Una salida que se oye fuera del círculo se anuncia siempre. Un buque que
+  deja de emitir solo se anuncia como salido si se anunció su llegada.
+- Una salida se anuncia a los 2 minutos; si el buque vuelve antes, no se
+  anuncia como salido y vuelto a entrar.
+- Al llegar pueden faltar el nombre, el tipo y el tamaño, porque se emiten con
+  menos frecuencia que la posición.
+
 ## Buques que merecen su propia imagen
 
 La mayoría de los buques se dibujan según su tipo. Algunos tienen su propia

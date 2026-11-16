@@ -9,7 +9,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "custom_com
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from live_track_ships.events import (                       # noqa: E402
-    AreaEvents, EVENT_ENTRY, EVENT_EXIT, EXIT_GRACE_S, WARMUP_S, bearing_deg)
+    AreaEvents, EVENT_ENTRY, EVENT_EXIT, EXIT_GRACE_S, bearing_deg)
 from live_track_ships.geo import (                          # noqa: E402
     RadiusError, bounding_boxes, listen_margin_km)
 from live_track_ships.store import VesselStore              # noqa: E402
@@ -89,19 +89,25 @@ except RadiusError:
 check("bearing east", round(bearing_deg(0, 0, 0, 1)), 90)
 check("bearing north", bearing_deg(0, 0, 1, 0), 0.0)
 
-print("\n=== warm-up: what is already there is announced to nobody ===")
-store, ev, fired, clock, timers = make()
-store.add(obs("367000001", 0.1, name="MOORED ONE", nav_status=5))
-ev.run()
-check("no entry during warm-up", fired, [])
-check("but it is counted inside", "367000001" in ev._inside)
-clock.t += WARMUP_S + 1
-store.add(obs("367000001", 0.1, 30, name="MOORED ONE", nav_status=5))
-ev.run()
-check("still no entry for it after warm-up", fired, [])
+# 50 km circle: 0.449 deg of latitude. 0.47 is in the ring (52 km), 0.2 inside (22 km).
+RING, IN = 0.47, 0.2
 
-print("\n=== a newcomer after warm-up: one entry, with the vessel's details ===")
-store.add(obs("367000002", 0.2, 40, name=" FINNBREEZE  ", ship_type=70,
+print("\n=== first heard INSIDE: no entry, ever (measured: Singapore, 2026-11-15) ===")
+store, ev, fired, clock, timers = make()
+store.add(obs("367000001", 0.1, name="ANCHORED ONE", nav_status=1))
+ev.run()
+check("no entry", fired, [])
+check("but it is counted inside", "367000001" in ev._inside)
+store.add(obs("367000001", 0.1, 900, name="ANCHORED ONE", nav_status=1))
+ev.run()
+check("still no entry on a later fix", fired, [])
+
+print("\n=== heard in the ring, then inside: one entry, with the details ===")
+store.add(obs("367000002", RING, 10, name=" FINNBREEZE  ", ship_type=70))
+ev.run()
+check("the ring alone is no entry", fired, [])
+check("and not in the store", "367000002" in store.present(), False)
+store.add(obs("367000002", IN, 40, name=" FINNBREEZE  ", ship_type=70,
               length_m=217.0, speed_kmh=30.0, course_deg=180.0, imo=9543756))
 ev.run()
 check("one event", len(fired), 1)
@@ -124,19 +130,25 @@ store.add(obs("367000002", 0.19, 50, name="FINNBREEZE"))
 ev.run()
 check("a second fix inside is not a second entry", len(fired), 1)
 
-print("\n=== heard OUTSIDE: it leaves the store at once, exits after the grace ===")
+print("\n=== evidence goes stale: heard outside 31 minutes before is no arrival ===")
+store.add(obs("367000009", RING, 0))
+store.add(obs("367000009", IN, 1860))
+ev.run()
+check("no entry", len(fired), 1)
+
+print("\n=== heard OUTSIDE again: it leaves the store at once, exits after the grace ===")
 check("an older fix outside does nothing",
-      store.add(obs("367000002", 0.47, 45)), False)
+      store.add(obs("367000002", RING, 45)), False)
 check("still in the store", "367000002" in store.present())
 check("a newer fix outside removes it",
-      store.add(obs("367000002", 0.47, 60, speed_kmh=28.0, course_deg=0.0)), True)
+      store.add(obs("367000002", RING, 60, speed_kmh=28.0, course_deg=0.0)), True)
 check("gone from the store", "367000002" in store.present(), False)
 ev.run()
 check("no exit yet: the grace", len(fired), 1)
 check("a timer waits for the grace", len(timers.live), 1)
 check("timer delay covers the grace", timers.live[0].delay >= EXIT_GRACE_S)
 check("a late relay from inside cannot revive it",
-      store.add(obs("367000002", 0.2, 55)), False)
+      store.add(obs("367000002", IN, 55)), False)
 clock.t += EXIT_GRACE_S + 1
 timers.live.pop(0).cb()       # the loop drops a handle once it has run
 check("now the exit", fired[-1][0], EVENT_EXIT)
@@ -148,12 +160,24 @@ check("motion is the fix outside", d["speed_kmh"], 28.0)
 check("details from inside survive", d["name"], "FINNBREEZE")
 check("no entity_id on an exit", "entity_id" in d, False)
 
+print("\n=== a vessel there since before: no entry, but its departure IS announced ===")
+n = len(fired)
+store.add(obs("367000001", RING, 1000, name="ANCHORED ONE", speed_kmh=20.0))
+ev.run()
+clock.t += EXIT_GRACE_S + 1
+ev.run()
+check("one more event", len(fired), n + 1)
+check("the exit, reason left", (fired[-1][0], fired[-1][1]["reason"]),
+      (EVENT_EXIT, "left"))
+check("its name", fired[-1][1]["name"], "ANCHORED ONE")
+
 print("\n=== back inside within the grace: nothing announced ===")
+store.add(obs("367000003", RING, 60, name="EDGE RUNNER"))
 store.add(obs("367000003", 0.3, 70, name="EDGE RUNNER"))
 ev.run()
 n = len(fired)
 check("entry for the edge runner", fired[-1][1]["name"], "EDGE RUNNER")
-store.add(obs("367000003", 0.47, 80))
+store.add(obs("367000003", RING, 80))
 ev.run()
 clock.t += 30
 store.add(obs("367000003", 0.44, 90))
@@ -163,23 +187,25 @@ ev.run()
 check("no exit, no second entry", len(fired), n)
 check("no timer left", len(timers.live), 0)
 
-print("\n=== silent: pruned by the retention window ===")
+print("\n=== silent: announced only for a vessel whose entry was ===")
 store2, ev2, fired2, clock2, timers2 = make()
-clock2.t += WARMUP_S + 1
+store2.add(obs("367000004", RING, -4100, name="QUIET"))
 store2.add(obs("367000004", 0.1, -4000, name="QUIET"))
+store2.add(obs("367000010", 0.1, -4000, name="ALWAYS HERE"))
 ev2.run()
-check("entry", fired2[-1][0], EVENT_ENTRY)
+check("one entry, for the arrival", [d["name"] for _t, d in fired2], ["QUIET"])
 store2.prune(T0)
 ev2.run()
 clock2.t += EXIT_GRACE_S + 1
 ev2.run()
-check("exit", fired2[-1][0], EVENT_EXIT)
+check("one exit", [(t, d["name"]) for t, d in fired2[1:]], [(EVENT_EXIT, "QUIET")])
 check("reason silent", fired2[-1][1]["reason"], "silent")
 check("its last position inside", round(fired2[-1][1]["distance_km"]), 11)
 
 print("\n=== the cap and the quota never make a vessel enter or leave ===")
 store3, ev3, fired3, clock3, _t3 = make(cap=1)
-clock3.t += WARMUP_S + 1
+store3.add(obs("367000005", RING, -10))
+store3.add(obs("367000006", RING, -10))
 store3.add(obs("367000005", 0.1, 0))
 store3.add(obs("367000006", 0.2, 0))
 check("the cap shows one", len(store3.published()), 1)
@@ -189,14 +215,14 @@ check("both entered", sorted(d["identity"] for _t, d in fired3),
 
 print("\n=== entity_id while drawn ===")
 store4, ev4, fired4, clock4, _t4 = make(drawn=lambda i: i == "367000007")
-clock4.t += WARMUP_S + 1
+store4.add(obs("367000007", RING, -10))
 store4.add(obs("367000007", 0.1, 0))
 ev4.run()
 check("entity_id", fired4[-1][1]["entity_id"], "geo_location.vessel_367000007")
 
 print("\n=== not a vessel: no vessel fields ===")
 store5, ev5, fired5, clock5, _t5 = make()
-clock5.t += WARMUP_S + 1
+store5.add(obs("993661234", RING, -10))
 aton = obs("993661234", 0.1, 0, ship_type=70, length_m=5.0, speed_kmh=0.0)
 check("the kind is aton", aton.kind, "aton")
 store5.add(aton)
@@ -211,11 +237,17 @@ print("\n=== close cancels the timer ===")
 store6, ev6, _f6, clock6, timers6 = make()
 store6.add(obs("367000008", 0.1, 0))
 ev6.run()
-store6.add(obs("367000008", 0.47, 10))
+store6.add(obs("367000008", RING, 10))
 ev6.run()
 check("a timer", len(timers6.live), 1)
 ev6.close()
 check("cancelled", len(timers6.live), 0)
+
+print("\n=== the store forgets old outside sightings ===")
+store7 = VesselStore(LAT, LON, 50, 100)
+store7.add(obs("367000011", RING, -2000))
+store7.prune(T0)
+check("forgotten after the evidence window", "367000011" in store7._outside, False)
 
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

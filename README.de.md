@@ -86,6 +86,28 @@ geladen. Alle Gebiete zusammen zeigen höchstens 2.500 Schiffe; ein Schieberegle
 in den Einstellungen kann diese Grenze nur senken. Auf langsamer Hardware
 verwenden.
 
+## Ereignisse: Ein Schiff kommt in Ihr Gebiet oder verlässt es
+
+Jedes Gebiet löst zwei Ereignisse in Home Assistant aus: `live_track_ships_entry`, wenn ein Schiff
+in den Kreis kommt, und `live_track_ships_exit`, wenn es ihn verlässt. Die Integration meldet jedes
+Schiff; Ihre Automatisierung wählt die aus, auf die es Ihnen ankommt, etwa nach
+Name, Typ, Länge oder Geschwindigkeit. Die Felder tragen dieselben Namen und
+Einheiten wie die Attribute des Schiffs; die Liste und ein Beispiel stehen im
+[englischen README](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- Eine Ankunft wird nur gemeldet, wenn das Schiff zuerst außerhalb des
+  Kreises gehört wurde, im Ring um ihn. Ein Schiff, das zuerst innerhalb
+  gehört wird, kann die ganze Zeit dort gelegen haben; ein Schiff, das die
+  Empfänger auf dem Weg hinein nicht gehört haben, wird deshalb nicht
+  gemeldet.
+- Ein Verlassen, das außerhalb des Kreises gehört wird, wird immer gemeldet.
+  Ein Schiff, das verstummt, gilt nur dann als abgefahren, wenn seine Ankunft
+  gemeldet wurde.
+- Das Verlassen wird erst nach 2 Minuten gemeldet; ein Schiff, das vorher
+  zurückkommt, gilt nicht als ab- und wieder angekommen.
+- Bei der Ankunft können Name, Typ und Größe fehlen, weil sie seltener
+  gesendet werden als die Position.
+
 ## Schiffe, die ein eigenes Bild verdienen
 
 Die meisten Schiffe werden nach ihrem Typ gezeichnet. Manche haben ein eigenes

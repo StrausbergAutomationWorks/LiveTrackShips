@@ -83,6 +83,25 @@ området får så nyt navn og genindlæses. Alle områder tilsammen viser højst
 2.500 skibe; en skyder i indstillingerne kan kun sænke den grænse. Brug den på
 en langsom maskine.
 
+## Hændelser: et skib kommer ind i dit område eller forlader det
+
+Hvert område sender to hændelser i Home Assistant: `live_track_ships_entry`, når et skib kommer ind
+i cirklen, og `live_track_ships_exit`, når det forlader den. Integrationen melder alle skibe; din
+automatisering vælger dem, der betyder noget for dig, for eksempel efter navn,
+type, længde eller fart. Felterne har samme navne og enheder som skibets
+attributter; listen og et eksempel står i den [engelske README](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- En ankomst meldes kun, hvis skibet først er hørt uden for cirklen, i ringen
+  omkring den. Et skib, der først høres inde i cirklen, kan have ligget der
+  hele tiden; et skib, som modtagerne ikke hørte på vej ind, meldes derfor
+  ikke.
+- En afgang, der høres uden for cirklen, meldes altid. Et skib, der tier,
+  meldes kun ude, hvis dets ankomst blev meldt.
+- Et skib meldes først ude efter 2 minutter; vender det tilbage inden da,
+  meldes det ikke ud og ind igen.
+- Ved ankomsten kan navn, type og størrelse mangle, fordi de sendes sjældnere
+  end positionen.
+
 ## Skibe, der fortjener deres eget billede
 
 De fleste skibe tegnes efter deres type. Nogle har deres eget billede:

@@ -86,6 +86,27 @@ geladen. Alle gebieden samen tonen hoogstens 2.500 schepen; een schuifregelaar
 in de instellingen kan dat plafond alleen verlagen. Gebruik die op tragere
 hardware.
 
+## Gebeurtenissen: een schip komt je gebied in of gaat eruit
+
+Elk gebied vuurt twee gebeurtenissen af in Home Assistant: `live_track_ships_entry` wanneer een schip
+de cirkel in komt, en `live_track_ships_exit` wanneer het eruit gaat. De integratie meldt elk
+schip; jouw automatisering kiest de schepen die voor jou tellen, bijvoorbeeld
+op naam, type, lengte of snelheid. De velden hebben dezelfde namen en eenheden
+als de attributen van het schip; de lijst en een voorbeeld staan in de
+[Engelse README](README.md#events-a-ship-comes-into-your-area-or-leaves-it).
+
+- Een aankomst wordt alleen gemeld als het schip eerst buiten de cirkel is
+  gehoord, in de ring eromheen. Een schip dat eerst binnen wordt gehoord, kan
+  er al die tijd hebben gelegen; een schip dat de ontvangers op weg naar
+  binnen niet hoorden, wordt daarom niet gemeld.
+- Vertrek dat buiten de cirkel wordt gehoord, wordt altijd gemeld. Een schip
+  dat stil valt, wordt alleen als vertrokken gemeld als zijn aankomst gemeld
+  is.
+- Vertrek wordt pas na 2 minuten gemeld; een schip dat eerder terugkomt, wordt
+  niet gemeld als vertrokken en weer aangekomen.
+- Bij aankomst kunnen naam, type en afmetingen ontbreken, omdat die minder vaak
+  worden uitgezonden dan de positie.
+
 ## Schepen die een eigen afbeelding verdienen
 
 De meeste schepen worden getekend naar hun type. Sommige hebben een eigen

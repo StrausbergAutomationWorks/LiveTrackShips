@@ -225,12 +225,16 @@ attributes, and leaves out whatever the source did not send:
 | `entity_id` | entry only: `geo_location.vessel_<MMSI>`, when the vessel is on the map |
 | `reason` | exit only: `left` (heard outside the circle) or `silent` (not heard for the retention window, so it may still be there) |
 
-Three things to know:
+Four things to know:
 
-- **After a restart or a change to an area's settings, the first 10 minutes
-  are quiet.** The integration hears the vessels already there over several
-  minutes, and a restart must not send one notification for every moored
-  boat. A vessel that really arrives in those 10 minutes is not announced.
+- **An arrival is announced only if the vessel was heard outside the circle
+  first**, in the ring around it. A vessel first heard inside may have been
+  there all along: after a restart the receivers keep delivering vessels that
+  never moved for many minutes. So a vessel the receivers missed on its way
+  in, or one that switches its transponder on inside, is not announced.
+- **A departure heard outside is always announced**, even for a vessel that
+  was there before Home Assistant started. A vessel that goes silent is
+  announced as leaving (`reason: silent`) only if its arrival was.
 - **An exit waits 2 minutes.** A vessel that comes back inside sooner, along
   the edge of the circle, is not announced as leaving and arriving again.
 - **Details may be missing on arrival.** Name, type and size travel in a

@@ -12,19 +12,29 @@ vessel enter or leave. Two areas over the same water each fire their own.
 
 Three rules, each against a measured nuisance:
 
-  1. WARM-UP. A restart or reload starts with an empty store and hears the
-     vessels already there over several minutes (a moored vessel reports
-     every 3 min, p95 539 s, measured 2026-09-08, store.py). For WARMUP_S
-     after the area starts, a first sighting is taken as already inside and
-     announced to nobody. A vessel that really arrives in that window is
-     missed: a restart must not send one notification per moored boat.
+  1. AN ENTRY NEEDS EVIDENCE. Only a vessel HEARD OUTSIDE the circle (in the
+     listening ring, geo.listen_margin_km) and then inside is announced
+     (store.take_arrivals). A vessel first heard inside is not: it may have
+     been there all along.
+     ⚠ RECORDED WRONG TURN: the first version (deployed `e5e7e68`, 21:16
+     CST) announced any first sighting after a 600 s warm-up. Measured on
+     the box at 21:27-21:29: 45 entries in two minutes, 40 in the Singapore
+     area, of which 39 were 17-48 km inside a 500 km circle and most at
+     anchor (nav 1): aisstream was still delivering first fixes of vessels
+     that had been there all along, ten minutes after the restart. No
+     warm-up length fixes that; evidence does. The price: a vessel the
+     receivers did not hear on its way in, or one that switches its
+     transponder on inside, is never announced.
   2. EXIT GRACE. An exit is announced only after the vessel has stayed out
      EXIT_GRACE_S. Back inside sooner (a vessel along the edge, a bad fix)
      and nothing is announced: one entry, one exit.
-  3. TWO KINDS OF EXIT. `reason: left` when the vessel was HEARD outside
-     (the listening ring, geo.listen_margin_km); `reason: silent` when it
-     was not heard for the retention window (30 min, or 6 h moored). A
-     silent vessel may still be there: no message is not no vessel.
+  3. TWO KINDS OF EXIT. `reason: left` when the vessel was HEARD outside:
+     always announced, whether or not its entry was (a ship moored inside
+     since before the restart still departs). `reason: silent` when it was
+     not heard for the retention window (30 min, or 6 h moored): announced
+     only for a vessel whose entry was, because a silent vessel may still
+     be there, and a large area loses and regains vessels at the edge of
+     coverage all day.
 """
 
 from __future__ import annotations
@@ -43,7 +53,6 @@ _LOGGER = logging.getLogger(__name__)
 EVENT_ENTRY = f"{DOMAIN}_entry"
 EVENT_EXIT = f"{DOMAIN}_exit"
 
-WARMUP_S = 600
 EXIT_GRACE_S = 120
 
 # Omitted for anything that is not a vessel (sources/base.py object_kind).
@@ -81,28 +90,26 @@ class AreaEvents:
         self._call_later = call_later
         self._clock = clock
         self._drawn = drawn or (lambda _identity: False)
-        self._started = clock()
         # identity -> newest fix while inside (or within its exit grace)
         self._inside: dict = {}
+        # whose entry was announced: only they get a silent exit (rule 3)
+        self._announced: set = set()
         # identity -> (deadline, reason, last fix inside, fix outside or None)
         self._leaving: dict = {}
         self._timer = None
         self.fired = {EVENT_ENTRY: 0, EVENT_EXIT: 0}   # for tests and logs
 
-    @property
-    def warming(self) -> bool:
-        return self._clock() - self._started < WARMUP_S
-
     def run(self) -> None:
         """One pass: called after every store change (the feed's coalesced
         listener) and when an exit grace runs out."""
         now = self._clock()
-        warming = now - self._started < WARMUP_S
         present = self._store.present()
         gone = self._store.take_gone()
+        arrivals = self._store.take_arrivals()
         for identity, obs in present.items():
             self._leaving.pop(identity, None)          # back inside: no exit
-            if identity not in self._inside and not warming:
+            if identity not in self._inside and identity in arrivals:
+                self._announced.add(identity)
                 self._announce(EVENT_ENTRY, obs)
             self._inside[identity] = obs
         for identity in [k for k in self._inside
@@ -115,7 +122,10 @@ class AreaEvents:
             if due <= now:
                 del self._leaving[identity]
                 self._inside.pop(identity, None)
-                self._announce(EVENT_EXIT, last, outside, reason)
+                announced = identity in self._announced
+                self._announced.discard(identity)
+                if reason == "left" or announced:
+                    self._announce(EVENT_EXIT, last, outside, reason)
         self._schedule(now)
 
     def _schedule(self, now) -> None:
