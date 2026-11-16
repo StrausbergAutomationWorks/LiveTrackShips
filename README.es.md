@@ -417,6 +417,19 @@ Un buque de la lista pública
 colores de los guardacostas y el nombre y la agencia de la lista, esté donde
 esté.
 
+### Ocultar tipos de buque
+
+Cada buque lleva `marker_group`, `marker_group_label` y `marker_group_order`:
+uno de trece grupos (carga; petrolero; pasaje y ferris; pesca; recreo y vela;
+remolcadores, prácticos y servicio portuario; Estado, SAR y policía; alta
+velocidad y otros; tipo no enviado; boyas de artes de pesca; ayudas a la
+navegación; estaciones base; aeronaves SAR). La tarjeta de filtro del mapa,
+`custom:live-track-map-filter-card`, los enumera con cuántos hay de cada uno en
+el mapa y oculta los que desmarques; ponla en cualquier vista del panel. Tu
+elección se guarda solo en ese navegador. La integración sigue mostrándolo
+todo: su sensor cuenta todos los buques y sus eventos se disparan para todos.
+Una radiobaliza de socorro no tiene grupo, así que nunca se oculta.
+
 ## Dónde mira
 
 Pones un **centro y un radio** en el mapa. El centro puede estar en cualquier

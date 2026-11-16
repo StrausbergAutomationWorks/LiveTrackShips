@@ -426,6 +426,20 @@ Un navire de la liste publique
 (navires des garde-côtes employés pour l'immigration) est dessiné aux couleurs
 des garde-côtes avec le nom et l'agence de la liste, où qu'il soit.
 
+### Masquer des types de navires
+
+Chaque navire porte `marker_group`, `marker_group_label` et `marker_group_order` :
+l'un de treize groupes (cargo ; pétrolier ; passagers et ferries ; pêche ;
+plaisance et voile ; remorqueurs, pilotes et service portuaire ; État, SAR et
+police ; grande vitesse et autres ; type non transmis ; bouées d'engins de
+pêche ; aides à la navigation ; stations de base ; aéronefs SAR). La carte de
+filtre de la carte, `custom:live-track-map-filter-card`, les liste avec leur
+nombre sur la carte et masque ceux que vous décochez ; placez-la sur n'importe
+quelle vue du tableau de bord. Votre choix n'est gardé que dans ce navigateur.
+L'intégration montre toujours tout : son capteur compte chaque navire et ses
+événements se déclenchent pour chaque navire. Une balise de détresse n'a pas de
+groupe : elle n'est jamais masquée.
+
 ## Où elle cherche
 
 Vous placez un **centre et un rayon** sur la carte. Le centre peut être

@@ -411,6 +411,20 @@ Et skib på den offentlige liste
 (kystvagtskibe, der bruges i immigrationsarbejde) tegnes i kystvagtens farver
 med listens navn og myndighed, hvor end det er.
 
+### Skjul skibstyper
+
+Hvert skib har `marker_group`, `marker_group_label` og `marker_group_order`:
+en af tretten grupper (fragt; tankskib; passagerer og færger; fiskeri;
+lystsejlads og sejlbåde; slæbebåde, lodser og havnetjeneste; myndigheder, SAR
+og politi; hurtigfærger og andet; type ikke sendt; bøjer på fiskeredskaber;
+navigationshjælpemidler; basestationer; SAR-fly). Kortkortets filterkort,
+`custom:live-track-map-filter-card`, viser dem med hvor mange af hver der er
+på kortet og skjuler dem, du fjerner fluebenet fra; sæt det på en hvilken som
+helst visning af dashboardet. Dit valg gemmes kun i den browser.
+Integrationen viser stadig alt: dens sensor tæller hvert skib, og dens
+hændelser udløses for hvert skib. En nødradiobøje har ingen gruppe, så den
+skjules aldrig.
+
 ## Hvor den kigger
 
 Du sætter et **midtpunkt og en radius** på kortet. Midtpunktet kan ligge hvor

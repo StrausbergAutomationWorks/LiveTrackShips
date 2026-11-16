@@ -422,6 +422,20 @@ Een schip op de openbare lijst
 kleuren van de kustwacht, met de naam en de dienst van de lijst, waar het ook
 is.
 
+### Scheepstypen verbergen
+
+Elk schip draagt `marker_group`, `marker_group_label` en `marker_group_order`:
+een van dertien groepen (vracht; tanker; passagiers en veerboten; visserij;
+plezier en zeilen; sleepboten, loodsen en havendienst; overheid, SAR en
+politie; snelle schepen en overige; type niet verzonden; boeien van
+vistuig; navigatiehulpmiddelen; basisstations; SAR-vliegtuigen). De
+filterkaart van de kaartkaart, `custom:live-track-map-filter-card`, toont ze
+met hoeveel er van elk op de kaart staan en verbergt wat je uitvinkt; zet hem
+op een willekeurige weergave van het dashboard. Je keuze wordt alleen in die
+browser bewaard. De integratie toont nog steeds alles: haar sensor telt elk
+schip en haar gebeurtenissen gaan voor elk schip af. Een noodbaken heeft geen
+groep en wordt dus nooit verborgen.
+
 ## Waar hij kijkt
 
 Je zet een **middelpunt en een straal** op de kaart. Het middelpunt kan

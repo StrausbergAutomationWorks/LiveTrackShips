@@ -399,6 +399,18 @@ A vessel on the public [EnforcementVessels](https://github.com/StrausbergAutomat
 list (Coast Guard vessels used in immigration work) is drawn in the Coast
 Guard's colours with the list's name and agency, wherever it is.
 
+### Hiding vessel types
+
+Every vessel carries `marker_group`, `marker_group_label` and `marker_group_order`: one of thirteen groups (cargo; tanker; passenger
+and ferry; fishing; pleasure and sailing; tug, pilot and port service;
+government, SAR and law enforcement; high speed and other; type not sent;
+fishing-gear buoys; aids to navigation; base stations; SAR aircraft). The map
+card's filter card, `custom:live-track-map-filter-card`, lists them with how
+many of each are on the map, and hides the ones you untick; put it on any view
+of the dashboard. Your choice is kept in that browser only. The integration
+still shows everything: its sensor counts every vessel and its events fire for
+every vessel. A distress beacon has no group, so it is never hidden.
+
 ## Where it looks
 
 You put a **centre and a radius** on the map. The centre can be anywhere in

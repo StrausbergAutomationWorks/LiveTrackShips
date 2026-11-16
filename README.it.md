@@ -417,6 +417,20 @@ Una nave dell'elenco pubblico
 disegnata con i colori della guardia costiera, con il nome e l'agenzia
 dell'elenco, ovunque si trovi.
 
+### Nascondere tipi di nave
+
+Ogni nave porta `marker_group`, `marker_group_label` e `marker_group_order`:
+uno di tredici gruppi (carico; cisterna; passeggeri e traghetti; pesca;
+diporto e vela; rimorchiatori, piloti e servizio portuale; Stato, SAR e
+polizia; alta velocità e altro; tipo non inviato; boe di attrezzi da pesca;
+aiuti alla navigazione; stazioni base; aeromobili SAR). La scheda filtro della
+mappa, `custom:live-track-map-filter-card`, li elenca con quanti ce ne sono
+sulla mappa e nasconde quelli che deselezioni; mettila in qualsiasi vista della
+dashboard. La tua scelta resta solo in quel browser. L'integrazione continua a
+mostrare tutto: il suo sensore conta ogni nave e i suoi eventi scattano per
+ogni nave. Un radiofaro di soccorso non ha gruppo, quindi non viene mai
+nascosto.
+
 ## Dove guarda
 
 Metti un **centro e un raggio** sulla mappa. Il centro può essere in qualsiasi

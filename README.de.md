@@ -433,6 +433,20 @@ Ein Schiff auf der öffentlichen Liste
 den Farben der Küstenwache mit dem Namen und der Behörde aus der Liste
 gezeichnet, wo immer es ist.
 
+### Schiffstypen ausblenden
+
+Jedes Schiff trägt `marker_group`, `marker_group_label` und `marker_group_order`:
+eine von dreizehn Gruppen (Fracht; Tanker; Passagiere und Fähren; Fischerei;
+Freizeit und Segeln; Schlepper, Lotsen und Hafendienst; Behörden, SAR und
+Polizei; Schnellboote und Sonstige; Typ nicht gesendet; Fanggeräte-Bojen;
+Navigationshilfen; Basisstationen; SAR-Flugzeuge). Die Filterkarte der
+Kartenkarte, `custom:live-track-map-filter-card`, listet sie mit der Anzahl auf
+der Karte auf und blendet die aus, deren Haken Sie entfernen; legen Sie sie auf
+eine beliebige Ansicht des Dashboards. Ihre Wahl wird nur in diesem Browser
+gespeichert. Die Integration zeigt weiterhin alles: Ihr Sensor zählt jedes
+Schiff, und ihre Ereignisse werden für jedes Schiff ausgelöst. Ein Notsender hat
+keine Gruppe und wird daher nie ausgeblendet.
+
 ## Wo gesucht wird
 
 Sie setzen einen **Mittelpunkt und einen Radius** auf die Karte. Der
