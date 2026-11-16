@@ -39,6 +39,7 @@ from . import events as _events
 from . import watch as _watch
 from .const_flow import CONF_VESSELS, KIND_WATCH, kind_of
 from . import held as _held
+from . import photos as _photos
 from .sources import statics as _statics
 from saw_livetrack import aisstream as _aisstream
 from saw_livetrack import enforcement_list as _el
@@ -421,6 +422,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.async_create_background_task(_check_list(), f"{DOMAIN}_vessel_list")
     entry.async_on_unload(async_track_time_interval(hass, _check_list, LIST_TICK))
+    # Vessel photos from Wikidata (backlog 346, photos.py): one book per instance, started by the first entry.
+    # Never blocks setup: a failure leaves the map without photos.
+    try:
+        await _photos.shared(hass)
+    except Exception:                              # noqa: BLE001
+        _LOGGER.warning("Vessel photos unavailable this run", exc_info=True)
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

@@ -49,6 +49,8 @@ from homeassistant.core import callback
 from saw_livetrack import aisstream as _aisstream
 
 from . import enforcement as _enf
+from . import photos as _photos
+from .photos import vessel_links
 from . import icons
 from . import instance_ceiling
 from .held import HELD
@@ -236,6 +238,8 @@ class ShipEvent(GeolocationEvent):
     _attr_source = DOMAIN
     _attr_unit_of_measurement = UnitOfLength.KILOMETERS
     _attr_icon = "mdi:ferry"
+    # The photo and the link out (backlog 346, D4g) are the same on every write: kept out of the recorder.
+    _unrecorded_attributes = frozenset({"marker_photo", "marker_links"})
 
     def __init__(self, obs: Observation, distance_km: float,
                  attribution: str | None = None, reader=None):
@@ -256,7 +260,32 @@ class ShipEvent(GeolocationEvent):
         # heading stays meaningful at rest and is published as it is
         # (06_MAP_CONTRACT.md D4).
         self._icon: dict = {}
+        self._photo_imo: str | None = None   # the IMO whose photo this entity waits for (backlog 346)
         self._refresh_icon()
+
+    @callback
+    def _photo_arrived(self) -> None:
+        """photos.PhotoBook found (or did not find) this vessel's photo: write it now, not at the next fix."""
+        if self.hass is not None and not self.retired:
+            self.async_write_ha_state()
+
+    def _photo_attributes(self, attrs: dict, kind: str) -> None:
+        """D4g (backlog 346): a vessel's photo from Wikidata, when it has one, and its VesselFinder link."""
+        if kind != "vessel":
+            return
+        imo = valid_imo(self._obs.imo)
+        links = vessel_links(imo, self._obs.identity)
+        if links:
+            attrs["marker_links"] = links
+        book = self.hass.data.get(_photos.STORE_KEY) if self.hass is not None else None
+        if book is None or not imo:
+            return
+        if self._photo_imo not in (None, imo):
+            book.forget_waiter(self._photo_imo, self._photo_arrived)
+        self._photo_imo = imo
+        photo = book.photo(imo, self._photo_arrived)
+        if photo:
+            attrs["marker_photo"] = photo
 
     @callback
     def _refresh_icon(self) -> None:
@@ -497,6 +526,7 @@ class ShipEvent(GeolocationEvent):
         # rule 14), as Live Track SALT publishes them; `name` becomes the list's.
         if self._listed is not None:
             attrs.update(_enf.attributes(self._listed, o.name))
+        self._photo_attributes(attrs, kind)
         return attrs
 
     @property
@@ -551,5 +581,9 @@ class ShipEvent(GeolocationEvent):
     async def async_will_remove_from_hass(self) -> None:
         """Nothing to do: with no unique_id there is no registry row to keep
         or delete. The history of why the row was once kept on departure and
-        shutdown (vessel_367152790_4) is in 06_MAP_CONTRACT.md D6a-0b."""
+        shutdown (vessel_367152790_4) is in 06_MAP_CONTRACT.md D6a-0b.
+        A photo still being looked up no longer has anyone to tell (backlog 346)."""
+        book = self.hass.data.get(_photos.STORE_KEY) if self.hass is not None else None
+        if book is not None and self._photo_imo:
+            book.forget_waiter(self._photo_imo, self._photo_arrived)
         return None
