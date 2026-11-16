@@ -86,8 +86,25 @@ def distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return EARTH_RADIUS_KM * 2 * math.asin(math.sqrt(a))
 
 
-def bounding_boxes(lat: float, lon: float, radius_km: float
-                   ) -> list[list[list[float]]]:
+# ⚠ THE LISTENING RING (backlog 342, 2026-11-15). Every source is asked for a
+# circle (or box) this much WIDER than the user's, so a vessel that leaves is
+# heard once outside and leaves at once, with an exit event, instead of
+# sitting at its last spot until the retention window (30 min, or 6 h moored)
+# runs out. The store still enforces the user's circle on everything kept.
+# Without it a vessel leaving due north, south, east or west was never heard
+# outside: the aisstream box touches the circle there, and BarentsWatch and
+# Digitraffic are asked for the circle itself. Costs about 21% more area.
+LISTEN_MARGIN_FRACTION = 0.10
+LISTEN_MARGIN_MIN_KM = 1.0
+
+
+def listen_margin_km(radius_km: float) -> float:
+    """How far beyond the user's circle the sources are asked to send."""
+    return max(LISTEN_MARGIN_FRACTION * radius_km, LISTEN_MARGIN_MIN_KM)
+
+
+def bounding_boxes(lat: float, lon: float, radius_km: float,
+                   margin_km: float = 0.0) -> list[list[list[float]]]:
     """Boxes covering the circle, ready for the BoundingBoxes payload.
 
     Returns one box normally, two when the circle crosses the antimeridian.
@@ -99,7 +116,8 @@ def bounding_boxes(lat: float, lon: float, radius_km: float
     nonsense box that silently excludes most of the requested area.
     """
     lat, lon = validate_centre(lat, lon)
-    radius_km = validate_radius(radius_km)
+    # The user's radius is validated; the listening ring is added after.
+    radius_km = validate_radius(radius_km) + max(0.0, margin_km)
 
     dlat = radius_km / KM_PER_DEGREE_LAT
     north = min(90.0, lat + dlat)

@@ -69,12 +69,12 @@ OWNERS_KEY = f"{DOMAIN}_owners"
 # entry_id -> how many vessels that entry could show, for the quota (item 253).
 DEMANDS_KEY = f"{DOMAIN}_demands"
 
-# Omitted for anything that is not a vessel (sources/base.py object_kind).
-_VESSEL_ONLY = ("ship_type", "ship_type_label", "call_sign", "destination",
-                "imo", "length_m", "beam_m", "draught_m", "nav_status")
-# Objects that do not move: no course, speed or turn, and no rotation.
-_FIXED_KINDS = frozenset(("aton", "base_station"))
-_MOTION = ("course_deg", "heading_deg", "speed_kmh", "rate_of_turn_dps")
+# Omitted for anything that is not a vessel (sources/base.py object_kind);
+# objects that do not move have no course, speed or turn, and no rotation.
+# ONE copy, in events.py, which the entry and exit events also apply.
+from .events import FIXED_KINDS as _FIXED_KINDS  # noqa: E402
+from .events import MOTION as _MOTION  # noqa: E402
+from .events import VESSEL_ONLY as _VESSEL_ONLY  # noqa: E402
 
 
 async def async_setup_entry(hass, entry, async_add_entities):

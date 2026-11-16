@@ -68,6 +68,10 @@ STATIONARY_KMH = 2 * 1.852
 # RETENTION WINDOW, never by "vessels ever seen". Live Track Ships SSOT §13.
 DEFAULT_PRUNE_INTERVAL_S = 300
 
+# Backlog 342: departures held for the events layer. It drains them every
+# pass; the cap only matters if nothing is listening.
+GONE_CAP = 10000
+
 
 class VesselStore:
     """Tracks per MMSI, pruned by a retention window."""
@@ -88,6 +92,10 @@ class VesselStore:
         # with the same tracks a second call returns the same list.
         self._held: frozenset[str] = frozenset()
         self._hold_km = HOLD_FRACTION * radius_km
+        # Backlog 342: who left and why, until events.AreaEvents reads it;
+        # and when each was heard outside, so a late relay cannot revive it.
+        self._gone: dict[str, tuple] = {}
+        self._left_at: dict[str, _dt.datetime] = {}
 
     @staticmethod
     def is_berthed(obs) -> bool:
@@ -122,11 +130,51 @@ class VesselStore:
             return False
         if not within_radius(self._lat, self._lon, self._radius,
                              obs.latitude, obs.longitude):
-            return False
+            return self._left(obs)
         track = self._tracks.get(obs.identity)
         if track is None:
+            # ⚠ A relay of a fix from BEFORE the vessel was heard outside
+            # would bring it back for a retention window it is not in.
+            left_at = self._left_at.get(obs.identity)
+            if left_at is not None and obs.observed_at <= left_at:
+                return False
             track = self._tracks[obs.identity] = Track(obs.identity)
         return track.add(obs)
+
+    def _left(self, obs: Observation) -> bool:
+        """A vessel we track, HEARD outside the circle: it has left (backlog
+        342). Until 2026-11-15 the fix was dropped and the vessel stayed at
+        its last spot inside until the retention window ran out, 30 minutes
+        or 6 hours. Only a fix NEWER than the track's counts: relays arrive
+        out of order. Only sources that send outside the circle can tell us
+        (aisstream's box corners); the others still leave by silence."""
+        track = self._tracks.get(obs.identity)
+        last = track.current if track is not None else None
+        if last is None or obs.observed_at <= last.observed_at:
+            return False
+        del self._tracks[obs.identity]
+        self._left_at[obs.identity] = obs.observed_at
+        self._record_gone(obs.identity, "left", last, obs)
+        return True
+
+    def _record_gone(self, identity, reason, last, outside) -> None:
+        if len(self._gone) >= GONE_CAP:      # nobody draining: never grow
+            self._gone.clear()
+        self._gone[identity] = (reason, last, outside)
+
+    def take_gone(self) -> dict:
+        """identity -> (reason, last fix inside, fix outside or None) for
+        every vessel removed since the last call; reason "left" or "silent".
+        Read by events.AreaEvents."""
+        gone, self._gone = self._gone, {}
+        return gone
+
+    def present(self) -> dict[str, Observation]:
+        """EVERY vessel inside the circle, by its newest fix: no cap, no
+        playback delay. What the area's events are counted on, so the cap and
+        the instance quota can never make a vessel 'enter' or 'leave'."""
+        return {k: t.current for k, t in self._tracks.items()
+                if t.current is not None and t.current.latitude is not None}
 
     # -- eviction ----------------------------------------------------------
     def prune(self, now: _dt.datetime | None = None) -> int:
@@ -142,7 +190,13 @@ class VesselStore:
             if age > self._window_for(obs):
                 dead.append(k)
         for k in dead:
+            self._record_gone(k, "silent", self._tracks[k].current, None)
             del self._tracks[k]
+        # A departure older than the longest window cannot be relayed back.
+        horizon = max(self._stale_after, self._berthed_stale_after)
+        for k in [k for k, at in self._left_at.items()
+                  if (now - at).total_seconds() > horizon]:
+            del self._left_at[k]
         return len(dead)
 
     # -- publish -----------------------------------------------------------

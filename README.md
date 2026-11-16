@@ -195,8 +195,71 @@ two areas.
 - **One sensor per area**, `sensor.ships_in_range`, counting the vessels shown,
   and saying so when the area's or the instance's ceiling clips the list.
 
-Vessels leave after a period of silence: a vessel that stops appearing has not
-necessarily left (below).
+A vessel heard outside your circle leaves the map at once. To hear that, each
+source is asked for a ring a little wider than your circle (10%, at least
+1 km); only vessels inside your circle are kept. A vessel that is not heard
+again leaves after a period of silence, and a vessel that stops appearing has
+not necessarily left (below).
+
+## Events: a ship comes into your area, or leaves it
+
+Each area fires two Home Assistant events, so an automation can tell you when
+a ship you care about arrives:
+
+- `live_track_ships_entry` when a vessel comes into the area's circle
+- `live_track_ships_exit` when it leaves
+
+The integration announces every vessel; your automation picks the ones that
+matter. The event data uses the same names and units as the vessel's
+attributes, and leaves out whatever the source did not send:
+
+| Field | What it holds |
+|---|---|
+| `area_id`, `area` | the area's config entry ID and its title |
+| `identity` | the MMSI |
+| `name`, `call_sign`, `imo` | when sent |
+| `object_kind` | `vessel`, `net_buoy`, `aton`, `base_station`, `sar_aircraft` or `distress_beacon` |
+| `ship_type`, `ship_type_label`, `length_m`, `beam_m`, `draught_m`, `destination`, `nav_status` | vessels only, when sent |
+| `speed_kmh`, `course_deg`, `heading_deg` | when sent |
+| `latitude`, `longitude`, `distance_km`, `bearing_from_centre_deg`, `last_seen` | where it was heard, from the area's centre |
+| `entity_id` | entry only: `geo_location.vessel_<MMSI>`, when the vessel is on the map |
+| `reason` | exit only: `left` (heard outside the circle) or `silent` (not heard for the retention window, so it may still be there) |
+
+Three things to know:
+
+- **After a restart or a change to an area's settings, the first 10 minutes
+  are quiet.** The integration hears the vessels already there over several
+  minutes, and a restart must not send one notification for every moored
+  boat. A vessel that really arrives in those 10 minutes is not announced.
+- **An exit waits 2 minutes.** A vessel that comes back inside sooner, along
+  the edge of the circle, is not announced as leaving and arriving again.
+- **Details may be missing on arrival.** Name, type and size travel in a
+  slower message than position (above). A vessel heard for the first time can
+  arrive with a position and nothing else; one heard before usually carries
+  its type and size.
+
+Two areas over the same water each fire their own events. The map's limits on
+how many vessels are drawn never make a vessel enter or leave.
+
+An automation that tells you when a ship over 150 m comes into an area:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: live_track_ships_entry
+conditions:
+  - condition: template
+    value_template: "{{ trigger.event.data.length_m | default(0) > 150 }}"
+actions:
+  - action: notify.notify
+    data:
+      title: "{{ trigger.event.data.name | default('A ship') }}"
+      message: >-
+        {{ trigger.event.data.ship_type_label | default('Vessel') }},
+        {{ trigger.event.data.length_m }} m,
+        {{ trigger.event.data.distance_km }} km away, entering
+        {{ trigger.event.data.area }}.
+```
 
 ## Map card
 

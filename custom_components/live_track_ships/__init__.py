@@ -32,7 +32,8 @@ from .const_flow import (
     SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
 )
 from .const_flow import attribution_for
-from .geo import DEFAULT_RADIUS_KM, bounding_boxes
+from .geo import DEFAULT_RADIUS_KM, bounding_boxes, listen_margin_km
+from . import events as _events
 from . import held as _held
 from .sources import statics as _statics
 from saw_livetrack import aisstream as _aisstream
@@ -221,6 +222,7 @@ class ShipFeed:
         self._listeners: list = []
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
         self.vessel_reader = None       # the EnforcementVessels list (backlog 315 task 5)
+        self.events = None              # events.AreaEvents (backlog 342)
         # ⛔ Item 246: at most one listener pass per window. Instance
         # attribute so a test can shorten it.
         self.notify_window_s = NOTIFY_WINDOW_S
@@ -258,9 +260,14 @@ class ShipFeed:
 
     def _build_source(self):
         session = async_get_clientsession(self.hass)
+        # ⚠ The LISTENING RING (geo.listen_margin_km, backlog 342): every
+        # source is asked a little wider than the user's circle so a vessel
+        # leaving is heard outside; the store keeps only the user's circle.
+        margin = listen_margin_km(self.radius)
+        listen = self.radius + margin
         if self._cfg[CONF_SOURCE] == SOURCE_DIGITRAFFIC:
             from .sources.digitraffic import DigitrafficSource
-            return DigitrafficSource(session, self.lat, self.lon, self.radius)
+            return DigitrafficSource(session, self.lat, self.lon, listen)
         if self._cfg[CONF_SOURCE] == SOURCE_BARENTSWATCH:
             from .sources.barentswatch import BarentsWatchSource
             # ⚠ Sends the CIRCLE as a GeoJSON polygon - the only source that
@@ -269,7 +276,7 @@ class ShipFeed:
             return BarentsWatchSource(
                 session, self._cfg[CONF_CLIENT_ID],
                 self._cfg[CONF_CLIENT_SECRET],
-                self.lat, self.lon, self.radius)
+                self.lat, self.lon, listen)
         from .sources.aisstream import AisStreamSource
         # ⚠ The service takes BOXES; the user asked for a CIRCLE. We request
         # the circumscribing box and the store enforces the circle - a corner
@@ -278,7 +285,8 @@ class ShipFeed:
         # (backlog 315): entries on one key share ONE connection. The task
         # is Home Assistant's, not this entry's: the connection outlives it.
         return AisStreamSource(session, self._cfg[CONF_API_KEY],
-                               bounding_boxes(self.lat, self.lon, self.radius),
+                               bounding_boxes(self.lat, self.lon, self.radius,
+                                              margin),
                                statics=(self._statics.cache
                                         if self._statics else None),
                                store=self.hass.data,
@@ -367,6 +375,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Entry and exit events (backlog 342). AFTER the platforms: see attach().
+    feed.events = _events.attach(hass, entry, feed)
     entry.async_on_unload(entry.add_update_listener(_reload))
     return True
 
