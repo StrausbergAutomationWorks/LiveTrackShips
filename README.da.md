@@ -243,6 +243,44 @@ mindst 1 km), og din egen modtager sender alt, hvad den hører; kun skibe inden 
 igen, forsvinder efter en periode med stilhed, og et skib, der holder op med
 at blive vist, er ikke nødvendigvis væk (nedenfor).
 
+### Din database
+
+Home Assistants recorder gemmer en ny række, hver gang en entitet ændrer sig,
+og et skib i fart ændrer sig med hver position, det melder. Denne integration
+kan derfor få din database til at vokse hurtigt: på vores testsystem skrev ét
+område med 43 skibe 27.109 tilstandsrækker på omkring 30 timer, 8,8 % af hele
+databasen. Som standard gemmer recorderen 10 dage og rydder op hver nat kl.
+04:12, så væksten flader ud, men ved en størrelse, du måske ikke ønsker.
+Hvert skibs `marker_photo` og `marker_links` og sensorernes hurtigt skiftende
+attributter bliver aldrig gemt.
+
+Et skib beholder det samme entitets-id, `geo_location.vessel_<MMSI>`, hver gang
+det dukker op: en færge, der sejler og kommer tilbage, genbruger sin entitet i
+stedet for at tilføje en ny. Ét mønster, `geo_location.vessel_*`, dækker derfor
+alt, hvad denne integration nogensinde har sat på kortet. For kun at beholde
+det seneste døgn kører du `recorder.purge_entities` efter en tidsplan, for
+eksempel med denne automatisering:
+
+```yaml
+alias: Afkort skibshistorik
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Udelader du `keep_days` (standard 0), forsvinder alle deres rækker på én gang.
+For slet ikke at gemme noget af det sætter du mønsteret under `recorder:` →
+`exclude:` → `entity_globs:` i `configuration.yaml`. Et kortkort, der er sat
+til at tegne historik (`history_start`), har så intet spor at tegne.
+`sensor.ships_in_range` er et rent tal og billigt at gemme, så dens historik
+overlever i begge tilfælde.
+
 ## Hændelser: et skib kommer ind i dit område eller forlader det
 
 Hvert område sender to hændelser i Home Assistant, så en automatisering kan

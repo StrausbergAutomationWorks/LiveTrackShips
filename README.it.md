@@ -249,6 +249,45 @@ almeno 1 km), e il tuo ricevitore invia tutto ciò che sente; si tengono solo le
 si sente più lascia la mappa dopo un periodo di silenzio, e una nave che
 smette di comparire non è detto che se ne sia andata (sotto).
 
+### Il tuo database
+
+Il recorder di Home Assistant salva una nuova riga ogni volta che un'entità
+cambia, e una nave in movimento cambia a ogni posizione che trasmette. Questa
+integrazione può quindi far crescere rapidamente il tuo database: sul nostro
+sistema di prova, un'area con 43 navi ha scritto 27.109 righe di stato in circa
+30 ore, l'8,8% dell'intero database. Per impostazione predefinita il recorder
+conserva 10 giorni ed esegue la pulizia ogni notte alle 04:12, quindi la
+crescita si stabilizza, ma a una dimensione che potresti non volere.
+`marker_photo` e `marker_links` di ogni nave, e gli attributi dei sensori che
+cambiano spesso, non vengono mai registrati.
+
+Una nave mantiene lo stesso ID entità, `geo_location.vessel_<MMSI>`, ogni volta
+che compare: un traghetto che parte e torna riutilizza la sua entità invece di
+aggiungerne un'altra. Un solo schema, `geo_location.vessel_*`, copre quindi
+tutto ciò che questa integrazione ha mai messo sulla mappa. Per conservarne
+solo l'ultimo giorno, esegui `recorder.purge_entities` a orari stabiliti, per
+esempio con questa automazione:
+
+```yaml
+alias: Accorcia la cronologia delle navi
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Se ometti `keep_days` (predefinito 0), tutte le loro righe vengono eliminate in
+una volta. Per non registrarne nulla, metti lo schema sotto `recorder:` →
+`exclude:` → `entity_globs:` in `configuration.yaml`. Una scheda mappa
+impostata per disegnare la cronologia (`history_start`) non avrà allora alcuna
+traccia da disegnare. `sensor.ships_in_range` è un semplice numero, economico
+da conservare, quindi la sua cronologia resta in entrambi i casi.
+
 ## Eventi: una nave entra nella tua area o ne esce
 
 Ogni area genera due eventi di Home Assistant, perché un'automazione possa

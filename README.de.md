@@ -257,6 +257,46 @@ Ihrem Kreis. Ein Schiff, das nicht mehr gehört wird, verschwindet nach einer
 Zeit der Stille, und ein Schiff, das nicht mehr erscheint, ist nicht unbedingt
 weg (siehe unten).
 
+### Ihre Datenbank
+
+Der Recorder von Home Assistant speichert bei jeder Änderung einer Entität eine
+neue Zeile, und ein fahrendes Schiff ändert sich mit jeder Position, die es
+meldet. Diese Integration kann Ihre Datenbank deshalb schnell wachsen lassen:
+Auf unserem Testsystem schrieb ein Gebiet mit 43 Schiffen in etwa 30 Stunden
+27.109 Zustandszeilen, 8,8 % der gesamten Datenbank. Standardmäßig behält der
+Recorder 10 Tage und bereinigt jede Nacht um 04:12 Uhr, sodass das Wachstum zum
+Stillstand kommt, aber bei einer Größe, die Sie vielleicht nicht wollen.
+`marker_photo` und `marker_links` jedes Schiffs sowie die schnell wechselnden
+Attribute der Sensoren werden nie aufgezeichnet.
+
+Ein Schiff behält bei jedem Auftauchen dieselbe Entitäts-ID,
+`geo_location.vessel_<MMSI>`: Eine Fähre, die wegfährt und zurückkommt, nutzt
+ihre Entität wieder, statt eine weitere anzulegen. Deshalb erfasst ein einziges
+Muster, `geo_location.vessel_*`, alles, was diese Integration je auf die Karte
+gebracht hat. Um davon nur den letzten Tag zu behalten, führen Sie
+`recorder.purge_entities` nach Zeitplan aus, zum Beispiel mit dieser
+Automatisierung:
+
+```yaml
+alias: Schiffsverlauf kürzen
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Ohne `keep_days` (Standard 0) werden alle ihre Zeilen auf einmal gelöscht. Um
+nichts davon aufzuzeichnen, tragen Sie das Muster in `configuration.yaml` unter
+`recorder:` → `exclude:` → `entity_globs:` ein. Eine Kartenkarte, die den
+Verlauf zeichnen soll (`history_start`), hat dann keine Spur zu zeichnen.
+`sensor.ships_in_range` ist eine reine Zahl und billig aufzubewahren, daher
+bleibt sein Verlauf in beiden Fällen erhalten.
+
 ## Ereignisse: Ein Schiff kommt in Ihr Gebiet oder verlässt es
 
 Jedes Gebiet löst zwei Ereignisse in Home Assistant aus, damit eine

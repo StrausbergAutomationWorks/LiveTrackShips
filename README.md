@@ -237,6 +237,42 @@ inside your circle are kept. A vessel that is not heard again leaves after a
 period of silence, and a vessel that stops appearing has not necessarily left
 (below).
 
+### Your database
+
+Home Assistant's recorder stores a new row each time an entity changes, and a
+moving vessel changes with every position it reports. This integration can
+therefore grow your database quickly: on our test system, one area with 43
+vessels wrote 27,109 state rows in about 30 hours, 8.8% of the whole database.
+By default the recorder keeps 10 days and purges every night at 04:12, so the
+growth levels off, but at a size you may not want. Each vessel's
+`marker_photo` and `marker_links`, and the sensors' fast-changing attributes,
+are never recorded.
+
+A vessel keeps the same entity id, `geo_location.vessel_<MMSI>`, every time it
+appears: a ferry that leaves and comes back reuses its entity rather than
+adding another. So one pattern, `geo_location.vessel_*`, covers everything
+this integration has ever put on the map. To keep only the last day of it, run
+`recorder.purge_entities` on a schedule, for example with this automation:
+
+```yaml
+alias: Trim vessel history
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+If you leave out `keep_days` (default 0), all of their rows go at once. To
+record none of it, put the pattern under `recorder:` → `exclude:` →
+`entity_globs:` in `configuration.yaml`. A map card set to draw history
+(`history_start`) then has no trail to draw. `sensor.ships_in_range` is a bare
+count and cheap to keep, so its history survives either way.
+
 ## Events: a ship comes into your area, or leaves it
 
 Each area fires two Home Assistant events, so an automation can tell you when

@@ -252,6 +252,45 @@ alleen schepen in je cirkel worden bewaard. Een
 schip dat niet meer wordt gehoord, verdwijnt na een periode van stilte, en een
 schip dat niet meer verschijnt, is niet per se weg (hieronder).
 
+### Je database
+
+De recorder van Home Assistant slaat een nieuwe rij op telkens als een entiteit
+verandert, en een varend schip verandert bij elke positie die het meldt. Deze
+integratie kan je database daardoor snel laten groeien: op ons testsysteem
+schreef één gebied met 43 schepen in ongeveer 30 uur 27.109 statusrijen, 8,8%
+van de hele database. Standaard bewaart de recorder 10 dagen en ruimt hij elke
+nacht om 04:12 op, dus de groei vlakt af, maar op een omvang die je misschien
+niet wilt. `marker_photo` en `marker_links` van elk schip, en de snel
+veranderende attributen van de sensoren, worden nooit vastgelegd.
+
+Een schip houdt elke keer dat het verschijnt dezelfde entiteit-ID,
+`geo_location.vessel_<MMSI>`: een veerboot die vertrekt en terugkomt
+hergebruikt zijn entiteit in plaats van er een toe te voegen. Eén patroon,
+`geo_location.vessel_*`, dekt dus alles wat deze integratie ooit op de kaart
+heeft gezet. Om daarvan alleen de laatste dag te bewaren, voer je
+`recorder.purge_entities` volgens schema uit, bijvoorbeeld met deze
+automatisering:
+
+```yaml
+alias: Scheepsgeschiedenis inkorten
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Laat je `keep_days` weg (standaard 0), dan gaan al hun rijen in één keer weg.
+Om er niets van vast te leggen, zet je het patroon onder `recorder:` →
+`exclude:` → `entity_globs:` in `configuration.yaml`. Een kaartkaart die
+geschiedenis moet tekenen (`history_start`) heeft dan geen spoor om te tekenen.
+`sensor.ships_in_range` is een kaal getal en goedkoop om te bewaren, dus zijn
+geschiedenis blijft in beide gevallen bestaan.
+
 ## Gebeurtenissen: een schip komt je gebied in of gaat eruit
 
 Elk gebied vuurt twee gebeurtenissen af in Home Assistant, zodat een

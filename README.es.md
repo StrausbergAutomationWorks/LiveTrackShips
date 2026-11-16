@@ -249,6 +249,45 @@ a cada fuente en línea se le pide un anillo un poco mayor que tu círculo (un 1
 ya no se oye sale del mapa tras un periodo de silencio, y un buque que deja de
 aparecer no tiene por qué haberse ido (más abajo).
 
+### Tu base de datos
+
+El recorder de Home Assistant guarda una fila nueva cada vez que cambia una
+entidad, y un buque en movimiento cambia con cada posición que informa. Por eso
+esta integración puede hacer crecer tu base de datos rápidamente: en nuestro
+sistema de pruebas, una zona con 43 buques escribió 27.109 filas de estado en
+unas 30 horas, el 8,8 % de toda la base de datos. Por defecto, el recorder
+conserva 10 días y purga cada noche a las 04:12, así que el crecimiento se
+estabiliza, pero en un tamaño que quizá no quieras. Los `marker_photo` y
+`marker_links` de cada buque, y los atributos de los sensores que cambian
+rápido, nunca se registran.
+
+Un buque conserva el mismo ID de entidad, `geo_location.vessel_<MMSI>`, cada
+vez que aparece: un ferri que se va y vuelve reutiliza su entidad en lugar de
+añadir otra. Así, un solo patrón, `geo_location.vessel_*`, abarca todo lo que
+esta integración ha puesto alguna vez en el mapa. Para conservar solo el último
+día, ejecuta `recorder.purge_entities` de forma programada, por ejemplo con
+esta automatización:
+
+```yaml
+alias: Recortar el historial de buques
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Si omites `keep_days` (por defecto 0), todas sus filas se borran de una vez.
+Para no registrar nada de ello, pon el patrón bajo `recorder:` → `exclude:` →
+`entity_globs:` en `configuration.yaml`. Una tarjeta de mapa configurada para
+dibujar el historial (`history_start`) no tendrá entonces ningún rastro que
+dibujar. `sensor.ships_in_range` es un simple número y cuesta poco conservarlo,
+así que su historial se mantiene en ambos casos.
+
 ## Eventos: un buque entra en tu zona o sale de ella
 
 Cada zona lanza dos eventos de Home Assistant, para que una automatización te

@@ -255,6 +255,45 @@ gardés. Un navire qu'on n'entend plus quitte la carte après une période de
 silence, et un navire qui n'apparaît plus n'est pas forcément parti
 (ci-dessous).
 
+### Votre base de données
+
+L'enregistreur (recorder) de Home Assistant stocke une nouvelle ligne à chaque
+changement d'une entité, et un navire en route change à chaque position qu'il
+signale. Cette intégration peut donc faire grossir rapidement votre base de
+données : sur notre système de test, une zone de 43 navires a écrit 27 109
+lignes d'état en 30 heures environ, soit 8,8 % de toute la base. Par défaut,
+l'enregistreur conserve 10 jours et purge chaque nuit à 04 h 12 ; la croissance
+se stabilise donc, mais à une taille que vous ne souhaitez peut-être pas. Les
+`marker_photo` et `marker_links` de chaque navire, ainsi que les attributs des
+capteurs qui changent vite, ne sont jamais enregistrés.
+
+Un navire garde le même identifiant d'entité, `geo_location.vessel_<MMSI>`,
+chaque fois qu'il apparaît : un ferry qui part et revient réutilise son entité
+au lieu d'en ajouter une autre. Un seul motif, `geo_location.vessel_*`, couvre
+donc tout ce que cette intégration a jamais placé sur la carte. Pour n'en
+garder que le dernier jour, lancez `recorder.purge_entities` selon un horaire,
+par exemple avec cette automatisation :
+
+```yaml
+alias: Élaguer l'historique des navires
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+Sans `keep_days` (0 par défaut), toutes leurs lignes sont supprimées d'un coup.
+Pour n'en rien enregistrer, placez le motif sous `recorder:` → `exclude:` →
+`entity_globs:` dans `configuration.yaml`. Une carte réglée pour dessiner
+l'historique (`history_start`) n'a alors plus de trace à dessiner.
+`sensor.ships_in_range` est un simple nombre, peu coûteux à conserver : son
+historique survit dans les deux cas.
+
 ## Événements : un navire entre dans votre zone ou en sort
 
 Chaque zone déclenche deux événements Home Assistant, pour qu'une

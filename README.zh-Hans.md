@@ -208,6 +208,27 @@ BarentsWatch 发布的水域之外时，对话框会在创建区域之前告诉�
 比你的圆圈稍大一圈的范围（大 10%，至少 1 公里），而你自己的接收机会发送它收到的一切；只保留你圆圈内的船只。之后再也
 没有收到的船会在一段静默期后消失，而不再出现的船并不一定已经离开（见下文）。
 
+### 你的数据库
+
+Home Assistant 的 recorder 在实体每次变化时都会存一行新记录，而一艘航行中的船每报告一次位置就变化一次。因此这个集成可能让你的数据库快速增长：在我们的测试系统上，一个有 43 艘船的区域在大约 30 小时内写入了 27,109 行状态记录，占整个数据库的 8.8%。recorder 默认保留 10 天，并在每晚 04:12 清理，所以增长会趋于平稳，但停下来的大小可能不是你想要的。每艘船的 `marker_photo` 和 `marker_links`，以及各传感器变化很快的属性，从不被记录。
+
+一艘船每次出现都保持同一个实体 ID，`geo_location.vessel_<MMSI>`：一艘离开又回来的渡轮会重新使用它的实体，而不是再添加一个。所以一个模式 `geo_location.vessel_*` 就涵盖这个集成曾经放到地图上的一切。若只想保留最近一天的记录，可以定时运行 `recorder.purge_entities`，例如使用这个自动化：
+
+```yaml
+alias: 缩减船只历史
+triggers:
+  - trigger: time
+    at: "03:30:00"
+actions:
+  - action: recorder.purge_entities
+    data:
+      entity_globs:
+        - geo_location.vessel_*
+      keep_days: 1
+```
+
+如果省略 `keep_days`（默认为 0），它们的所有记录会一次删除。若完全不想记录，请在 `configuration.yaml` 中把这个模式放在 `recorder:` → `exclude:` → `entity_globs:` 下。这样，设置为绘制历史（`history_start`）的地图卡片就没有轨迹可画。`sensor.ships_in_range` 只是一个数字，保存成本很低，所以无论哪种做法，它的历史都会保留。
+
 ## 事件：有船进入或离开你的区域
 
 每个区域都会触发两个 Home Assistant 事件，这样自动化就能在你关心的船到达时
