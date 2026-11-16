@@ -411,6 +411,19 @@ of the dashboard. Your choice is kept in that browser only. The integration
 still shows everything: its sensor counts every vessel and its events fire for
 every vessel. A distress beacon has no group, so it is never hidden.
 
+### Photos and links
+
+When a vessel sends an IMO number and Wikidata knows a photo of that ship on
+Wikimedia Commons, the vessel carries `marker_photo`. The map shows the photo
+in the hover box with the photographer and licence; a click opens it larger,
+with links to the photo's page and to its licence. Every vessel with an IMO
+number or an MMSI also carries `marker_links`, a link to the vessel on
+VesselFinder. The popup's **Details** button opens the vessel's usual dialog.
+Your Home Assistant asks Wikidata and Commons itself, 20 IMO numbers at a time,
+ten seconds apart, and keeps each answer for 30 days (14 when there is no
+photo) in `.storage/saw_vessel_photos.json`. Expect photos for roughly one
+vessel in ten: on our test system, 49 of 521 IMO numbers had one.
+
 ## Where it looks
 
 You put a **centre and a radius** on the map. The centre can be anywhere in

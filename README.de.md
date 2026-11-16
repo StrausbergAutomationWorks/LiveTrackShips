@@ -447,6 +447,20 @@ gespeichert. Die Integration zeigt weiterhin alles: Ihr Sensor zählt jedes
 Schiff, und ihre Ereignisse werden für jedes Schiff ausgelöst. Ein Notsender hat
 keine Gruppe und wird daher nie ausgeblendet.
 
+### Fotos und Links
+
+Wenn ein Schiff eine IMO-Nummer sendet und Wikidata ein Foto dieses Schiffs auf
+Wikimedia Commons kennt, trägt das Schiff `marker_photo`. Die Karte zeigt das
+Foto im Hover-Feld mit Fotograf und Lizenz; ein Klick öffnet es größer, mit
+Links zur Seite des Fotos und zu seiner Lizenz. Jedes Schiff mit IMO-Nummer
+oder MMSI trägt außerdem `marker_links`, einen Link zum Schiff auf
+VesselFinder. Die Schaltfläche **Details** im Popup öffnet den gewohnten Dialog
+des Schiffs. Ihr Home Assistant fragt Wikidata und Commons selbst ab, 20
+IMO-Nummern auf einmal im Abstand von zehn Sekunden, und hält jede Antwort 30
+Tage (14, wenn es kein Foto gibt) in `.storage/saw_vessel_photos.json`. Rechnen
+Sie mit Fotos für etwa jedes zehnte Schiff: Auf unserem Testsystem hatten 49
+von 521 IMO-Nummern eines.
+
 ## Wo gesucht wird
 
 Sie setzen einen **Mittelpunkt und einen Radius** auf die Karte. Der

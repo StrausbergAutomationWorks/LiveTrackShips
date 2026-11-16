@@ -436,6 +436,20 @@ browser bewaard. De integratie toont nog steeds alles: haar sensor telt elk
 schip en haar gebeurtenissen gaan voor elk schip af. Een noodbaken heeft geen
 groep en wordt dus nooit verborgen.
 
+### Foto's en links
+
+Als een schip een IMO-nummer verstuurt en Wikidata een foto van dat schip op
+Wikimedia Commons kent, draagt het schip `marker_photo`. De kaart toont de foto
+in het zweefvenster met de fotograaf en de licentie; een klik opent hem groter,
+met links naar de pagina van de foto en naar de licentie. Elk schip met een
+IMO-nummer of een MMSI draagt ook `marker_links`, een link naar het schip op
+VesselFinder. De knop **Details** in het venster opent het gewone dialoogvenster
+van het schip. Je Home Assistant vraagt Wikidata en Commons zelf, 20
+IMO-nummers tegelijk, tien seconden na elkaar, en bewaart elk antwoord 30 dagen
+(14 als er geen foto is) in `.storage/saw_vessel_photos.json`. Reken op foto's
+voor ongeveer één op de tien schepen: op ons testsysteem hadden 49 van de 521
+IMO-nummers er een.
+
 ## Waar hij kijkt
 
 Je zet een **middelpunt en een straal** op de kaart. Het middelpunt kan

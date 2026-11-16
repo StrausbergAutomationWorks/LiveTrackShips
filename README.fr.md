@@ -440,6 +440,20 @@ L'intégration montre toujours tout : son capteur compte chaque navire et ses
 événements se déclenchent pour chaque navire. Une balise de détresse n'a pas de
 groupe : elle n'est jamais masquée.
 
+### Photos et liens
+
+Quand un navire transmet un numéro IMO et que Wikidata connaît une photo de ce
+navire sur Wikimedia Commons, le navire porte `marker_photo`. La carte affiche
+la photo dans l'infobulle avec le photographe et la licence ; un clic l'ouvre en
+plus grand, avec des liens vers la page de la photo et vers sa licence. Tout
+navire qui a un numéro IMO ou un MMSI porte aussi `marker_links`, un lien vers
+le navire sur VesselFinder. Le bouton **Details** de la fenêtre ouvre la boîte
+de dialogue habituelle du navire. Votre Home Assistant interroge lui-même
+Wikidata et Commons, 20 numéros IMO à la fois, à dix secondes d'intervalle, et
+garde chaque réponse 30 jours (14 quand il n'y a pas de photo) dans
+`.storage/saw_vessel_photos.json`. Comptez sur une photo pour environ un navire
+sur dix : sur notre système de test, 49 numéros IMO sur 521 en avaient une.
+
 ## Où elle cherche
 
 Vous placez un **centre et un rayon** sur la carte. Le centre peut être

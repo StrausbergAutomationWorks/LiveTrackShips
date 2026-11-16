@@ -425,6 +425,19 @@ Integrationen viser stadig alt: dens sensor tæller hvert skib, og dens
 hændelser udløses for hvert skib. En nødradiobøje har ingen gruppe, så den
 skjules aldrig.
 
+### Fotos og links
+
+Når et skib sender et IMO-nummer, og Wikidata kender et foto af skibet på
+Wikimedia Commons, har skibet `marker_photo`. Kortet viser fotoet i
+hover-boksen med fotograf og licens; et klik åbner det større, med links til
+fotoets side og til licensen. Hvert skib med et IMO-nummer eller et MMSI har
+også `marker_links`, et link til skibet på VesselFinder. Knappen **Details** i
+vinduet åbner skibets sædvanlige dialog. Din Home Assistant spørger selv
+Wikidata og Commons, 20 IMO-numre ad gangen med ti sekunders mellemrum, og
+gemmer hvert svar i 30 dage (14, når der ikke er noget foto) i
+`.storage/saw_vessel_photos.json`. Regn med fotos for omtrent hvert tiende
+skib: på vores testsystem havde 49 af 521 IMO-numre et.
+
 ## Hvor den kigger
 
 Du sætter et **midtpunkt og en radius** på kortet. Midtpunktet kan ligge hvor

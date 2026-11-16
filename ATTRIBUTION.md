@@ -56,6 +56,27 @@ library; this repository does not copy it.
 Contains information from [EnforcementVessels](https://github.com/StrausbergAutomationWorks/EnforcementVessels),
 which is made available under the [Open Database License (ODbL) v1.0](https://opendatacommons.org/licenses/odbl/1-0/).
 
+## Vessel photos: Wikidata and Wikimedia Commons
+
+A vessel's photo is looked up at runtime by its IMO number: the ship's item on
+[Wikidata](https://www.wikidata.org) (data CC0) names an image on
+[Wikimedia Commons](https://commons.wikimedia.org), and Commons gives its
+thumbnail, author and licence. Each Home Assistant asks for its own user, with
+a User-Agent naming this project as the
+[Wikimedia User-Agent policy](https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy)
+asks. No photo is copied into this repository. Each photo stays under its own
+licence, mostly Creative Commons or public domain, and is shown only with its
+author, licence and source beside it, linked to the photo's page on Commons
+and to the licence. If you show the map to others, keep that credit with each
+photo. The answers are cached in `.storage/saw_vessel_photos.json`.
+
+## Links to VesselFinder
+
+Each vessel carries a link to its page on
+[VesselFinder](https://www.vesselfinder.com), by IMO number or MMSI. Only the
+address is built; nothing is fetched from VesselFinder, and VesselFinder does
+not endorse this project.
+
 ## Vessel types
 
 The labels in `custom_components/live_track_ships/ship_types.py` name the AIS

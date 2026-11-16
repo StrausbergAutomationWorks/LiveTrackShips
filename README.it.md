@@ -431,6 +431,20 @@ mostrare tutto: il suo sensore conta ogni nave e i suoi eventi scattano per
 ogni nave. Un radiofaro di soccorso non ha gruppo, quindi non viene mai
 nascosto.
 
+### Foto e link
+
+Quando una nave trasmette un numero IMO e Wikidata conosce una foto di quella
+nave su Wikimedia Commons, la nave porta `marker_photo`. La mappa mostra la foto
+nel riquadro al passaggio del mouse con il fotografo e la licenza; un clic la
+apre più grande, con link alla pagina della foto e alla sua licenza. Ogni nave
+con un numero IMO o un MMSI porta anche `marker_links`, un link alla nave su
+VesselFinder. Il pulsante **Details** della finestra apre la solita finestra di
+dialogo della nave. Il tuo Home Assistant interroga da sé Wikidata e Commons,
+20 numeri IMO alla volta, a dieci secondi di distanza, e conserva ogni risposta
+per 30 giorni (14 se non c'è foto) in `.storage/saw_vessel_photos.json`. Conta
+su una foto per circa una nave su dieci: sul nostro sistema di prova, 49
+numeri IMO su 521 ne avevano una.
+
 ## Dove guarda
 
 Metti un **centro e un raggio** sulla mappa. Il centro può essere in qualsiasi

@@ -430,6 +430,20 @@ elección se guarda solo en ese navegador. La integración sigue mostrándolo
 todo: su sensor cuenta todos los buques y sus eventos se disparan para todos.
 Una radiobaliza de socorro no tiene grupo, así que nunca se oculta.
 
+### Fotos y enlaces
+
+Cuando un buque envía un número IMO y Wikidata conoce una foto de ese buque en
+Wikimedia Commons, el buque lleva `marker_photo`. El mapa muestra la foto en el
+cuadro emergente con el fotógrafo y la licencia; un clic la abre más grande,
+con enlaces a la página de la foto y a su licencia. Todo buque con número IMO o
+MMSI lleva además `marker_links`, un enlace al buque en VesselFinder. El botón
+**Details** de la ventana abre el diálogo habitual del buque. Tu Home Assistant
+consulta él mismo Wikidata y Commons, 20 números IMO cada vez, con diez
+segundos entre consultas, y guarda cada respuesta 30 días (14 si no hay foto)
+en `.storage/saw_vessel_photos.json`. Cuenta con fotos para más o menos uno de
+cada diez buques: en nuestro sistema de pruebas, 49 de 521 números IMO tenían
+una.
+
 ## Dónde mira
 
 Pones un **centro y un radio** en el mapa. El centro puede estar en cualquier
