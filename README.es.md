@@ -101,6 +101,20 @@ lista y un ejemplo están en el [README en inglés](README.md#events-a-ship-come
 - Al llegar pueden faltar el nombre, el tipo y el tamaño, porque se emiten con
   menos frecuencia que la posición.
 
+## Buques seguidos: sigue buques elegidos en cualquier lugar
+
+Además de zonas, puedes seguir una lista de buques estén donde estén: el barco
+de un familiar, un ferry que tomas, un crucero que vuelve a casa. Elige
+**Buques elegidos, estén donde estén** al añadir Live Track Ships. Hace falta
+una clave de aisstream.io, y hay una sola lista así por Home Assistant. Un
+buque por línea: su MMSI de 9 cifras y, si quieres, una etiqueta propia, como
+máximo 100.
+
+Los buques aparecen en el mapa allí donde se oigan, y `sensor.watched_vessels`
+muestra cada uno con su último estado conocido. El evento `live_track_ships_watched` tiene el campo
+`change`: `arrived`, `departed`, `silent`, `heard`, `destination`. La llegada y la salida esperan a que el nuevo estado dure 5
+minutos. Los detalles están en el [README en inglés](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Buques que merecen su propia imagen
 
 La mayoría de los buques se dibujan según su tipo. Algunos tienen su propia

@@ -107,6 +107,21 @@ als de attributen van het schip; de lijst en een voorbeeld staan in de
 - Bij aankomst kunnen naam, type en afmetingen ontbreken, omdat die minder vaak
   worden uitgezonden dan de positie.
 
+## Gevolgde schepen: gekozen schepen overal volgen
+
+Naast gebieden kun je een lijst schepen volgen, waar ze ook zijn: de boot van
+een familielid, een veerboot die je neemt, een cruiseschip op weg naar huis.
+Kies **Gekozen schepen, waar ze ook zijn** bij het toevoegen van Live Track
+Ships. Er is een sleutel van aisstream.io nodig, en er is één zo'n lijst per
+Home Assistant. Eén schip per regel: de MMSI van 9 cijfers, daarna desgewenst
+een eigen naam, hoogstens 100.
+
+De schepen staan op de kaart waar ze ook worden gehoord, en
+`sensor.watched_vessels` toont elk schip met zijn laatst bekende toestand. De
+gebeurtenis `live_track_ships_watched` heeft het veld `change`: `arrived`, `departed`, `silent`, `heard`, `destination`. Aankomst en vertrek wachten
+tot de nieuwe toestand 5 minuten heeft geduurd. De details staan in de
+[Engelse README](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Schepen die een eigen afbeelding verdienen
 
 De meeste schepen worden getekend naar hun type. Sommige hebben een eigen

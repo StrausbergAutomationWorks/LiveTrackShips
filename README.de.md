@@ -108,6 +108,22 @@ Einheiten wie die Attribute des Schiffs; die Liste und ein Beispiel stehen im
 - Bei der Ankunft können Name, Typ und Größe fehlen, weil sie seltener
   gesendet werden als die Position.
 
+## Verfolgte Schiffe: ausgewählte Schiffe überall verfolgen
+
+Neben Gebieten können Sie eine Liste von Schiffen verfolgen, wo immer sie sind:
+das Boot eines Familienmitglieds, eine Fähre, die Sie nehmen, ein
+Kreuzfahrtschiff auf dem Heimweg. Wählen Sie beim Hinzufügen von Live Track
+Ships **Ausgewählte Schiffe, wo immer sie sind**. Nötig ist ein Schlüssel von
+aisstream.io, und es gibt eine solche Liste pro Home Assistant. Ein Schiff pro
+Zeile: seine 9-stellige MMSI, danach auf Wunsch eine eigene Bezeichnung,
+höchstens 100.
+
+Die Schiffe erscheinen auf der Karte, wo immer sie gehört werden, und
+`sensor.watched_vessels` zeigt jedes mit seinem letzten bekannten Zustand. Das
+Ereignis `live_track_ships_watched` hat das Feld `change`: `arrived`, `departed`, `silent`, `heard`, `destination`. Ankunft und Abfahrt warten, bis der
+neue Zustand 5 Minuten gehalten hat. Die Einzelheiten stehen im
+[englischen README](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Schiffe, die ein eigenes Bild verdienen
 
 Die meisten Schiffe werden nach ihrem Typ gezeichnet. Manche haben ein eigenes

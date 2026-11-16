@@ -102,6 +102,20 @@ attributter; listen og et eksempel står i den [engelske README](README.md#event
 - Ved ankomsten kan navn, type og størrelse mangle, fordi de sendes sjældnere
   end positionen.
 
+## Fulgte skibe: følg udvalgte skibe overalt
+
+Ud over områder kan du følge en liste af skibe, hvor de end er: et
+familiemedlems båd, en færge du tager, et krydstogtskib på vej hjem. Vælg
+**Udvalgte skibe, hvor de end er**, når du tilføjer Live Track Ships. Det
+kræver en nøgle fra aisstream.io, og der er én sådan liste pr. Home Assistant.
+Skriv ét skib pr. linje: dets 9-cifrede MMSI og eventuelt et navn efter eget
+valg, højst 100.
+
+Skibene tegnes på kortet, hvor de end høres, og `sensor.watched_vessels` viser
+hvert skib og dets seneste kendte tilstand. Hændelsen `live_track_ships_watched` har feltet `change`:
+`arrived`, `departed`, `silent`, `heard`, `destination`. Ankomst og afgang venter, til den nye tilstand har holdt i 5 minutter.
+Detaljerne står i den [engelske README](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Skibe, der fortjener deres eget billede
 
 De fleste skibe tegnes efter deres type. Nogle har deres eget billede:

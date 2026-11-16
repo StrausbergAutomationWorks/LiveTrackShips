@@ -83,6 +83,17 @@ Home Assistant 集成（custom component，可通过 Marketplace / HACS 安装�
 - 离开事件要等 2 分钟；船在此之前回到圈内，就不会报告为离开又进入。
 - 刚进入时可能还没有名称、类型和尺寸，因为这些信息的发送频率低于位置。
 
+## 关注的船只：在任何地方跟踪选定的船
+
+除了区域，你还可以关注一份船只列表，无论它们在哪里：家人的船、你常坐的渡轮、
+返航的邮轮。添加 Live Track Ships 时选择“选定的船只，无论它们在哪里”。需要
+aisstream.io 的密钥，每个 Home Assistant 只有一份这样的列表。每行一艘船：先写
+9 位 MMSI，后面可以加上你自己的名称，最多 100 艘。
+
+这些船只只要被收到就会显示在地图上，`sensor.watched_vessels` 列出每艘船及其最后
+已知状态。事件 `live_track_ships_watched` 带有 `change` 字段：`arrived`, `departed`, `silent`, `heard`, `destination`。到港和离港要等新状态持续 5 分钟后
+才报告。详情见[英文 README](README.md#watched-vessels-follow-chosen-ships-anywhere)。
+
 ## 值得专属图标的船
 
 大多数船只按船型绘制。有些船有专属图标：皇家和国家游艇，以及著名船只，例如

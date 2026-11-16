@@ -103,6 +103,21 @@ attributs du navire ; la liste et un exemple figurent dans le
 - À l'arrivée, le nom, le type et la taille peuvent manquer : ils sont émis
   moins souvent que la position.
 
+## Navires suivis : suivre des navires choisis partout
+
+En plus des zones, vous pouvez suivre une liste de navires où qu'ils soient :
+le bateau d'un proche, un ferry que vous prenez, un navire de croisière qui
+rentre. Choisissez **Des navires choisis, où qu'ils soient** en ajoutant Live
+Track Ships. Il faut une clé aisstream.io, et il y a une seule liste de ce type
+par Home Assistant. Un navire par ligne : son MMSI à 9 chiffres, puis un nom
+de votre choix si vous le souhaitez, 100 au plus.
+
+Les navires sont dessinés sur la carte où qu'ils soient entendus, et
+`sensor.watched_vessels` montre chacun avec son dernier état connu.
+L'événement `live_track_ships_watched` a un champ `change` : `arrived`, `departed`, `silent`, `heard`, `destination`. L'arrivée et le départ attendent
+que le nouvel état ait tenu 5 minutes. Les détails figurent dans le
+[README anglais](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Les navires qui méritent leur propre image
 
 La plupart des navires sont dessinés selon leur type. Certains ont leur propre

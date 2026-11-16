@@ -162,8 +162,10 @@ Live Track Ships is not in the Marketplace's catalog yet. Add it by link:
 
 ## Setup
 
-**Settings > Devices & services > Add integration > Live Track Ships.** Each
-area you add is one entry, titled *Ships near <latitude>, <longitude>*.
+**Settings > Devices & services > Add integration > Live Track Ships**, then
+**Every vessel in an area** (the other choice, watched vessels, is
+[below](#watched-vessels-follow-chosen-ships-anywhere)). Each area you add is
+one entry, titled *Ships near <latitude>, <longitude>*.
 
 | Field | What it takes | Default |
 |---|---|---|
@@ -264,6 +266,53 @@ actions:
         {{ trigger.event.data.distance_km }} km away, entering
         {{ trigger.event.data.area }}.
 ```
+
+## Watched vessels: follow chosen ships anywhere
+
+Besides areas, you can follow a list of vessels wherever they are: a family
+member's boat, a ferry you take, a cruise ship coming home.
+**Settings > Devices & services > Add integration > Live Track Ships >
+Chosen vessels, wherever they are.** It needs an aisstream.io key (the key of
+an area you already set up is filled in), and there is one such list per Home
+Assistant.
+
+Type one vessel per line: its 9-digit MMSI, then a label of your own if you
+like.
+
+```text
+244650000 Dad's boat
+366999999 The ferry
+```
+
+At most 100 vessels. aisstream follows at most 200 MMSIs per key, and
+[Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT),
+if installed on the same key, uses part of that; a list that would go over is
+refused when the entry loads, with the reason. Change the list in the entry's
+settings.
+
+A watched vessel is drawn on the map like any other, wherever it is heard, and
+its state is its distance from your home. An area that already shows it keeps
+it: one vessel, one marker. The entry adds `sensor.watched_vessels`: how many
+of the listed vessels are heard now, with every one of them, its label and its
+last known state in the `vessels` attribute.
+
+It fires one event, `live_track_ships_watched`, whose `change` says what
+happened:
+
+| `change` | When |
+|---|---|
+| `arrived` | the vessel reports itself moored or at anchor, or, with no status, stays under 2 knots |
+| `departed` | it is under way again |
+| `silent` | not heard for 30 minutes (6 hours if moored or at anchor); it leaves the map, and may still be there |
+| `heard` | heard again after `silent` |
+| `destination` | the crew changed its destination; `destination_previous` holds the old one |
+
+The data carries `watch_id`, `watch`, `identity`, your `label`, and the same
+vessel fields as the area events, with the distance and bearing from your home.
+Arrived and departed wait until the new state has held for 5 minutes by the
+vessel's own clock, so a boat drifting at 2 knots does not flap. Nothing is
+announced from a vessel's first position after a restart: that sets the
+starting point. Destinations are typed by the crew and often stale.
 
 ## Map card
 

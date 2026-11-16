@@ -102,6 +102,20 @@ nave; l'elenco e un esempio sono nel [README in inglese](README.md#events-a-ship
 - All'arrivo possono mancare nome, tipo e dimensioni, perché vengono trasmessi
   meno spesso della posizione.
 
+## Navi seguite: segui navi scelte ovunque
+
+Oltre alle aree puoi seguire un elenco di navi ovunque si trovino: la barca di
+un familiare, un traghetto che prendi, una nave da crociera che torna a casa.
+Scegli **Navi scelte, ovunque si trovino** quando aggiungi Live Track Ships.
+Serve una chiave di aisstream.io, e c'è un solo elenco di questo tipo per Home
+Assistant. Una nave per riga: il suo MMSI di 9 cifre e, se vuoi, un'etichetta
+tua, al massimo 100.
+
+Le navi compaiono sulla mappa ovunque vengano sentite, e
+`sensor.watched_vessels` mostra ciascuna con il suo ultimo stato noto.
+L'evento `live_track_ships_watched` ha il campo `change`: `arrived`, `departed`, `silent`, `heard`, `destination`. Arrivo e partenza attendono che il
+nuovo stato duri 5 minuti. I dettagli sono nel [README in inglese](README.md#watched-vessels-follow-chosen-ships-anywhere).
+
 ## Navi che meritano un'immagine tutta loro
 
 La maggior parte delle navi è disegnata secondo il tipo. Alcune hanno
