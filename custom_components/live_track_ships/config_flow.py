@@ -29,6 +29,7 @@ from .const_flow import (
     CONF_SOURCE, DEFAULT_MAX_VESSELS, DOMAIN, SOURCE_AISSTREAM,
     SOURCE_BARENTSWATCH, SOURCES,
     CONF_KIND, CONF_VESSELS, KIND_WATCH, MAX_WATCHED, WATCH_UNIQUE_ID, kind_of,
+    CONF_UDP_PORT, DEFAULT_UDP_PORT, MAX_UDP_PORT, MIN_UDP_PORT, SOURCE_LOCAL,
 )
 from .geo import (
     DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MAX_VESSELS, MIN_RADIUS_KM,
@@ -74,6 +75,56 @@ async def outside_share_for(hass, cfg) -> float | None:
     except Exception:                              # noqa: BLE001
         _LOGGER.debug("coverage check skipped", exc_info=True)
         return None
+
+
+def _port_selector():
+    """A number box, not vol.Range: the range is checked by udp_port_error, so
+    the error the user reads is ours, in their language."""
+    return selector.NumberSelector(selector.NumberSelectorConfig(
+        min=MIN_UDP_PORT, max=MAX_UDP_PORT, step=1,
+        mode=selector.NumberSelectorMode.BOX))
+
+
+def _port_free(port: int) -> bool:
+    """True if nothing on this machine holds the UDP port. Run in the executor."""
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.bind(("0.0.0.0", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
+
+
+async def udp_port_error(hass, value, own_entry_id=None) -> str | None:
+    """The error key for a receiver's UDP port, or None (backlog 344).
+    ⚠ Checked in this order: the range, another Ships area listening on it
+    (whose own socket would also make the bind fail, but deserves its own
+    words), then anything else on the machine holding it. An entry's own
+    port is not busy to itself: its socket is open while its settings are."""
+    try:
+        port = int(value)
+    except (TypeError, ValueError):
+        return "udp_port_range"
+    if not MIN_UDP_PORT <= port <= MAX_UDP_PORT:
+        return "udp_port_range"
+    for e in hass.config_entries.async_entries(DOMAIN):
+        if e.entry_id == own_entry_id:
+            continue
+        cfg = {**e.data, **e.options}
+        if (cfg.get(CONF_SOURCE) == SOURCE_LOCAL
+                and int(cfg.get(CONF_UDP_PORT, DEFAULT_UDP_PORT)) == port):
+            return "udp_port_taken"
+    if own_entry_id is not None:
+        own = hass.config_entries.async_get_entry(own_entry_id)
+        cfg = {**own.data, **own.options} if own else {}
+        if int(cfg.get(CONF_UDP_PORT, DEFAULT_UDP_PORT)) == port:
+            return None
+    if not await hass.async_add_executor_job(_port_free, port):
+        return "udp_port_busy"
+    return None
 
 
 class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -163,6 +214,18 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors[CONF_CLIENT_ID] = "client_id_required"
                 if not user_input.get(CONF_CLIENT_SECRET):
                     errors[CONF_CLIENT_SECRET] = "client_secret_required"
+            # Your own receiver (backlog 344): the port must be one this area
+            # can open. Only the receiver's entry keeps a port.
+            if source == SOURCE_LOCAL:
+                port_err = await udp_port_error(
+                    self.hass, user_input.get(CONF_UDP_PORT, DEFAULT_UDP_PORT))
+                if port_err:
+                    errors[CONF_UDP_PORT] = port_err
+                else:
+                    user_input[CONF_UDP_PORT] = int(
+                        user_input.get(CONF_UDP_PORT, DEFAULT_UDP_PORT))
+            else:
+                user_input.pop(CONF_UDP_PORT, None)
 
             if not errors:
                 # ⚠ unique_id is the CENTRE and SOURCE, not the title. Two
@@ -255,6 +318,11 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # change it.
                 default=prior.get(CONF_API_KEY) or self._existing(CONF_API_KEY)):
                 cv.string,
+            # Your own receiver (backlog 344): the UDP port it sends NMEA to.
+            vol.Optional(
+                CONF_UDP_PORT,
+                default=prior.get(CONF_UDP_PORT, DEFAULT_UDP_PORT)):
+                _port_selector(),
             # ONE map marker, not two number fields (backlog 317, item 268).
             # A re-render after an error shows the marker where it was put.
             vol.Required(
@@ -308,6 +376,15 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                     # The same source already watches that centre in another
                     # entry: two would double every vessel and spend a connection.
                     errors[CONF_LOCATION] = "already_watched"
+            if current.get(CONF_SOURCE) == SOURCE_LOCAL:
+                port_err = await udp_port_error(
+                    self.hass, user_input.get(CONF_UDP_PORT, DEFAULT_UDP_PORT),
+                    self.config_entry.entry_id)
+                if port_err:
+                    errors[CONF_UDP_PORT] = port_err
+                elif not loc_error:
+                    values[CONF_UDP_PORT] = int(
+                        user_input.get(CONF_UDP_PORT, DEFAULT_UDP_PORT))
             if not errors:
                 # ⚠ Item 249: a larger radius or a moved centre can push the
                 # circle past what BarentsWatch shows.
@@ -320,6 +397,13 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                         return await self.async_step_coverage()
                 return self._save(values)
 
+        port_field = {}
+        if current.get(CONF_SOURCE) == SOURCE_LOCAL:
+            # Your own receiver (backlog 344): its port can change here.
+            port_field = {vol.Required(
+                CONF_UDP_PORT,
+                default=(user_input or {}).get(CONF_UDP_PORT)
+                or current.get(CONF_UDP_PORT, DEFAULT_UDP_PORT)): _port_selector()}
         return self.async_show_form(
             step_id="init",
             errors=errors,
@@ -356,6 +440,7 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                         min=MIN_INSTANCE_MAX_VESSELS, max=INSTANCE_MAX_VESSELS,
                         step=INSTANCE_MAX_STEP,
                         mode=selector.NumberSelectorMode.SLIDER)),
+                **port_field,
                 # No icon options: one icon form for every entry (const_flow.py).
             }),
         )

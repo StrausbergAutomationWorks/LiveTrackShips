@@ -77,6 +77,7 @@ AIS 没有像飞机那样的退出名单，本集成也不会自造一份。如�
 | BarentsWatch | 有 | 有 | 未见 |
 | Digitraffic | 未见 | 有 | 未见 |
 | aisstream.io | 未见 | 未见 | 未见 |
+| 你自己的接收机 | 收到什么就有什么 | 收到什么就有什么 | 收到什么就有什么 |
 
 aisstream.io 只提供了船舶位置和船舶详情消息，无论是在北美五大湖上空，还是在
 BarentsWatch 显示浮标的同一片挪威和丹麦水域。
@@ -90,8 +91,25 @@ BarentsWatch 显示浮标的同一片挪威和丹麦水域。
 | aisstream.io | 全球，凡有志愿者运行接收机的地方 | 一个免费的 API 密钥 |
 | Fintraffic Digitraffic | 芬兰和波罗的海水域 | 不需要 |
 | BarentsWatch AIS Live | 挪威水域 | 免费的客户端 ID 和客户端密钥 |
+| 你自己的 AIS 接收机 | 你的天线能收到多远就多远 | 一台通过 UDP 发送 NMEA 的接收机 |
 
 会出现哪些类别、位置有多新、船舶详情有多完整，都取决于你选择的数据源。
+
+### 你自己的接收机
+
+如果你有一台 AIS 接收机，Live Track Ships 可以显示它收到的内容，不需要账户，也不需要
+互联网。接收机或为它解码的程序，通过 UDP 把 NMEA 语句（`!AIVDM`）发送到 Home Assistant
+的地址和你选定的端口（不改的话是 10110）。在 AIS-catcher 中用 `-u <address> <port>`，
+在 rtl-ais 中用 `-h <address> -P <port>`；OpenCPN 和 Signal K 把它添加为一个 UDP 输出
+连接。通过 USB 连接的接收机（例如 dAISy）需要借助上述某个程序来转发它的语句。
+
+- 一个区域监听一个端口；两台接收机需要两个端口。
+- 接收机在你圆圈内收到的一切都会显示，包括助航设施和基站。站点传感器（见下文）还会
+  统计它在圆圈外收到的内容。
+- 语句不带日期，所以一个位置的时间是 Home Assistant 收到它的时间。
+- 此数据源不显示转向速率。
+- 目前只用通过 UDP 发送的录制语句测试过，还没有用真实接收机测试。如果你用自己的接收机
+  试过，请在 [issues 页面](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues) 告诉我们结果。
 
 ### 数据来源说明
 
@@ -106,6 +124,7 @@ BarentsWatch 显示浮标的同一片挪威和丹麦水域。
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch**：挪威政府开放数据许可（NLOD）。
   <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **你自己的接收机**：你自己的数据；其署名行会注明这一点。
 - **EnforcementVessels**（海岸警卫队外观背后的名单，见下文）：ODbL v1.0。
   <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
 
@@ -113,15 +132,17 @@ BarentsWatch 显示浮标的同一片挪威和丹麦水域。
 
 ## 要求
 
-- Home Assistant 2026.11 或更新版本，并能访问互联网。
+- Home Assistant 2026.11 或更新版本，在线数据源需要能访问互联网。
 - 使用 aisstream.io：需要从 [aisstream.io](https://aisstream.io/account)
   获取的免费 API 密钥。aisstream **每个账户和每个公网 IP 各允许三个连接**；
   如果你还有其他工具使用同一个密钥，请把它们算进去。如果安装了 Live Track SALT，
   它会用同一个密钥占用第二个连接。
 - 使用 BarentsWatch：需要你自己在 BarentsWatch 注册的免费客户端 ID 和客户端
   密钥。请完全按照发放时的样子输入客户端 ID。
+- 使用你自己的接收机：需要一台接收机和一个程序，在同一网络内通过 UDP 向
+  Home Assistant 发送 NMEA。这不需要互联网。
 - 首次加载本集成时，Home Assistant 会自动安装所需的 Python 包
-  （`saw-livetrack`）。
+  （`saw-livetrack` 和 `pyais`）。
 
 ## 安装
 
@@ -153,9 +174,10 @@ Assistant 使用简体中文时，设置对话框也以简体中文显示。
 
 | 字段 | 填写内容 | 默认值 |
 |---|---|---|
-| 数据源 | aisstream.io、Fintraffic Digitraffic 或 BarentsWatch AIS Live | aisstream.io |
+| 数据源 | aisstream.io、Fintraffic Digitraffic、BarentsWatch AIS Live 或你自己的 AIS 接收机 | aisstream.io |
 | API 密钥 | 仅 aisstream.io。从你已经设置的区域自动填入；可以修改 | 空 |
 | 客户端 ID、客户端密钥 | 仅 BarentsWatch。从你已经设置的区域自动填入 | 空 |
+| UDP 端口 | 仅你自己的接收机：它发送 NMEA 的端口，1024 到 65535。如果另一个区域或另一个程序已在使用，会被拒绝 | 10110 |
 | 中心点 | 地图上的一个标记；把它拖到你想观察的水域 | 你的家 |
 | 半径（公里） | 1 到 500 | 50 |
 | 最多跟踪船只数 | 1 到 5,000；本区域的安全上限，保留最近的船只 | 1,000 |
@@ -166,7 +188,7 @@ BarentsWatch 发布的水域之外时，对话框会在创建区域之前告诉�
 
 **区域的设置**（在其条目上点“配置”）：中心点，使用同一个地图标记；半径；最多
 跟踪船只数；以及*地图上的最多船只数，所有 Live Track Ships 条目合计*，这是一个从
-100 到 2,500、步长 100 的滑块（默认 2,500）。移动中心点会按新位置重命名该区域
+100 到 2,500、步长 100 的滑块（默认 2,500）；对于你自己的接收机，还有它的 UDP 端口。移动中心点会按新位置重命名该区域
 并重新加载。同一个数据源仍然不能从两个区域观察同一个中心点。
 
 ## 会创建什么
@@ -177,9 +199,13 @@ BarentsWatch 发布的水域之外时，对话框会在创建区域之前告诉�
   每项只在数据源发送时才有。被两个区域看到的船只是同一个实体。
 - **每个区域一个传感器**，`sensor.ships_in_range`，统计显示的船只数；当区域或
   整个安装的上限截断列表时，它会说明。
+- **对于你自己的接收机，还有一个传感器**，`sensor.ais_station`：每分钟消息数。其属性有
+  `vessels_heard`（最近 10 分钟内）、`farthest_km` 和 `farthest_mmsi`（相对区域中心点）、
+  `last_message`、`udp_port`、`listening`，以及端口无法打开时的 `port_error`。它每 30 秒
+  更新一次，所以停止发送的接收机会显示 0。
 
-在你的圆圈外收到的船会立即从地图上消失。为了能收到这一点，每个数据源都会被请求
-比你的圆圈稍大一圈的范围（大 10%，至少 1 公里）；只保留你圆圈内的船只。之后再也
+在你的圆圈外收到的船会立即从地图上消失。为了能收到这一点，每个在线数据源都会被请求
+比你的圆圈稍大一圈的范围（大 10%，至少 1 公里），而你自己的接收机会发送它收到的一切；只保留你圆圈内的船只。之后再也
 没有收到的船会在一段静默期后消失，而不再出现的船并不一定已经离开（见下文）。
 
 ## 事件：有船进入或离开你的区域

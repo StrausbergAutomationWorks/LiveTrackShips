@@ -53,6 +53,15 @@ def kind_of(cfg) -> str:
 SOURCE_AISSTREAM = "aisstream"
 SOURCE_DIGITRAFFIC = "digitraffic"
 SOURCE_BARENTSWATCH = "barentswatch"
+# ⚠ YOUR OWN RECEIVER (backlog 344, Lee 2026-11-15): NMEA sentences over UDP to
+# a port on Home Assistant, decoded by pyais (sources/nmea.py). No account; the
+# area's circle still applies, and the entry gets a station sensor.
+SOURCE_LOCAL = "local"
+CONF_UDP_PORT = "udp_port"
+DEFAULT_UDP_PORT = 10110
+# Unprivileged ports only: below 1024 belongs to the system's own services.
+MIN_UDP_PORT = 1024
+MAX_UDP_PORT = 65535
 
 # ⚠ aisstream is the ONLY free, live, GLOBAL source that needs no receiver.
 # Digitraffic is open and needs no credentials but covers Finnish and Baltic
@@ -84,6 +93,8 @@ ATTRIBUTION = {
         "Contains data under the Norwegian licence for Open Government data "
         "(NLOD) (https://data.norge.no/nlod/en/2.0) distributed by BarentsWatch "
         "(https://www.barentswatch.no). " + _CHANGED),
+    # Nobody else's data: what the user's own receiver heard.
+    SOURCE_LOCAL: "Data: your own AIS receiver",
 }
 
 
@@ -99,6 +110,7 @@ SOURCES = {
                         "no key",
     SOURCE_BARENTSWATCH: "BarentsWatch AIS Live — Norwegian waters, "
                          "free client registration required",
+    SOURCE_LOCAL: "Your own AIS receiver — NMEA over UDP, no account",
 }
 
 # ⚠⚠ THIS IS A SAFETY CEILING, NOT A DISPLAY LIMIT. Revised 2026-09-08.

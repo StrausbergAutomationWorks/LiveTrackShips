@@ -18,16 +18,18 @@
           "radius_km": "Ga (km)",
           "max_vessels": "Uasmhéid soithí le rianú",
           "client_id": "Client ID",
-          "client_secret": "Client secret"
+          "client_secret": "Client secret",
+          "udp_port": "Port UDP (do ghlacadóir féin)"
         },
         "data_description": {
-          "source": "Clúdaíonn aisstream.io an domhan ar fad agus tá eochair API saor in aisce ag teastáil. Níl eochair ag teastáil ó Fintraffic Digitraffic, ach ní chlúdaíonn sé ach uiscí na Fionlainne agus na Mara Baltaí. Clúdaíonn BarentsWatch uiscí na hIorua agus tugann sé na sonraí is fearr den triúr, le hainm agus cineál an tsoithigh le gach suíomh, ach tá clárú cliaint saor in aisce ag teastáil.",
+          "source": "Clúdaíonn aisstream.io an domhan ar fad agus tá eochair API saor in aisce ag teastáil. Níl eochair ag teastáil ó Fintraffic Digitraffic, ach ní chlúdaíonn sé ach uiscí na Fionlainne agus na Mara Baltaí. Clúdaíonn BarentsWatch uiscí na hIorua agus tugann sé na sonraí is fearr den triúr, le hainm agus cineál an tsoithigh le gach suíomh, ach tá clárú cliaint saor in aisce ag teastáil. Níl cuntas ag teastáil ó do ghlacadóir AIS féin: socraigh é chun NMEA a sheoladh thar UDP chuig Home Assistant.",
           "api_key": "Riachtanach do aisstream.io. Saor in aisce ag {aisstream_url}. Ní thaispeántar í ach uair amháin, mar sin cóipeáil í sula ndúnann tú an leathanach.",
           "radius_km": "Idir {radius_min} agus {radius_max} km. Braitheann líon na soithí i bhfad níos mó ar an uisce ná ar an méid: bhí thart ar 4 shoitheach i gciorcal 50 km os cionn Chicago agus thart ar 340 os cionn an Solent.",
           "max_vessels": "Teorainn sábháilteachta, ní socrú taispeána. Láimhseálann an léarscáil líon mór; cosnaíonn sé seo Home Assistant ar gha an-mhór os cionn uisce an-ghnóthach.",
           "client_id": "BarentsWatch amháin. Cláraigh cliant AIS saor in aisce ag barentswatch.no/minside. Tá cuma mar seo ar an ID: do.ríomhphost@example.com:live_track_ships; cuir isteach díreach mar sin é.",
           "client_secret": "BarentsWatch amháin. Taispeántar é uair amháin nuair a chruthaítear an cliant; gin ceann nua mura gcoinnigh tú é.",
-          "location": "Tarraing an marcóir go lár an uisce is mian leat a fhaire. Tosaíonn sé ag do theach. Is é an ciorcal an ga thíos; ní tharraingítear anseo é."
+          "location": "Tarraing an marcóir go lár an uisce is mian leat a fhaire. Tosaíonn sé ag do theach. Is é an ciorcal an ga thíos; ní tharraingítear anseo é.",
+          "udp_port": "Do do ghlacadóir féin amháin. Socraigh an glacadóir nó a dhíchódóir (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) chun abairtí NMEA a sheoladh thar UDP chuig seoladh an Home Assistant seo, ar an bport seo. Is é 10110 an gnáthphort."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Caithfidh MMSI 9 ndigit a bheith ag tús gach líne.",
       "vessels_empty": "Cuir soitheach amháin ar a laghad leis.",
       "vessels_too_many": "{max_vessels} soitheach ar a mhéad i liosta amháin.",
-      "watch_key_required": "Teastaíonn eochair API aisstream.io chun soithí a leanúint. Faigh ceann saor in aisce ag {aisstream_url}."
+      "watch_key_required": "Teastaíonn eochair API aisstream.io chun soithí a leanúint. Faigh ceann saor in aisce ag {aisstream_url}.",
+      "udp_port_range": "Caithfidh an port a bheith ina uimhir idir 1024 agus 65535.",
+      "udp_port_taken": "Tá limistéar eile de chuid Live Track Ships ag éisteacht ar an bport seo cheana. Tá a phort féin ag teastáil ó gach glacadóir.",
+      "udp_port_busy": "Tá clár eile ar an ríomhaire seo ag úsáid an phoirt UDP seo cheana. Roghnaigh ceann eile, nó stop an clár sin."
     },
     "abort": {
       "already_configured": "Tá an fhoinse seo ag faire an láir sin cheana.",
@@ -71,11 +76,13 @@
           "radius_km": "Ga (km)",
           "max_vessels": "Uasmhéid soithí le rianú",
           "instance_max_vessels": "Uasmhéid soithí ar an léarscáil, iontrálacha uile Live Track Ships le chéile",
-          "location": "Lár"
+          "location": "Lár",
+          "udp_port": "Port UDP (do ghlacadóir féin)"
         },
         "data_description": {
           "instance_max_vessels": "Ísligh é seo ar ríomhaire beag. Áiríonn sé gach iontráil Live Track Ships, cibé foinse atá aici. Má tá níos mó ná iontráil amháin ann, is é an socrú is ísle a bhíonn i bhfeidhm.",
-          "location": "Tarraing an marcóir chun an limistéar seo a bhogadh. Ní féidir leis an bhfoinse chéanna an lár céanna a fhaire faoi dhó."
+          "location": "Tarraing an marcóir chun an limistéar seo a bhogadh. Ní féidir leis an bhfoinse chéanna an lár céanna a fhaire faoi dhó.",
+          "udp_port": "An port UDP a sheolann do ghlacadóir NMEA chuige. Athlódálann athrú an limistéar."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Tá limistéar eile leis an bhfoinse chéanna ag faire an láir seo cheana.",
       "vessels_invalid": "Caithfidh MMSI 9 ndigit a bheith ag tús gach líne.",
       "vessels_empty": "Cuir soitheach amháin ar a laghad leis.",
-      "vessels_too_many": "{max_vessels} soitheach ar a mhéad i liosta amháin."
+      "vessels_too_many": "{max_vessels} soitheach ar a mhéad i liosta amháin.",
+      "udp_port_range": "Caithfidh an port a bheith ina uimhir idir 1024 agus 65535.",
+      "udp_port_taken": "Tá limistéar eile de chuid Live Track Ships ag éisteacht ar an bport seo cheana. Tá a phort féin ag teastáil ó gach glacadóir.",
+      "udp_port_busy": "Tá clár eile ar an ríomhaire seo ag úsáid an phoirt UDP seo cheana. Roghnaigh ceann eile, nó stop an clár sin."
     }
   },
   "entity": {

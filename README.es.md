@@ -94,6 +94,7 @@ Lo que aparece depende de la fuente. Medido una noche:
 | BarentsWatch | sí | sí | ninguna vista |
 | Digitraffic | ninguna vista | sí | ninguna vista |
 | aisstream.io | ninguna vista | ninguna vista | ninguna vista |
+| Tu propio receptor | lo que oiga | lo que oiga | lo que oiga |
 
 aisstream.io solo entregó mensajes de posición y de datos del buque, tanto
 sobre los Grandes Lagos como sobre las mismas aguas noruegas y danesas donde
@@ -108,9 +109,31 @@ Eliges una fuente para cada zona que configuras.
 | aisstream.io | todo el mundo, donde hay voluntarios con receptores | una clave API gratuita |
 | Fintraffic Digitraffic | aguas finlandesas y bálticas | nada |
 | BarentsWatch AIS Live | aguas noruegas | un ID de cliente y un secreto gratuitos |
+| Tu propio receptor AIS | hasta donde oiga tu antena | un receptor que envíe NMEA por UDP |
 
 Qué categorías aparecen, lo recientes que son las posiciones y lo completos
 que son los datos de los buques depende de la fuente que elijas.
+
+### Tu propio receptor
+
+Si tienes un receptor AIS, Live Track Ships puede mostrar lo que oye, sin
+cuenta y sin Internet. El receptor, o el programa que lo decodifica, envía
+frases NMEA (`!AIVDM`) por UDP a la dirección de Home Assistant, en un puerto
+que eliges tú (10110 si no lo cambias). En AIS-catcher es
+`-u <address> <port>`; en rtl-ais, `-h <address> -P <port>`; OpenCPN y
+Signal K lo añaden como conexión de salida UDP. Un receptor que se conecta
+por USB, como un dAISy, necesita uno de esos programas para pasar sus frases.
+
+- Una zona escucha en un puerto; dos receptores necesitan dos puertos.
+- Se muestra todo lo que el receptor oye dentro de tu círculo, incluidas
+  ayudas a la navegación y estaciones base. El sensor de estación (más abajo)
+  cuenta también lo que oye fuera del círculo.
+- Una frase no lleva fecha, así que la hora de una posición es cuando Home
+  Assistant la recibió.
+- La velocidad de giro no se muestra para esta fuente.
+- Por ahora está probado con frases grabadas enviadas por UDP, no con un
+  receptor. Si lo pruebas con el tuyo, cuéntanos cómo fue en la
+  [página de issues](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues).
 
 ### Atribución
 
@@ -127,6 +150,7 @@ público, mantén la cita y lee las condiciones de la fuente:
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch**: licencia noruega de datos públicos abiertos (NLOD).
   <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **Tu propio receptor**: tus propios datos; su línea lo dice.
 - **EnforcementVessels** (la lista que hay detrás del aspecto de guardacostas,
   más abajo): ODbL v1.0.
   <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
@@ -135,7 +159,8 @@ Las líneas exactas están en [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Requisitos
 
-- Home Assistant 2026.11 o posterior, con salida a Internet.
+- Home Assistant 2026.11 o posterior, con salida a Internet para las fuentes
+  en línea.
 - Para aisstream.io: una clave API gratuita de
   [aisstream.io](https://aisstream.io/account). aisstream permite **tres
   conexiones por cuenta y tres por IP pública**; si usas otras herramientas
@@ -144,8 +169,10 @@ Las líneas exactas están en [ATTRIBUTION.md](ATTRIBUTION.md).
 - Para BarentsWatch: un ID de cliente y un secreto gratuitos, que registras tú
   mismo en BarentsWatch. Introduce el ID de cliente exactamente como te lo
   dieron.
-- Home Assistant instala el paquete de Python necesario (`saw-livetrack`) la
-  primera vez que carga la integración.
+- Para tu propio receptor: un receptor y un programa que envíen NMEA por UDP a
+  Home Assistant, en la misma red. No necesita Internet.
+- Home Assistant instala los paquetes de Python necesarios (`saw-livetrack` y
+  `pyais`) la primera vez que carga la integración.
 
 ## Instalación
 
@@ -179,9 +206,10 @@ El diálogo aparece en español cuando Home Assistant está en español.
 
 | Campo | Qué admite | Por defecto |
 |---|---|---|
-| Fuente de datos | aisstream.io, Fintraffic Digitraffic o BarentsWatch AIS Live | aisstream.io |
+| Fuente de datos | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live o tu propio receptor AIS | aisstream.io |
 | Clave API | solo aisstream.io. Se toma de una zona que ya configuraste; puedes cambiarla | vacía |
 | ID de cliente, secreto de cliente | solo BarentsWatch. Se toman de una zona que ya configuraste | vacíos |
+| Puerto UDP | solo tu propio receptor: el puerto al que envía NMEA, de 1024 a 65535. Se rechaza si otra zona u otro programa ya lo usa | 10110 |
 | Centro | un marcador en un mapa; arrástralo al agua que quieres vigilar | tu casa |
 | Radio (km) | de 1 a 500 | 50 |
 | Número máximo de buques seguidos | de 1 a 5.000; un límite de seguridad para esta zona, se quedan los más cercanos | 1.000 |
@@ -194,7 +222,7 @@ quedarte con ese círculo de todos modos.
 **Ajustes de una zona** (Configurar en su entrada): el centro, con el mismo
 marcador; el radio; el número máximo de buques seguidos; y *Número máximo de
 buques en el mapa, todas las entradas de Live Track Ships juntas*, un control
-deslizante de 100 a 2.500 en pasos de 100 (2.500 por defecto). Mover el centro
+deslizante de 100 a 2.500 en pasos de 100 (2.500 por defecto); y, para tu propio receptor, su puerto UDP. Mover el centro
 cambia el nombre de la zona según su nueva posición y la recarga. Una misma
 fuente sigue sin poder vigilar un centro desde dos zonas.
 
@@ -209,10 +237,15 @@ fuente sigue sin poder vigilar un centro desde dos zonas.
 - **Un sensor por zona**, `sensor.ships_in_range`, que cuenta los buques
   mostrados y lo dice cuando el límite de la zona o de toda la instalación
   recorta la lista.
+- **Para tu propio receptor, un sensor más**, `sensor.ais_station`: mensajes
+  por minuto. Sus atributos son `vessels_heard` (en los últimos 10 minutos),
+  `farthest_km` y `farthest_mmsi` (desde el centro de la zona),
+  `last_message`, `udp_port`, `listening`, y `port_error` cuando no se puede
+  abrir el puerto. Se actualiza cada 30 segundos, así que un receptor que deja
+  de enviar muestra 0.
 
 Un buque que se oye fuera de tu círculo sale del mapa enseguida. Para oírlo,
-a cada fuente se le pide un anillo un poco mayor que tu círculo (un 10 %, al
-menos 1 km); solo se guardan los buques de dentro de tu círculo. Un buque que
+a cada fuente en línea se le pide un anillo un poco mayor que tu círculo (un 10 %, al menos 1 km), y tu propio receptor envía todo lo que oye; solo se guardan los buques de dentro de tu círculo. Un buque que
 ya no se oye sale del mapa tras un periodo de silencio, y un buque que deja de
 aparecer no tiene por qué haberse ido (más abajo).
 

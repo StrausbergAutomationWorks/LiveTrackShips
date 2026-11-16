@@ -19,7 +19,8 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues",
   "requirements": [
-    "saw-livetrack>=0.2.21,<0.3"
+    "saw-livetrack>=0.2.21,<0.3",
+    "pyais>=3.3,<4"
   ],
   "version": "0.1.0"
 }

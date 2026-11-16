@@ -166,5 +166,59 @@ o.hass.config_entries.async_entries = lambda domain: [me]
 check("the entry's own id never blocks it",
       o._uid_taken({CONF_LATITUDE: 59.5, CONF_LONGITUDE: 24.75}), False)
 
+print("\n=== your own receiver's UDP port (backlog 344) ===")
+import asyncio                                                     # noqa: E402
+import socket                                                      # noqa: E402
+from live_track_ships.config_flow import udp_port_error           # noqa: E402
+from live_track_ships.const_flow import (                         # noqa: E402
+    CONF_UDP_PORT, DEFAULT_UDP_PORT, SOURCE_LOCAL)
+
+
+def port_hass(entries):
+    async def run(fn, *a):
+        return fn(*a)
+    return types.SimpleNamespace(
+        async_add_executor_job=run,
+        config_entries=types.SimpleNamespace(
+            async_entries=lambda domain: entries,
+            async_get_entry=lambda eid: next((e for e in entries if e.entry_id == eid), None)))
+
+
+def local(eid, port=None, source=SOURCE_LOCAL):
+    data = {CONF_SOURCE: source}
+    if port is not None:
+        data[CONF_UDP_PORT] = port
+    return types.SimpleNamespace(entry_id=eid, data=data, options={})
+
+
+def perr(entries, value, own=None):
+    return asyncio.run(udp_port_error(port_hass(entries), value, own))
+
+
+holder = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+holder.bind(("0.0.0.0", 0))
+busy = holder.getsockname()[1]
+free_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+free_s.bind(("0.0.0.0", 0))
+free = free_s.getsockname()[1]
+free_s.close()
+check("a free port -> no error", perr([], free), None)
+check("a number box sends a float: accepted", perr([], float(free)), None)
+check("below 1024 -> range", perr([], 514), "udp_port_range")
+check("above 65535 -> range", perr([], 70000), "udp_port_range")
+check("not a number -> range", perr([], "abc"), "udp_port_range")
+check("another program holds it -> busy", perr([], busy), "udp_port_busy")
+check("another Ships area listens on it -> taken",
+      perr([local("a", free)], free), "udp_port_taken")
+check("an area with no port stored listens on 10110",
+      perr([local("a")], DEFAULT_UDP_PORT), "udp_port_taken")
+check("an aisstream area does not hold a port",
+      perr([local("a", free, SOURCE_AISSTREAM)], free), None)
+check("the entry's own port is not busy to itself (its socket is open)",
+      perr([local("me", busy)], busy, own="me"), None)
+check("but a different busy port still is",
+      perr([local("me", free)], busy, own="me"), "udp_port_busy")
+holder.close()
+
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

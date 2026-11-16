@@ -31,6 +31,7 @@ from .const_flow import (
     CONF_LONGITUDE, CONF_MAX_VESSELS, CONF_RADIUS_KM, CONF_SOURCE,
     DEFAULT_MAX_VESSELS, DOMAIN, NOTIFY_WINDOW_S, PLATFORMS,
     SOURCE_BARENTSWATCH, SOURCE_DIGITRAFFIC,
+    CONF_UDP_PORT, DEFAULT_UDP_PORT, SOURCE_LOCAL,
 )
 from .const_flow import attribution_for
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes, listen_margin_km
@@ -295,6 +296,13 @@ class ShipFeed:
         # leaving is heard outside; the store keeps only the user's circle.
         margin = listen_margin_km(self.radius)
         listen = self.radius + margin
+        if self._cfg[CONF_SOURCE] == SOURCE_LOCAL:
+            from .sources.nmea import NmeaUdpSource
+            # ⚠ The receiver hears what it hears; no ring is asked of it. The
+            # store keeps the circle, and the station sensor counts the rest.
+            return NmeaUdpSource(self._cfg.get(CONF_UDP_PORT, DEFAULT_UDP_PORT),
+                                 self.lat, self.lon,
+                                 self._statics.cache if self._statics else None)
         if self._cfg[CONF_SOURCE] == SOURCE_DIGITRAFFIC:
             from .sources.digitraffic import DigitrafficSource
             return DigitrafficSource(session, self.lat, self.lon, listen)
@@ -325,7 +333,8 @@ class ShipFeed:
                                self.hass.async_create_background_task(coro, name))
 
     async def start(self):
-        # ⚠ Only aisstream learns statics from the air. BarentsWatch sends
+        # ⚠ Only aisstream and your own receiver (344) learn statics from the
+        # air, into the one shared cache. BarentsWatch sends
         # them with every position and Digitraffic's server keeps them, so a
         # restart costs those two nothing (SSOT item 262, read 2026-09-26).
         if self._cfg[CONF_SOURCE] not in (SOURCE_DIGITRAFFIC,

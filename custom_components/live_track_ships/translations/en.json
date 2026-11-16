@@ -18,16 +18,18 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Maximum vessels to track",
           "client_id": "Client ID",
-          "client_secret": "Client secret"
+          "client_secret": "Client secret",
+          "udp_port": "UDP port (your own receiver)"
         },
         "data_description": {
-          "source": "aisstream.io covers the whole world and needs a free API key. Fintraffic Digitraffic needs no key but only covers Finnish and Baltic waters. BarentsWatch covers Norwegian waters and gives the best data of the three, with names and vessel types on every position, but needs a free client registration.",
+          "source": "aisstream.io covers the whole world and needs a free API key. Fintraffic Digitraffic needs no key but only covers Finnish and Baltic waters. BarentsWatch covers Norwegian waters and gives the best data of the three, with names and vessel types on every position, but needs a free client registration. Your own AIS receiver needs no account: set it to send NMEA over UDP to Home Assistant.",
           "api_key": "Required for aisstream.io. Get one free at {aisstream_url}. It is shown once, so copy it before closing the page.",
           "radius_km": "Between {radius_min} and {radius_max} km. How many vessels this holds depends far more on which water than on how large: a 50 km circle held about 4 vessels over Chicago and about 340 over the Solent.",
           "max_vessels": "A safety limit, not a display setting. The map handles large numbers; this protects Home Assistant from a very large radius over very busy water.",
           "client_id": "BarentsWatch only. Register a free AIS client at barentswatch.no/minside. The ID looks like your.email@example.com:live_track_ships; enter it exactly as shown.",
           "client_secret": "BarentsWatch only. Shown once when the client is created; generate a new one if you did not keep it.",
-          "location": "Drag the marker to the middle of the water you want to watch. It starts at your home. The circle is the radius below; it is not drawn here."
+          "location": "Drag the marker to the middle of the water you want to watch. It starts at your home. The circle is the radius below; it is not drawn here.",
+          "udp_port": "Your own receiver only. Set the receiver or its decoder (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) to send NMEA sentences over UDP to this Home Assistant's address, on this port. 10110 is the usual one."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Each line must start with a 9-digit MMSI.",
       "vessels_empty": "Add at least one vessel.",
       "vessels_too_many": "At most {max_vessels} vessels in one list.",
-      "watch_key_required": "Following vessels needs an aisstream.io API key. Get one free at {aisstream_url}."
+      "watch_key_required": "Following vessels needs an aisstream.io API key. Get one free at {aisstream_url}.",
+      "udp_port_range": "The port must be a number from 1024 to 65535.",
+      "udp_port_taken": "Another Live Track Ships area already listens on this port. Each receiver needs its own.",
+      "udp_port_busy": "Another program on this machine already uses this UDP port. Choose another, or stop that program."
     },
     "abort": {
       "already_configured": "This source is already watching that centre.",
@@ -71,11 +76,13 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Maximum vessels to track",
           "instance_max_vessels": "Maximum vessels on the map, all Live Track Ships entries together",
-          "location": "Centre"
+          "location": "Centre",
+          "udp_port": "UDP port (your own receiver)"
         },
         "data_description": {
           "instance_max_vessels": "Lower this on a small machine. It counts every Live Track Ships entry, whatever its source. With more than one entry, the lowest setting applies.",
-          "location": "Drag the marker to move this area. The same source cannot watch the same centre twice."
+          "location": "Drag the marker to move this area. The same source cannot watch the same centre twice.",
+          "udp_port": "The UDP port your receiver sends NMEA to. Changing it reloads the area."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Another area with the same source already watches this centre.",
       "vessels_invalid": "Each line must start with a 9-digit MMSI.",
       "vessels_empty": "Add at least one vessel.",
-      "vessels_too_many": "At most {max_vessels} vessels in one list."
+      "vessels_too_many": "At most {max_vessels} vessels in one list.",
+      "udp_port_range": "The port must be a number from 1024 to 65535.",
+      "udp_port_taken": "Another Live Track Ships area already listens on this port. Each receiver needs its own.",
+      "udp_port_busy": "Another program on this machine already uses this UDP port. Choose another, or stop that program."
     }
   },
   "entity": {

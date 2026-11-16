@@ -18,16 +18,18 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Höchstzahl verfolgter Schiffe",
           "client_id": "Client-ID",
-          "client_secret": "Client-Secret"
+          "client_secret": "Client-Secret",
+          "udp_port": "UDP-Port (eigener Empfänger)"
         },
         "data_description": {
-          "source": "aisstream.io deckt die ganze Welt ab und braucht einen kostenlosen API-Schlüssel. Fintraffic Digitraffic braucht keinen Schlüssel, deckt aber nur finnische und baltische Gewässer ab. BarentsWatch deckt norwegische Gewässer ab und liefert die besten Daten der drei, mit Namen und Schiffstyp bei jeder Position, braucht aber eine kostenlose Client-Registrierung.",
+          "source": "aisstream.io deckt die ganze Welt ab und braucht einen kostenlosen API-Schlüssel. Fintraffic Digitraffic braucht keinen Schlüssel, deckt aber nur finnische und baltische Gewässer ab. BarentsWatch deckt norwegische Gewässer ab und liefert die besten Daten der drei, mit Namen und Schiffstyp bei jeder Position, braucht aber eine kostenlose Client-Registrierung. Ein eigener AIS-Empfänger braucht kein Konto: Stellen Sie ihn so ein, dass er NMEA per UDP an Home Assistant sendet.",
           "api_key": "Für aisstream.io erforderlich. Kostenlos unter {aisstream_url}. Er wird nur einmal angezeigt, kopieren Sie ihn also, bevor Sie die Seite schließen.",
           "radius_km": "Zwischen {radius_min} und {radius_max} km. Wie viele Schiffe darin liegen, hängt viel mehr vom Gewässer ab als von der Größe: ein Kreis von 50 km enthielt über Chicago etwa 4 Schiffe und über dem Solent etwa 340.",
           "max_vessels": "Eine Sicherheitsgrenze, keine Anzeigeeinstellung. Die Karte verkraftet große Zahlen; dies schützt Home Assistant vor einem sehr großen Radius über sehr belebtem Wasser.",
           "client_id": "Nur BarentsWatch. Registrieren Sie einen kostenlosen AIS-Client unter barentswatch.no/minside. Die ID sieht aus wie ihre.email@example.com:live_track_ships; geben Sie sie genau so ein.",
           "client_secret": "Nur BarentsWatch. Wird einmal angezeigt, wenn der Client erstellt wird; erzeugen Sie ein neues, wenn Sie es nicht aufbewahrt haben.",
-          "location": "Ziehen Sie die Markierung in die Mitte des Gewässers, das Sie beobachten möchten. Sie beginnt bei Ihrem Zuhause. Der Kreis ist der Radius darunter; er wird hier nicht gezeichnet."
+          "location": "Ziehen Sie die Markierung in die Mitte des Gewässers, das Sie beobachten möchten. Sie beginnt bei Ihrem Zuhause. Der Kreis ist der Radius darunter; er wird hier nicht gezeichnet.",
+          "udp_port": "Nur für einen eigenen Empfänger. Stellen Sie den Empfänger oder seinen Decoder (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) so ein, dass er NMEA-Sätze per UDP an die Adresse dieses Home Assistant auf diesem Port sendet. Üblich ist 10110."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Jede Zeile muss mit einer 9-stelligen MMSI beginnen.",
       "vessels_empty": "Fügen Sie mindestens ein Schiff hinzu.",
       "vessels_too_many": "Höchstens {max_vessels} Schiffe in einer Liste.",
-      "watch_key_required": "Zum Verfolgen von Schiffen ist ein API-Schlüssel von aisstream.io nötig. Kostenlos unter {aisstream_url}."
+      "watch_key_required": "Zum Verfolgen von Schiffen ist ein API-Schlüssel von aisstream.io nötig. Kostenlos unter {aisstream_url}.",
+      "udp_port_range": "Der Port muss eine Zahl von 1024 bis 65535 sein.",
+      "udp_port_taken": "Ein anderes Gebiet von Live Track Ships empfängt bereits auf diesem Port. Jeder Empfänger braucht einen eigenen.",
+      "udp_port_busy": "Ein anderes Programm auf diesem Rechner nutzt diesen UDP-Port bereits. Wählen Sie einen anderen oder beenden Sie das Programm."
     },
     "abort": {
       "already_configured": "Diese Quelle beobachtet diesen Mittelpunkt bereits.",
@@ -71,11 +76,13 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Höchstzahl verfolgter Schiffe",
           "instance_max_vessels": "Höchstzahl der Schiffe auf der Karte, alle Live-Track-Ships-Einträge zusammen",
-          "location": "Mittelpunkt"
+          "location": "Mittelpunkt",
+          "udp_port": "UDP-Port (eigener Empfänger)"
         },
         "data_description": {
           "instance_max_vessels": "Auf einem kleinen Rechner verringern. Es zählt jeden Live-Track-Ships-Eintrag, gleich welcher Quelle. Bei mehreren Einträgen gilt die niedrigste Einstellung.",
-          "location": "Ziehen Sie die Markierung, um dieses Gebiet zu verschieben. Dieselbe Quelle kann denselben Mittelpunkt nicht zweimal beobachten."
+          "location": "Ziehen Sie die Markierung, um dieses Gebiet zu verschieben. Dieselbe Quelle kann denselben Mittelpunkt nicht zweimal beobachten.",
+          "udp_port": "Der UDP-Port, an den Ihr Empfänger NMEA sendet. Eine Änderung lädt das Gebiet neu."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Ein anderes Gebiet mit derselben Quelle beobachtet diesen Mittelpunkt bereits.",
       "vessels_invalid": "Jede Zeile muss mit einer 9-stelligen MMSI beginnen.",
       "vessels_empty": "Fügen Sie mindestens ein Schiff hinzu.",
-      "vessels_too_many": "Höchstens {max_vessels} Schiffe in einer Liste."
+      "vessels_too_many": "Höchstens {max_vessels} Schiffe in einer Liste.",
+      "udp_port_range": "Der Port muss eine Zahl von 1024 bis 65535 sein.",
+      "udp_port_taken": "Ein anderes Gebiet von Live Track Ships empfängt bereits auf diesem Port. Jeder Empfänger braucht einen eigenen.",
+      "udp_port_busy": "Ein anderes Programm auf diesem Rechner nutzt diesen UDP-Port bereits. Wählen Sie einen anderen oder beenden Sie das Programm."
     }
   },
   "entity": {

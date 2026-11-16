@@ -18,16 +18,18 @@
           "radius_km": "Straal (km)",
           "max_vessels": "Maximaal aantal gevolgde schepen",
           "client_id": "Client-ID",
-          "client_secret": "Client-secret"
+          "client_secret": "Client-secret",
+          "udp_port": "UDP-poort (eigen ontvanger)"
         },
         "data_description": {
-          "source": "aisstream.io dekt de hele wereld en heeft een gratis API-sleutel nodig. Fintraffic Digitraffic heeft geen sleutel nodig, maar dekt alleen Finse en Baltische wateren. BarentsWatch dekt Noorse wateren en geeft de beste gegevens van de drie, met naam en scheepstype bij elke positie, maar heeft een gratis clientregistratie nodig.",
+          "source": "aisstream.io dekt de hele wereld en heeft een gratis API-sleutel nodig. Fintraffic Digitraffic heeft geen sleutel nodig, maar dekt alleen Finse en Baltische wateren. BarentsWatch dekt Noorse wateren en geeft de beste gegevens van de drie, met naam en scheepstype bij elke positie, maar heeft een gratis clientregistratie nodig. Een eigen AIS-ontvanger heeft geen account nodig: stel hem in om NMEA via UDP naar Home Assistant te sturen.",
           "api_key": "Nodig voor aisstream.io. Gratis op {aisstream_url}. Hij wordt één keer getoond, dus kopieer hem voordat je de pagina sluit.",
           "radius_km": "Tussen {radius_min} en {radius_max} km. Hoeveel schepen erin liggen, hangt veel meer af van welk water dan van hoe groot: een cirkel van 50 km bevatte boven Chicago ongeveer 4 schepen en boven de Solent ongeveer 340.",
           "max_vessels": "Een veiligheidsgrens, geen weergave-instelling. De kaart kan grote aantallen aan; dit beschermt Home Assistant tegen een heel grote straal boven heel druk water.",
           "client_id": "Alleen BarentsWatch. Registreer een gratis AIS-client op barentswatch.no/minside. De ID ziet eruit als jouw.email@example.com:live_track_ships; vul hem precies zo in.",
           "client_secret": "Alleen BarentsWatch. Eén keer getoond bij het aanmaken van de client; maak een nieuwe als je hem niet hebt bewaard.",
-          "location": "Sleep de markering naar het midden van het water dat je wilt volgen. Hij begint bij je huis. De cirkel is de straal hieronder; die wordt hier niet getekend."
+          "location": "Sleep de markering naar het midden van het water dat je wilt volgen. Hij begint bij je huis. De cirkel is de straal hieronder; die wordt hier niet getekend.",
+          "udp_port": "Alleen voor een eigen ontvanger. Stel de ontvanger of zijn decoder (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) in om NMEA-zinnen via UDP naar het adres van deze Home Assistant te sturen, op deze poort. 10110 is de gebruikelijke."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Elke regel moet beginnen met een MMSI van 9 cijfers.",
       "vessels_empty": "Voeg minstens één schip toe.",
       "vessels_too_many": "Hoogstens {max_vessels} schepen in één lijst.",
-      "watch_key_required": "Voor het volgen van schepen is een API-sleutel van aisstream.io nodig. Gratis te krijgen op {aisstream_url}."
+      "watch_key_required": "Voor het volgen van schepen is een API-sleutel van aisstream.io nodig. Gratis te krijgen op {aisstream_url}.",
+      "udp_port_range": "De poort moet een getal van 1024 tot 65535 zijn.",
+      "udp_port_taken": "Een ander gebied van Live Track Ships luistert al op deze poort. Elke ontvanger heeft een eigen poort nodig.",
+      "udp_port_busy": "Een ander programma op deze machine gebruikt deze UDP-poort al. Kies een andere of stop dat programma."
     },
     "abort": {
       "already_configured": "Deze bron volgt dat middelpunt al.",
@@ -71,11 +76,13 @@
           "radius_km": "Straal (km)",
           "max_vessels": "Maximaal aantal gevolgde schepen",
           "instance_max_vessels": "Maximaal aantal schepen op de kaart, alle Live Track Ships-items samen",
-          "location": "Middelpunt"
+          "location": "Middelpunt",
+          "udp_port": "UDP-poort (eigen ontvanger)"
         },
         "data_description": {
           "instance_max_vessels": "Verlaag dit op een kleine machine. Het telt elk Live Track Ships-item, welke bron ook. Met meer dan één item geldt de laagste instelling.",
-          "location": "Sleep de markering om dit gebied te verplaatsen. Dezelfde bron kan niet twee keer hetzelfde middelpunt volgen."
+          "location": "Sleep de markering om dit gebied te verplaatsen. Dezelfde bron kan niet twee keer hetzelfde middelpunt volgen.",
+          "udp_port": "De UDP-poort waar je ontvanger NMEA naartoe stuurt. Een wijziging laadt het gebied opnieuw."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Een ander gebied met dezelfde bron volgt dit middelpunt al.",
       "vessels_invalid": "Elke regel moet beginnen met een MMSI van 9 cijfers.",
       "vessels_empty": "Voeg minstens één schip toe.",
-      "vessels_too_many": "Hoogstens {max_vessels} schepen in één lijst."
+      "vessels_too_many": "Hoogstens {max_vessels} schepen in één lijst.",
+      "udp_port_range": "De poort moet een getal van 1024 tot 65535 zijn.",
+      "udp_port_taken": "Een ander gebied van Live Track Ships luistert al op deze poort. Elke ontvanger heeft een eigen poort nodig.",
+      "udp_port_busy": "Een ander programma op deze machine gebruikt deze UDP-poort al. Kies een andere of stop dat programma."
     }
   },
   "entity": {

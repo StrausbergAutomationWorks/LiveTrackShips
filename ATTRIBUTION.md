@@ -39,6 +39,14 @@ NLOD asks that the licensor be named and changes be indicated:
 > (https://www.barentswatch.no). Changed by Live Track Ships: units converted,
 > limited to your circle.
 
+## Your own receiver
+
+Received over UDP from the user's own AIS receiver, and decoded with
+[pyais](https://github.com/M0r13n/pyais) (MIT), which Home Assistant installs
+as a requirement. Nobody else's data, so no licence applies. Credit line:
+
+> Data: your own AIS receiver
+
 ## The EnforcementVessels list (ODbL v1.0)
 
 A vessel on the list is drawn with the list's look, name and agency, and its

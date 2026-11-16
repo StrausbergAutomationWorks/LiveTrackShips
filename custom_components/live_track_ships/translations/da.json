@@ -18,16 +18,18 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Højeste antal fulgte skibe",
           "client_id": "Klient-id",
-          "client_secret": "Klienthemmelighed"
+          "client_secret": "Klienthemmelighed",
+          "udp_port": "UDP-port (din egen modtager)"
         },
         "data_description": {
-          "source": "aisstream.io dækker hele verden og kræver en gratis API-nøgle. Fintraffic Digitraffic kræver ingen nøgle, men dækker kun finske og baltiske farvande. BarentsWatch dækker norske farvande og giver de bedste data af de tre, med navn og skibstype ved hver position, men kræver en gratis klientregistrering.",
+          "source": "aisstream.io dækker hele verden og kræver en gratis API-nøgle. Fintraffic Digitraffic kræver ingen nøgle, men dækker kun finske og baltiske farvande. BarentsWatch dækker norske farvande og giver de bedste data af de tre, med navn og skibstype ved hver position, men kræver en gratis klientregistrering. Din egen AIS-modtager kræver ingen konto: indstil den til at sende NMEA over UDP til Home Assistant.",
           "api_key": "Kræves til aisstream.io. Gratis på {aisstream_url}. Den vises kun én gang, så kopiér den, før du lukker siden.",
           "radius_km": "Mellem {radius_min} og {radius_max} km. Hvor mange skibe der er i den, afhænger langt mere af farvandet end af størrelsen: en cirkel på 50 km rummede omkring 4 skibe over Chicago og omkring 340 over Solent.",
           "max_vessels": "En sikkerhedsgrænse, ikke en visningsindstilling. Kortet klarer store tal; dette beskytter Home Assistant mod en meget stor radius over meget travlt farvand.",
           "client_id": "Kun BarentsWatch. Registrér en gratis AIS-klient på barentswatch.no/minside. Id'et ser ud som din.email@example.com:live_track_ships; skriv det præcis sådan.",
           "client_secret": "Kun BarentsWatch. Vises én gang, når klienten oprettes; lav en ny, hvis du ikke gemte den.",
-          "location": "Træk markøren til midten af det farvand, du vil følge. Den starter ved dit hjem. Cirklen er radius nedenfor; den tegnes ikke her."
+          "location": "Træk markøren til midten af det farvand, du vil følge. Den starter ved dit hjem. Cirklen er radius nedenfor; den tegnes ikke her.",
+          "udp_port": "Kun til din egen modtager. Indstil modtageren eller dens dekoder (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) til at sende NMEA-sætninger over UDP til denne Home Assistants adresse på denne port. 10110 er den almindelige."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Hver linje skal begynde med et 9-cifret MMSI.",
       "vessels_empty": "Tilføj mindst ét skib.",
       "vessels_too_many": "Højst {max_vessels} skibe på én liste.",
-      "watch_key_required": "Det kræver en API-nøgle fra aisstream.io at følge skibe. Få en gratis på {aisstream_url}."
+      "watch_key_required": "Det kræver en API-nøgle fra aisstream.io at følge skibe. Få en gratis på {aisstream_url}.",
+      "udp_port_range": "Porten skal være et tal fra 1024 til 65535.",
+      "udp_port_taken": "Et andet Live Track Ships-område lytter allerede på denne port. Hver modtager skal have sin egen.",
+      "udp_port_busy": "Et andet program på denne maskine bruger allerede denne UDP-port. Vælg en anden, eller stop det program."
     },
     "abort": {
       "already_configured": "Denne kilde følger allerede det midtpunkt.",
@@ -71,11 +76,13 @@
           "radius_km": "Radius (km)",
           "max_vessels": "Højeste antal fulgte skibe",
           "instance_max_vessels": "Højeste antal skibe på kortet, alle Live Track Ships-poster tilsammen",
-          "location": "Midtpunkt"
+          "location": "Midtpunkt",
+          "udp_port": "UDP-port (din egen modtager)"
         },
         "data_description": {
           "instance_max_vessels": "Sænk den på en lille maskine. Den tæller alle Live Track Ships-poster, uanset kilde. Med flere poster gælder den laveste indstilling.",
-          "location": "Træk markøren for at flytte området. Samme kilde kan ikke følge samme midtpunkt to gange."
+          "location": "Træk markøren for at flytte området. Samme kilde kan ikke følge samme midtpunkt to gange.",
+          "udp_port": "Den UDP-port, din modtager sender NMEA til. En ændring genindlæser området."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Et andet område med samme kilde følger allerede dette midtpunkt.",
       "vessels_invalid": "Hver linje skal begynde med et 9-cifret MMSI.",
       "vessels_empty": "Tilføj mindst ét skib.",
-      "vessels_too_many": "Højst {max_vessels} skibe på én liste."
+      "vessels_too_many": "Højst {max_vessels} skibe på én liste.",
+      "udp_port_range": "Porten skal være et tal fra 1024 til 65535.",
+      "udp_port_taken": "Et andet Live Track Ships-område lytter allerede på denne port. Hver modtager skal have sin egen.",
+      "udp_port_busy": "Et andet program på denne maskine bruger allerede denne UDP-port. Vælg en anden, eller stop det program."
     }
   },
   "entity": {

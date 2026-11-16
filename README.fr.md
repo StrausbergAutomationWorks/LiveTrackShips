@@ -94,6 +94,7 @@ Ce qui apparaît dépend de la source. Mesuré sur une soirée :
 | BarentsWatch | oui | oui | aucune vue |
 | Digitraffic | aucune vue | oui | aucune vue |
 | aisstream.io | aucune vue | aucun vu | aucune vue |
+| Votre propre récepteur | ce qu'il entend | ce qu'il entend | ce qu'il entend |
 
 aisstream.io n'a livré que des messages de position et de détails des
 navires, aussi bien sur les Grands Lacs que sur les mêmes eaux norvégiennes et
@@ -108,9 +109,32 @@ Vous choisissez une source pour chaque zone que vous créez.
 | aisstream.io | le monde entier, là où des bénévoles font tourner des récepteurs | une clé API gratuite |
 | Fintraffic Digitraffic | eaux finlandaises et baltes | rien |
 | BarentsWatch AIS Live | eaux norvégiennes | un ID client et un secret gratuits |
+| Votre propre récepteur AIS | aussi loin que votre antenne entend | un récepteur qui envoie le NMEA en UDP |
 
 Les catégories qui apparaissent, la fraîcheur des positions et la
 complétude des détails dépendent de la source choisie.
+
+### Votre propre récepteur
+
+Si vous avez un récepteur AIS, Live Track Ships peut afficher ce qu'il
+entend, sans compte et sans Internet. Le récepteur, ou le programme qui le
+décode, envoie des phrases NMEA (`!AIVDM`) en UDP à l'adresse de Home
+Assistant, sur un port de votre choix (10110 si vous ne le changez pas). Dans
+AIS-catcher, c'est `-u <address> <port>` ; dans rtl-ais,
+`-h <address> -P <port>` ; OpenCPN et Signal K l'ajoutent comme connexion de
+sortie UDP. Un récepteur qui se branche en USB, comme un dAISy, a besoin de
+l'un de ces programmes pour transmettre ses phrases.
+
+- Une zone écoute un port ; deux récepteurs demandent deux ports.
+- Tout ce que le récepteur entend dans votre cercle est affiché, aides à la
+  navigation et stations de base comprises. Le capteur de station
+  (ci-dessous) compte aussi ce qu'il entend hors du cercle.
+- Une phrase ne porte pas de date : l'heure d'une position est celle où Home
+  Assistant l'a reçue.
+- La vitesse de giration n'est pas affichée pour cette source.
+- Pour l'instant, c'est testé avec des phrases enregistrées envoyées en UDP,
+  pas avec un récepteur. Si vous l'essayez avec le vôtre, dites-nous comment
+  ça s'est passé sur la [page des issues](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues).
 
 ### Mentions de source
 
@@ -128,6 +152,7 @@ source :
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch** : licence norvégienne pour les données publiques ouvertes
   (NLOD). <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **Votre propre récepteur** : vos propres données ; sa ligne le dit.
 - **EnforcementVessels** (la liste derrière l'aspect garde-côtes, ci-dessous) :
   ODbL v1.0. <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
 
@@ -135,7 +160,8 @@ Les lignes exactes figurent dans [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Prérequis
 
-- Home Assistant 2026.11 ou plus récent, avec un accès à Internet.
+- Home Assistant 2026.11 ou plus récent, avec un accès à Internet pour les
+  sources en ligne.
 - Pour aisstream.io : une clé API gratuite sur
   [aisstream.io](https://aisstream.io/account). aisstream autorise **trois
   connexions par compte et trois par adresse IP publique** ; si d'autres outils
@@ -144,8 +170,11 @@ Les lignes exactes figurent dans [ATTRIBUTION.md](ATTRIBUTION.md).
 - Pour BarentsWatch : un ID client et un secret gratuits, à enregistrer
   soi-même chez BarentsWatch. Saisissez l'ID client exactement tel qu'il a été
   délivré.
-- Home Assistant installe le paquet Python nécessaire (`saw-livetrack`) au
-  premier chargement de l'intégration.
+- Pour votre propre récepteur : un récepteur et un programme qui envoient le
+  NMEA en UDP à Home Assistant, sur le même réseau. Il n'a pas besoin
+  d'Internet.
+- Home Assistant installe les paquets Python nécessaires (`saw-livetrack` et
+  `pyais`) au premier chargement de l'intégration.
 
 ## Installation
 
@@ -180,9 +209,10 @@ français.
 
 | Champ | Ce qu'il accepte | Par défaut |
 |---|---|---|
-| Source des données | aisstream.io, Fintraffic Digitraffic ou BarentsWatch AIS Live | aisstream.io |
+| Source des données | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live ou votre propre récepteur AIS | aisstream.io |
 | Clé API | aisstream.io seulement. Reprise d'une zone déjà créée ; modifiable | vide |
 | ID client, secret client | BarentsWatch seulement. Repris d'une zone déjà créée | vide |
+| Port UDP | votre propre récepteur seulement : le port auquel il envoie le NMEA, de 1024 à 65535. Refusé si une autre zone ou un autre programme l'utilise déjà | 10110 |
 | Centre | un repère sur une carte ; faites-le glisser sur l'eau à surveiller | votre domicile |
 | Rayon (km) | 1 à 500 | 50 |
 | Nombre maximal de navires suivis | 1 à 5 000 ; une limite de sécurité pour cette zone, les plus proches sont gardés | 1 000 |
@@ -195,7 +225,7 @@ validez pour garder ce cercle quand même.
 **Réglages d'une zone** (Configurer sur son entrée) : le centre, avec le même
 repère ; le rayon ; le nombre maximal de navires suivis ; et *Nombre maximal
 de navires sur la carte, toutes les entrées Live Track Ships ensemble*, un
-curseur de 100 à 2 500 par pas de 100 (2 500 par défaut). Déplacer le centre
+curseur de 100 à 2 500 par pas de 100 (2 500 par défaut) ; et, pour votre propre récepteur, son port UDP. Déplacer le centre
 renomme la zone d'après sa nouvelle position et la recharge. Une même source
 ne peut toujours pas surveiller un centre depuis deux zones.
 
@@ -210,10 +240,17 @@ ne peut toujours pas surveiller un centre depuis deux zones.
 - **Un capteur par zone**, `sensor.ships_in_range`, qui compte les navires
   affichés et le signale quand la limite de la zone ou de l'installation
   écourte la liste.
+- **Pour votre propre récepteur, un capteur de plus**, `sensor.ais_station` :
+  les messages par minute. Ses attributs sont `vessels_heard` (sur les 10
+  dernières minutes), `farthest_km` et `farthest_mmsi` (depuis le centre de la
+  zone), `last_message`, `udp_port`, `listening`, et `port_error` quand le
+  port ne peut pas être ouvert. Il se met à jour toutes les 30 secondes : un
+  récepteur qui n'envoie plus rien affiche 0.
 
 Un navire entendu hors de votre cercle quitte la carte aussitôt. Pour
-l'entendre, chaque source est interrogée sur un anneau un peu plus grand que
-votre cercle (10 %, au moins 1 km) ; seuls les navires dans votre cercle sont
+l'entendre, chaque source en ligne est interrogée sur un anneau un peu plus grand que
+votre cercle (10 %, au moins 1 km), et votre propre récepteur envoie tout ce qu'il entend ;
+seuls les navires dans votre cercle sont
 gardés. Un navire qu'on n'entend plus quitte la carte après une période de
 silence, et un navire qui n'apparaît plus n'est pas forcément parti
 (ci-dessous).

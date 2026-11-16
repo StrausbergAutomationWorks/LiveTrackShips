@@ -18,16 +18,18 @@
           "radius_km": "半径（公里）",
           "max_vessels": "最多跟踪船只数",
           "client_id": "客户端 ID",
-          "client_secret": "客户端密钥"
+          "client_secret": "客户端密钥",
+          "udp_port": "UDP 端口（自己的接收机）"
         },
         "data_description": {
-          "source": "aisstream.io 覆盖全球，需要免费的 API 密钥。Fintraffic Digitraffic 无需密钥，但只覆盖芬兰和波罗的海水域。BarentsWatch 覆盖挪威水域，数据质量是三者中最好的，每个位置都带有船名和船型，但需要免费注册客户端。",
+          "source": "aisstream.io 覆盖全球，需要免费的 API 密钥。Fintraffic Digitraffic 无需密钥，但只覆盖芬兰和波罗的海水域。BarentsWatch 覆盖挪威水域，数据质量是三者中最好的，每个位置都带有船名和船型，但需要免费注册客户端。 自己的 AIS 接收机无需账户：将它设置为通过 UDP 向 Home Assistant 发送 NMEA。",
           "api_key": "使用 aisstream.io 时必填。可在 {aisstream_url} 免费获取。密钥只显示一次，请在关闭页面前复制。",
           "radius_km": "{radius_min} 到 {radius_max} 公里。圈内有多少船只，取决于哪片水域，远多于取决于圆圈大小：同样 50 公里的圆圈，在芝加哥上空约有 4 艘，在索伦特海峡约有 340 艘。",
           "max_vessels": "这是安全上限，不是显示设置。地图可以显示大量船只；此项防止在非常繁忙的水域设置过大的半径而拖垮 Home Assistant。",
           "client_id": "仅限 BarentsWatch。请在 barentswatch.no/minside 免费注册 AIS 客户端。ID 形如 your.email@example.com:live_track_ships，请原样输入。",
           "client_secret": "仅限 BarentsWatch。创建客户端时只显示一次；如未保存，请重新生成。",
-          "location": "将标记拖到你想观察的水域中央。初始位置是你的家。圆圈是下方设置的半径，这里不会画出。"
+          "location": "将标记拖到你想观察的水域中央。初始位置是你的家。圆圈是下方设置的半径，这里不会画出。",
+          "udp_port": "仅用于自己的接收机。请将接收机或其解码器（AIS-catcher、rtl-ais、dAISy、OpenCPN、Signal K）设置为通过 UDP 把 NMEA 语句发送到这台 Home Assistant 的地址和此端口。常用端口是 10110。"
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "每行必须以 9 位 MMSI 开头。",
       "vessels_empty": "请至少添加一艘船。",
       "vessels_too_many": "一个列表最多 {max_vessels} 艘船。",
-      "watch_key_required": "关注船只需要 aisstream.io 的 API 密钥。可在 {aisstream_url} 免费获取。"
+      "watch_key_required": "关注船只需要 aisstream.io 的 API 密钥。可在 {aisstream_url} 免费获取。",
+      "udp_port_range": "端口必须是 1024 到 65535 之间的数字。",
+      "udp_port_taken": "另一个 Live Track Ships 区域已在监听此端口。每台接收机都需要自己的端口。",
+      "udp_port_busy": "这台机器上的另一个程序已在使用此 UDP 端口。请换一个端口，或停止那个程序。"
     },
     "abort": {
       "already_configured": "该来源已在观察此中心点。",
@@ -71,11 +76,13 @@
           "radius_km": "半径（公里）",
           "max_vessels": "最多跟踪船只数",
           "instance_max_vessels": "地图上最多显示的船只数（所有 Live Track Ships 条目合计）",
-          "location": "中心点"
+          "location": "中心点",
+          "udp_port": "UDP 端口（自己的接收机）"
         },
         "data_description": {
           "instance_max_vessels": "在性能较弱的设备上请调低。它统计所有 Live Track Ships 条目，不论来源。有多个条目时，以最低的设置为准。",
-          "location": "拖动标记即可移动该区域。同一来源不能重复观察同一中心点。"
+          "location": "拖动标记即可移动该区域。同一来源不能重复观察同一中心点。",
+          "udp_port": "接收机发送 NMEA 的 UDP 端口。更改后会重新加载该区域。"
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "另一个使用相同来源的区域已在观察此中心点。",
       "vessels_invalid": "每行必须以 9 位 MMSI 开头。",
       "vessels_empty": "请至少添加一艘船。",
-      "vessels_too_many": "一个列表最多 {max_vessels} 艘船。"
+      "vessels_too_many": "一个列表最多 {max_vessels} 艘船。",
+      "udp_port_range": "端口必须是 1024 到 65535 之间的数字。",
+      "udp_port_taken": "另一个 Live Track Ships 区域已在监听此端口。每台接收机都需要自己的端口。",
+      "udp_port_busy": "这台机器上的另一个程序已在使用此 UDP 端口。请换一个端口，或停止那个程序。"
     }
   },
   "entity": {

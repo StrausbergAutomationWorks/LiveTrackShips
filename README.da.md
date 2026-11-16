@@ -90,6 +90,7 @@ Hvad der vises, afhænger af kilden. Målt en aften:
 | BarentsWatch | ja | ja | ingen set |
 | Digitraffic | ingen set | ja | ingen set |
 | aisstream.io | ingen set | ingen set | ingen set |
+| Din egen modtager | hvad den hører | hvad den hører | hvad den hører |
 
 aisstream.io leverede kun positions- og skibsdatabeskeder, både over de Store
 Søer og over de samme norske og danske farvande, hvor BarentsWatch viser
@@ -104,9 +105,32 @@ Du vælger én kilde for hvert område, du opretter.
 | aisstream.io | hele verden, hvor frivillige har modtagere kørende | en gratis API-nøgle |
 | Fintraffic Digitraffic | finske og baltiske farvande | intet |
 | BarentsWatch AIS Live | norske farvande | gratis klient-id og klienthemmelighed |
+| Din egen AIS-modtager | så langt din antenne hører | en modtager, der sender NMEA over UDP |
 
 Hvilke kategorier der vises, hvor friske positionerne er, og hvor fuldstændige
 skibsdataene er, afhænger af den kilde, du vælger.
+
+### Din egen modtager
+
+Har du en AIS-modtager, kan Live Track Ships vise, hvad den hører, uden konto
+og uden internet. Modtageren, eller det program der afkoder den, sender
+NMEA-sætninger (`!AIVDM`) over UDP til Home Assistants adresse på en port, du
+selv vælger (10110, hvis du ikke ændrer den). I AIS-catcher er det
+`-u <address> <port>`, i rtl-ais `-h <address> -P <port>`; OpenCPN og
+Signal K tilføjer det som en udgående UDP-forbindelse. En modtager, der
+sluttes til med USB, som en dAISy, skal bruge et af de programmer til at
+sende sine sætninger videre.
+
+- Ét område lytter på én port; to modtagere skal bruge to porte.
+- Alt, hvad modtageren hører inden for din cirkel, vises, også
+  navigationshjælpemidler og basestationer. Stationssensoren (nedenfor) tæller
+  også, hvad den hører uden for cirklen.
+- En sætning har ingen dato, så en positions tid er det øjeblik, Home
+  Assistant modtog den.
+- Drejehastigheden vises ikke for denne kilde.
+- Indtil videre er det testet med optagede sætninger sendt over UDP, ikke med
+  en modtager. Prøver du det med din, så fortæl os, hvordan det gik, på
+  [issues-siden](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues).
 
 ### Kildeangivelse
 
@@ -123,6 +147,7 @@ læs kildens egne vilkår:
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch**: Norsk lisens for offentlige data (NLOD).
   <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **Din egen modtager**: dine egne data; linjen siger det.
 - **EnforcementVessels** (listen bag kystvagt-udseendet, nedenfor): ODbL v1.0.
   <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
 
@@ -130,7 +155,8 @@ De præcise linjer står i [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Krav
 
-- Home Assistant 2026.11 eller nyere, med adgang til internettet.
+- Home Assistant 2026.11 eller nyere, med adgang til internettet for
+  onlinekilderne.
 - Til aisstream.io: en gratis API-nøgle fra
   [aisstream.io](https://aisstream.io/account). aisstream tillader **tre
   forbindelser pr. konto og tre pr. offentlig IP-adresse**; bruger du andre
@@ -138,8 +164,10 @@ De præcise linjer står i [ATTRIBUTION.md](ATTRIBUTION.md).
   den er installeret, en anden forbindelse med samme nøgle.
 - Til BarentsWatch: et gratis klient-id og en klienthemmelighed, som du selv
   registrerer hos BarentsWatch. Skriv klient-id'et præcis, som det blev udstedt.
-- Home Assistant installerer selv den Python-pakke, der skal bruges
-  (`saw-livetrack`), første gang integrationen indlæses.
+- Til din egen modtager: en modtager og et program, der sender NMEA over UDP
+  til Home Assistant på samme netværk. Den kræver ikke internet.
+- Home Assistant installerer selv de Python-pakker, der skal bruges
+  (`saw-livetrack` og `pyais`), første gang integrationen indlæses.
 
 ## Installation
 
@@ -172,9 +200,10 @@ vises på dansk, når Home Assistant er sat til dansk.
 
 | Felt | Hvad det tager | Standard |
 |---|---|---|
-| Datakilde | aisstream.io, Fintraffic Digitraffic eller BarentsWatch AIS Live | aisstream.io |
+| Datakilde | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live eller din egen AIS-modtager | aisstream.io |
 | API-nøgle | kun aisstream.io. Hentes fra et område, du allerede har oprettet; kan ændres | tom |
 | Klient-id, klienthemmelighed | kun BarentsWatch. Hentes fra et område, du allerede har oprettet | tom |
+| UDP-port | kun din egen modtager: den port, den sender NMEA til, 1024 til 65535. Afvises, hvis et andet område eller et andet program allerede bruger den | 10110 |
 | Midtpunkt | en markør på et kort; træk den hen til det farvand, du vil følge | dit hjem |
 | Radius (km) | 1 til 500 | 50 |
 | Højeste antal fulgte skibe | 1 til 5.000; en sikkerhedsgrænse for dette område, de nærmeste beholdes | 1.000 |
@@ -187,7 +216,7 @@ beholde cirklen alligevel.
 **Et områdes indstillinger** (Konfigurer på dets post): midtpunktet, med den
 samme markør; radius; det højeste antal fulgte skibe; og *Højeste antal skibe
 på kortet, alle Live Track Ships-poster tilsammen*, en skyder fra 100 til
-2.500 i trin på 100 (standard 2.500). Flytter du midtpunktet, får området nyt
+2.500 i trin på 100 (standard 2.500); og, for din egen modtager, dens UDP-port. Flytter du midtpunktet, får området nyt
 navn efter sin position og genindlæses. Den samme kilde kan stadig ikke følge
 ét midtpunkt fra to områder.
 
@@ -201,10 +230,16 @@ navn efter sin position og genindlæses. Den samme kilde kan stadig ikke følge
 - **Én sensor pr. område**, `sensor.ships_in_range`, der tæller de viste skibe
   og siger det, når områdets eller hele installationens grænse beskærer
   listen.
+- **For din egen modtager endnu en sensor**, `sensor.ais_station`: beskeder
+  pr. minut. Dens attributter er `vessels_heard` (de seneste 10 minutter),
+  `farthest_km` og `farthest_mmsi` (fra områdets midtpunkt), `last_message`,
+  `udp_port`, `listening` og `port_error`, når porten ikke kan åbnes. Den
+  opdateres hvert 30. sekund, så en modtager, der holder op med at sende,
+  viser 0.
 
 Et skib, der høres uden for din cirkel, forsvinder straks fra kortet. For at
-høre det bliver hver kilde bedt om en ring lidt større end din cirkel (10 %,
-mindst 1 km); kun skibe inden for din cirkel beholdes. Et skib, der ikke høres
+høre det bliver hver onlinekilde bedt om en ring lidt større end din cirkel (10 %,
+mindst 1 km), og din egen modtager sender alt, hvad den hører; kun skibe inden for din cirkel beholdes. Et skib, der ikke høres
 igen, forsvinder efter en periode med stilhed, og et skib, der holder op med
 at blive vist, er ikke nødvendigvis væk (nedenfor).
 

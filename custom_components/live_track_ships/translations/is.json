@@ -18,16 +18,18 @@
           "radius_km": "Radíus (km)",
           "max_vessels": "Hámarksfjöldi skipa sem fylgst er með",
           "client_id": "Biðlaraauðkenni (client ID)",
-          "client_secret": "Biðlaraleyndarmál (client secret)"
+          "client_secret": "Biðlaraleyndarmál (client secret)",
+          "udp_port": "UDP-gátt (eigið viðtæki)"
         },
         "data_description": {
-          "source": "aisstream.io nær yfir allan heiminn og þarf ókeypis API-lykil. Fintraffic Digitraffic þarf engan lykil en nær aðeins yfir finnsk hafsvæði og Eystrasalt. BarentsWatch nær yfir norsk hafsvæði og gefur bestu gögnin af þessum þremur, með nafni og gerð skips við hverja staðsetningu, en þarf ókeypis skráningu biðlara.",
+          "source": "aisstream.io nær yfir allan heiminn og þarf ókeypis API-lykil. Fintraffic Digitraffic þarf engan lykil en nær aðeins yfir finnsk hafsvæði og Eystrasalt. BarentsWatch nær yfir norsk hafsvæði og gefur bestu gögnin af þessum þremur, með nafni og gerð skips við hverja staðsetningu, en þarf ókeypis skráningu biðlara. Eigin AIS-viðtæki þarf engan aðgang: stilltu það til að senda NMEA um UDP til Home Assistant.",
           "api_key": "Nauðsynlegur fyrir aisstream.io. Ókeypis á {aisstream_url}. Hann birtist aðeins einu sinni, svo afritaðu hann áður en þú lokar síðunni.",
           "radius_km": "Á bilinu {radius_min} til {radius_max} km. Hversu mörg skip eru í honum fer miklu frekar eftir hafsvæðinu en stærðinni: 50 km hringur náði yfir um 4 skip yfir Chicago og um 340 yfir Solent.",
           "max_vessels": "Öryggismörk, ekki birtingarstilling. Kortið ræður við háar tölur; þetta verndar Home Assistant gegn mjög stórum radíus yfir mjög fjölförnu hafsvæði.",
           "client_id": "Aðeins BarentsWatch. Skráðu ókeypis AIS-biðlara á barentswatch.no/minside. Auðkennið lítur út eins og netfang@example.com:live_track_ships; sláðu það inn nákvæmlega svona.",
           "client_secret": "Aðeins BarentsWatch. Birtist einu sinni þegar biðlarinn er búinn til; búðu til nýtt ef þú geymdir það ekki.",
-          "location": "Dragðu merkið á mitt hafsvæðið sem þú vilt fylgjast með. Það byrjar heima hjá þér. Hringurinn er radíusinn hér fyrir neðan; hann er ekki teiknaður hér."
+          "location": "Dragðu merkið á mitt hafsvæðið sem þú vilt fylgjast með. Það byrjar heima hjá þér. Hringurinn er radíusinn hér fyrir neðan; hann er ekki teiknaður hér.",
+          "udp_port": "Aðeins fyrir eigið viðtæki. Stilltu viðtækið eða afkóðara þess (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) til að senda NMEA-setningar um UDP á vistfang þessa Home Assistant, á þessa gátt. Venjulega er það 10110."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Hver lína verður að byrja á 9 stafa MMSI.",
       "vessels_empty": "Bættu við að minnsta kosti einu skipi.",
       "vessels_too_many": "Mest {max_vessels} skip á einum lista.",
-      "watch_key_required": "Til að fylgjast með skipum þarf API-lykil frá aisstream.io. Fáðu ókeypis lykil á {aisstream_url}."
+      "watch_key_required": "Til að fylgjast með skipum þarf API-lykil frá aisstream.io. Fáðu ókeypis lykil á {aisstream_url}.",
+      "udp_port_range": "Gáttin verður að vera tala frá 1024 til 65535.",
+      "udp_port_taken": "Annað svæði í Live Track Ships hlustar þegar á þessa gátt. Hvert viðtæki þarf sína eigin.",
+      "udp_port_busy": "Annað forrit á þessari vél notar þegar þessa UDP-gátt. Veldu aðra eða stöðvaðu það forrit."
     },
     "abort": {
       "already_configured": "Þessi gagnaveita fylgist þegar með þessari miðju.",
@@ -71,11 +76,13 @@
           "radius_km": "Radíus (km)",
           "max_vessels": "Hámarksfjöldi skipa sem fylgst er með",
           "instance_max_vessels": "Hámarksfjöldi skipa á kortinu, allar Live Track Ships-færslur samanlagt",
-          "location": "Miðja"
+          "location": "Miðja",
+          "udp_port": "UDP-gátt (eigið viðtæki)"
         },
         "data_description": {
           "instance_max_vessels": "Lækkaðu þetta á lítilli vél. Það telur allar Live Track Ships-færslur, óháð gagnaveitu. Ef færslurnar eru fleiri en ein gildir lægsta stillingin.",
-          "location": "Dragðu merkið til að færa svæðið. Sama gagnaveita getur ekki fylgst tvisvar með sömu miðju."
+          "location": "Dragðu merkið til að færa svæðið. Sama gagnaveita getur ekki fylgst tvisvar með sömu miðju.",
+          "udp_port": "UDP-gáttin sem viðtækið sendir NMEA á. Breyting endurhleður svæðið."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Annað svæði með sömu gagnaveitu fylgist þegar með þessari miðju.",
       "vessels_invalid": "Hver lína verður að byrja á 9 stafa MMSI.",
       "vessels_empty": "Bættu við að minnsta kosti einu skipi.",
-      "vessels_too_many": "Mest {max_vessels} skip á einum lista."
+      "vessels_too_many": "Mest {max_vessels} skip á einum lista.",
+      "udp_port_range": "Gáttin verður að vera tala frá 1024 til 65535.",
+      "udp_port_taken": "Annað svæði í Live Track Ships hlustar þegar á þessa gátt. Hvert viðtæki þarf sína eigin.",
+      "udp_port_busy": "Annað forrit á þessari vél notar þegar þessa UDP-gátt. Veldu aðra eða stöðvaðu það forrit."
     }
   },
   "entity": {

@@ -88,6 +88,7 @@ Which of these appear depends on the source. Measured on one evening:
 | BarentsWatch | yes | yes | none seen |
 | Digitraffic | none seen | yes | none seen |
 | aisstream.io | none seen | none seen | none seen |
+| Your own receiver | whatever it hears | whatever it hears | whatever it hears |
 
 aisstream.io delivered only vessel position and vessel detail messages, both
 over the Great Lakes and over the same Norwegian and Danish waters where
@@ -102,9 +103,31 @@ You choose one source per area you set up.
 | aisstream.io | worldwide, where volunteers run receivers | a free API key |
 | Fintraffic Digitraffic | Finnish and Baltic waters | nothing |
 | BarentsWatch AIS Live | Norwegian waters | a free client ID and secret |
+| Your own AIS receiver | as far as your antenna hears | a receiver that sends NMEA over UDP |
 
 Which categories appear, how fresh positions are and how complete vessel
 details are all depend on the source you choose.
+
+### Your own receiver
+
+If you run an AIS receiver, Live Track Ships can show what it hears, with no
+account and no internet. The receiver, or the program that decodes it, sends
+NMEA sentences (`!AIVDM`) over UDP to Home Assistant's address, on a port you
+choose (10110 unless you change it). In AIS-catcher that is
+`-u <address> <port>`; in rtl-ais, `-h <address> -P <port>`; OpenCPN and
+Signal K add it as a UDP output connection. A receiver that plugs in by USB,
+such as a dAISy, needs one of those programs to pass its sentences on.
+
+- One area listens on one port; two receivers need two ports.
+- Everything the receiver hears inside your circle is shown, aids to
+  navigation and base stations included. The station sensor (below) also
+  counts what it hears outside the circle.
+- A sentence carries no date, so a position's time is when Home Assistant
+  received it.
+- Rate of turn is not shown for this source.
+- So far this is tested with recorded sentences sent over UDP, not with a
+  receiver. If you try it with yours, tell us how it went at the
+  [issues page](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues).
 
 ### Attribution
 
@@ -121,6 +144,7 @@ credit with it and read the source's own terms:
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch**: Norwegian Licence for Open Government Data (NLOD).
   <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **Your own receiver**: your own data; its line says so.
 - **EnforcementVessels** (the list behind the Coast Guard look, below): ODbL
   v1.0. <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
 
@@ -128,7 +152,8 @@ The exact credit lines are in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Requirements
 
-- Home Assistant 2026.11 or later, with outbound internet access.
+- Home Assistant 2026.11 or later, with outbound internet access for the
+  online sources.
 - For aisstream.io: a free API key from
   [aisstream.io](https://aisstream.io/account). aisstream allows **three
   connections per account and three per public IP**; if you run other tools
@@ -136,8 +161,10 @@ The exact credit lines are in [ATTRIBUTION.md](ATTRIBUTION.md).
   second connection on the same key.
 - For BarentsWatch: a free client ID and secret, self-registered at
   BarentsWatch. Enter the client ID exactly as issued.
-- Home Assistant installs the Python package this needs (`saw-livetrack`) the
-  first time it loads the integration.
+- For your own receiver: a receiver and a program that send NMEA over UDP to
+  Home Assistant, on the same network. No internet access is needed for it.
+- Home Assistant installs the Python packages this needs (`saw-livetrack` and
+  `pyais`) the first time it loads the integration.
 
 ## Installation
 
@@ -169,9 +196,10 @@ one entry, titled *Ships near <latitude>, <longitude>*.
 
 | Field | What it takes | Default |
 |---|---|---|
-| Data source | aisstream.io, Fintraffic Digitraffic or BarentsWatch AIS Live | aisstream.io |
+| Data source | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live or your own AIS receiver | aisstream.io |
 | API key | aisstream.io only. Filled in from an area you already set up; you can change it | empty |
 | Client ID, Client secret | BarentsWatch only. Filled in from an area you already set up | empty |
+| UDP port | your own receiver only: the port it sends NMEA to, 1024 to 65535. Refused if another area or another program already uses it | 10110 |
 | Centre | a marker on a map; drag it to the water you want to watch | your home |
 | Radius (km) | 1 to 500 | 50 |
 | Maximum vessels to track | 1 to 5,000; a safety limit for this area, nearest kept | 1,000 |
@@ -183,9 +211,9 @@ says how much before the area is created; submit to keep that circle anyway.
 **Settings of an area** (Configure on its entry): the centre, on the same map
 marker; the radius; the maximum vessels to track; and *Maximum vessels on the
 map, all Live Track Ships entries together*, a slider from 100 to 2,500 in
-steps of 100 (default 2,500). Moving the centre renames the area to its new
-position and reloads it. The same source still cannot watch one centre from
-two areas.
+steps of 100 (default 2,500); and, for your own receiver, its UDP port. Moving
+the centre renames the area to its new position and reloads it. The same
+source still cannot watch one centre from two areas.
 
 ## What it creates
 
@@ -196,12 +224,18 @@ two areas.
   only when the source sent it. A vessel seen by two areas is one entity.
 - **One sensor per area**, `sensor.ships_in_range`, counting the vessels shown,
   and saying so when the area's or the instance's ceiling clips the list.
+- **For your own receiver, one more sensor**, `sensor.ais_station`: messages
+  per minute. Its attributes are `vessels_heard` (in the last 10 minutes),
+  `farthest_km` and `farthest_mmsi` (from the area's centre), `last_message`,
+  `udp_port`, `listening`, and `port_error` when the port cannot be opened. It
+  updates every 30 seconds, so a receiver that stops sending shows 0.
 
 A vessel heard outside your circle leaves the map at once. To hear that, each
-source is asked for a ring a little wider than your circle (10%, at least
-1 km); only vessels inside your circle are kept. A vessel that is not heard
-again leaves after a period of silence, and a vessel that stops appearing has
-not necessarily left (below).
+online source is asked for a ring a little wider than your circle (10%, at
+least 1 km), and your own receiver sends everything it hears; only vessels
+inside your circle are kept. A vessel that is not heard again leaves after a
+period of silence, and a vessel that stops appearing has not necessarily left
+(below).
 
 ## Events: a ship comes into your area, or leaves it
 

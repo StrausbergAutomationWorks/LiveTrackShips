@@ -93,6 +93,7 @@ Was davon erscheint, hängt von der Quelle ab. Gemessen an einem Abend:
 | BarentsWatch | ja | ja | keine gesehen |
 | Digitraffic | keine gesehen | ja | keine gesehen |
 | aisstream.io | keine gesehen | keine gesehen | keine gesehen |
+| Ihr eigener Empfänger | was er hört | was er hört | was er hört |
 
 aisstream.io lieferte nur Positions- und Schiffsdatenmeldungen, sowohl über
 den Großen Seen als auch über denselben norwegischen und dänischen Gewässern,
@@ -107,9 +108,32 @@ Für jedes Gebiet, das Sie einrichten, wählen Sie eine Quelle.
 | aisstream.io | weltweit, wo Freiwillige Empfänger betreiben | einen kostenlosen API-Schlüssel |
 | Fintraffic Digitraffic | finnische und baltische Gewässer | nichts |
 | BarentsWatch AIS Live | norwegische Gewässer | kostenlose Client-ID und Client-Secret |
+| Ihr eigener AIS-Empfänger | so weit Ihre Antenne hört | einen Empfänger, der NMEA per UDP sendet |
 
 Welche Kategorien erscheinen, wie aktuell die Positionen sind und wie
 vollständig die Schiffsdaten, hängt von der gewählten Quelle ab.
+
+### Ihr eigener Empfänger
+
+Wenn Sie einen AIS-Empfänger betreiben, kann Live Track Ships zeigen, was er
+hört, ohne Konto und ohne Internet. Der Empfänger oder das Programm, das ihn
+dekodiert, sendet NMEA-Sätze (`!AIVDM`) per UDP an die Adresse von Home
+Assistant, auf einem Port Ihrer Wahl (10110, wenn Sie nichts ändern). In
+AIS-catcher geschieht das mit `-u <address> <port>`, in rtl-ais mit
+`-h <address> -P <port>`; OpenCPN und Signal K richten es als
+UDP-Ausgangsverbindung ein. Ein Empfänger, der per USB angeschlossen wird,
+etwa ein dAISy, braucht eines dieser Programme, um seine Sätze weiterzugeben.
+
+- Ein Gebiet lauscht auf einem Port; zwei Empfänger brauchen zwei Ports.
+- Alles, was der Empfänger in Ihrem Kreis hört, wird gezeigt, auch
+  Navigationshilfen und Basisstationen. Der Stationssensor (unten) zählt auch,
+  was er außerhalb des Kreises hört.
+- Ein Satz enthält kein Datum, daher ist die Zeit einer Position der Moment,
+  in dem Home Assistant ihn empfangen hat.
+- Die Drehrate wird für diese Quelle nicht angezeigt.
+- Bisher ist das mit aufgezeichneten Sätzen getestet, die per UDP gesendet
+  wurden, nicht mit einem Empfänger. Wenn Sie es mit Ihrem ausprobieren,
+  berichten Sie uns auf der [Issues-Seite](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues), wie es lief.
 
 ### Quellenangaben
 
@@ -126,6 +150,7 @@ Sie die Quellenangabe bei und lesen Sie die Bedingungen der Quelle:
   <https://www.digitraffic.fi/en/terms-of-service/>
 - **BarentsWatch**: Norwegische Lizenz für offene Behördendaten (NLOD).
   <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+- **Ihr eigener Empfänger**: Ihre eigenen Daten; die Zeile sagt das.
 - **EnforcementVessels** (die Liste hinter der Küstenwachen-Darstellung,
   unten): ODbL v1.0.
   <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
@@ -134,7 +159,8 @@ Die genauen Quellenzeilen stehen in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Voraussetzungen
 
-- Home Assistant 2026.11 oder neuer, mit Internetzugang nach außen.
+- Home Assistant 2026.11 oder neuer, mit Internetzugang nach außen für die
+  Online-Quellen.
 - Für aisstream.io: ein kostenloser API-Schlüssel von
   [aisstream.io](https://aisstream.io/account). aisstream erlaubt **drei
   Verbindungen pro Konto und drei pro öffentlicher IP-Adresse**; wenn Sie
@@ -144,8 +170,11 @@ Die genauen Quellenzeilen stehen in [ATTRIBUTION.md](ATTRIBUTION.md).
 - Für BarentsWatch: kostenlose Client-ID und Client-Secret, selbst bei
   BarentsWatch registriert. Geben Sie die Client-ID genau so ein, wie sie
   ausgestellt wurde.
-- Home Assistant installiert das benötigte Python-Paket (`saw-livetrack`)
-  beim ersten Laden der Integration selbst.
+- Für Ihren eigenen Empfänger: einen Empfänger und ein Programm, die NMEA per
+  UDP an Home Assistant senden, im selben Netzwerk. Internetzugang braucht er
+  nicht.
+- Home Assistant installiert die benötigten Python-Pakete (`saw-livetrack` und
+  `pyais`) beim ersten Laden der Integration selbst.
 
 ## Installation
 
@@ -182,9 +211,10 @@ eingestellt ist.
 
 | Feld | Was es nimmt | Standard |
 |---|---|---|
-| Datenquelle | aisstream.io, Fintraffic Digitraffic oder BarentsWatch AIS Live | aisstream.io |
+| Datenquelle | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live oder Ihr eigener AIS-Empfänger | aisstream.io |
 | API-Schlüssel | nur aisstream.io. Aus einem bereits eingerichteten Gebiet übernommen; änderbar | leer |
 | Client-ID, Client-Secret | nur BarentsWatch. Aus einem bereits eingerichteten Gebiet übernommen | leer |
+| UDP-Port | nur Ihr eigener Empfänger: der Port, an den er NMEA sendet, 1024 bis 65535. Abgelehnt, wenn ein anderes Gebiet oder ein anderes Programm ihn schon nutzt | 10110 |
 | Mittelpunkt | eine Markierung auf einer Karte; ziehen Sie sie zum gewünschten Gewässer | Ihr Zuhause |
 | Radius (km) | 1 bis 500 | 50 |
 | Höchstzahl verfolgter Schiffe | 1 bis 5.000; eine Sicherheitsgrenze für dieses Gebiet, die nächsten bleiben | 1.000 |
@@ -197,8 +227,7 @@ absenden behält den Kreis trotzdem.
 **Einstellungen eines Gebiets** (Konfigurieren am Eintrag): der Mittelpunkt
 mit derselben Markierung, der Radius, die Höchstzahl verfolgter Schiffe und
 *Höchstzahl der Schiffe auf der Karte, alle Live-Track-Ships-Einträge
-zusammen*, ein Schieberegler von 100 bis 2.500 in Schritten von 100 (Standard
-2.500). Wird der Mittelpunkt verschoben, erhält das Gebiet einen neuen Namen
+zusammen*, ein Schieberegler von 100 bis 2.500 in Schritten von 100 (Standard 2.500) sowie, bei Ihrem eigenen Empfänger, sein UDP-Port. Wird der Mittelpunkt verschoben, erhält das Gebiet einen neuen Namen
 nach seiner Position und wird neu geladen. Dieselbe Quelle kann einen
 Mittelpunkt weiterhin nicht aus zwei Gebieten beobachten.
 
@@ -213,10 +242,17 @@ Mittelpunkt weiterhin nicht aus zwei Gebieten beobachten.
 - **Ein Sensor pro Gebiet**, `sensor.ships_in_range`, der die angezeigten
   Schiffe zählt und es sagt, wenn die Grenze des Gebiets oder der ganzen
   Installation die Liste kürzt.
+- **Bei Ihrem eigenen Empfänger ein weiterer Sensor**, `sensor.ais_station`:
+  Nachrichten pro Minute. Seine Attribute sind `vessels_heard` (in den letzten
+  10 Minuten), `farthest_km` und `farthest_mmsi` (vom Mittelpunkt des Gebiets),
+  `last_message`, `udp_port`, `listening` und `port_error`, wenn der Port nicht
+  geöffnet werden kann. Er wird alle 30 Sekunden aktualisiert, sodass ein
+  Empfänger, der nichts mehr sendet, 0 zeigt.
 
 Ein Schiff, das außerhalb Ihres Kreises gehört wird, verschwindet sofort von
-der Karte. Damit das gehört wird, wird jede Quelle um einen Ring etwas größer
-als Ihr Kreis gebeten (10 %, mindestens 1 km); behalten werden nur Schiffe in
+der Karte. Damit das gehört wird, wird jede Online-Quelle um einen Ring etwas größer
+als Ihr Kreis gebeten (10 %, mindestens 1 km), und Ihr eigener Empfänger sendet alles, was er
+hört; behalten werden nur Schiffe in
 Ihrem Kreis. Ein Schiff, das nicht mehr gehört wird, verschwindet nach einer
 Zeit der Stille, und ein Schiff, das nicht mehr erscheint, ist nicht unbedingt
 weg (siehe unten).

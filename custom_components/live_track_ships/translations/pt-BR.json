@@ -18,16 +18,18 @@
           "radius_km": "Raio (km)",
           "max_vessels": "Máximo de embarcações rastreadas",
           "client_id": "ID do cliente",
-          "client_secret": "Segredo do cliente"
+          "client_secret": "Segredo do cliente",
+          "udp_port": "Porta UDP (receptor próprio)"
         },
         "data_description": {
-          "source": "aisstream.io cobre o mundo todo e precisa de uma chave de API gratuita. Fintraffic Digitraffic não precisa de chave, mas só cobre águas da Finlândia e do Báltico. BarentsWatch cobre águas da Noruega e dá os melhores dados dos três, com nome e tipo da embarcação em cada posição, mas precisa do registro gratuito de um cliente.",
+          "source": "aisstream.io cobre o mundo todo e precisa de uma chave de API gratuita. Fintraffic Digitraffic não precisa de chave, mas só cobre águas da Finlândia e do Báltico. BarentsWatch cobre águas da Noruega e dá os melhores dados dos três, com nome e tipo da embarcação em cada posição, mas precisa do registro gratuito de um cliente. Um receptor AIS próprio não precisa de conta: configure-o para enviar NMEA por UDP para o Home Assistant.",
           "api_key": "Obrigatória para aisstream.io. Grátis em {aisstream_url}. Ela aparece só uma vez, então copie antes de fechar a página.",
           "radius_km": "Entre {radius_min} e {radius_max} km. Quantas embarcações cabem depende muito mais da água do que do tamanho: um círculo de 50 km tinha cerca de 4 embarcações sobre Chicago e cerca de 340 sobre o Solent.",
           "max_vessels": "Um limite de segurança, não uma opção de exibição. O mapa aguenta números grandes; isto protege o Home Assistant de um raio muito grande sobre águas muito movimentadas.",
           "client_id": "Só BarentsWatch. Registre um cliente AIS gratuito em barentswatch.no/minside. O ID tem a forma seu.email@example.com:live_track_ships; digite exatamente assim.",
           "client_secret": "Só BarentsWatch. Aparece uma vez quando o cliente é criado; gere um novo se não o guardou.",
-          "location": "Arraste o marcador até o meio da água que você quer acompanhar. Ele começa na sua casa. O círculo é o raio abaixo; ele não é desenhado aqui."
+          "location": "Arraste o marcador até o meio da água que você quer acompanhar. Ele começa na sua casa. O círculo é o raio abaixo; ele não é desenhado aqui.",
+          "udp_port": "Somente para um receptor próprio. Configure o receptor ou o decodificador dele (AIS-catcher, rtl-ais, dAISy, OpenCPN, Signal K) para enviar frases NMEA por UDP para o endereço deste Home Assistant, nesta porta. A mais comum é 10110."
         }
       },
       "coverage": {
@@ -55,7 +57,10 @@
       "vessels_invalid": "Cada linha deve começar com um MMSI de 9 dígitos.",
       "vessels_empty": "Adicione pelo menos uma embarcação.",
       "vessels_too_many": "No máximo {max_vessels} embarcações em uma lista.",
-      "watch_key_required": "Para acompanhar embarcações é preciso uma chave de API do aisstream.io. Consiga uma grátis em {aisstream_url}."
+      "watch_key_required": "Para acompanhar embarcações é preciso uma chave de API do aisstream.io. Consiga uma grátis em {aisstream_url}.",
+      "udp_port_range": "A porta precisa ser um número de 1024 a 65535.",
+      "udp_port_taken": "Outra área do Live Track Ships já escuta nesta porta. Cada receptor precisa da sua.",
+      "udp_port_busy": "Outro programa nesta máquina já usa esta porta UDP. Escolha outra ou pare esse programa."
     },
     "abort": {
       "already_configured": "Esta fonte já acompanha esse centro.",
@@ -71,11 +76,13 @@
           "radius_km": "Raio (km)",
           "max_vessels": "Máximo de embarcações rastreadas",
           "instance_max_vessels": "Máximo de embarcações no mapa, todas as entradas do Live Track Ships juntas",
-          "location": "Centro"
+          "location": "Centro",
+          "udp_port": "Porta UDP (receptor próprio)"
         },
         "data_description": {
           "instance_max_vessels": "Diminua numa máquina pequena. Conta todas as entradas do Live Track Ships, qualquer que seja a fonte. Com mais de uma entrada, vale a configuração mais baixa.",
-          "location": "Arraste o marcador para mover esta área. A mesma fonte não pode acompanhar o mesmo centro duas vezes."
+          "location": "Arraste o marcador para mover esta área. A mesma fonte não pode acompanhar o mesmo centro duas vezes.",
+          "udp_port": "A porta UDP para onde seu receptor envia NMEA. Mudá-la recarrega a área."
         }
       },
       "coverage": {
@@ -97,7 +104,10 @@
       "already_watched": "Outra área com a mesma fonte já acompanha este centro.",
       "vessels_invalid": "Cada linha deve começar com um MMSI de 9 dígitos.",
       "vessels_empty": "Adicione pelo menos uma embarcação.",
-      "vessels_too_many": "No máximo {max_vessels} embarcações em uma lista."
+      "vessels_too_many": "No máximo {max_vessels} embarcações em uma lista.",
+      "udp_port_range": "A porta precisa ser um número de 1024 a 65535.",
+      "udp_port_taken": "Outra área do Live Track Ships já escuta nesta porta. Cada receptor precisa da sua.",
+      "udp_port_busy": "Outro programa nesta máquina já usa esta porta UDP. Escolha outra ou pare esse programa."
     }
   },
   "entity": {

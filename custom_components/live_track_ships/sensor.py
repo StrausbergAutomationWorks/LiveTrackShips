@@ -17,14 +17,18 @@ record that a quietly clipped list looks exactly like missing coverage, so
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 
 from . import instance_ceiling
-from .const_flow import DOMAIN, KIND_AREA, KIND_WATCH
+from .const_flow import CONF_SOURCE, DOMAIN, KIND_AREA, KIND_WATCH, SOURCE_LOCAL
 from .geo_location import OWNERS_KEY
 
 _LOGGER = logging.getLogger(__name__)
+
+# Only the station sensor polls (the others push); 30 s is Home Assistant's own default.
+SCAN_INTERVAL = timedelta(seconds=30)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -32,7 +36,64 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if getattr(feed, "kind", KIND_AREA) == KIND_WATCH:
         async_add_entities([WatchedVesselsSensor(entry, feed)])
     else:
-        async_add_entities([VesselCountSensor(entry, feed)])
+        sensors = [VesselCountSensor(entry, feed)]
+        # Your own receiver (backlog 344): how the station itself is doing.
+        if getattr(feed, "_cfg", {}).get(CONF_SOURCE) == SOURCE_LOCAL:
+            sensors.append(StationSensor(entry, feed))
+        async_add_entities(sensors)
+
+
+class StationSensor(SensorEntity):
+    """Your own receiver (backlog 344, Lee 2026-11-15): messages per minute,
+    and as attributes the vessels heard in the last ten minutes, the farthest
+    one from the area's centre, the last message, and the port's state.
+
+    ⚠ POLLED, every 30 s, unlike the others: a dead receiver sends nothing, so
+    nothing would ever push a 0 and the rate would freeze at its last value."""
+
+    _attr_should_poll = True
+    _attr_icon = "mdi:radio-tower"
+    # Change with nearly every poll; kept out of the recorder.
+    _unrecorded_attributes = frozenset({"last_message", "farthest_mmsi",
+                                        "invalid_sentences", "dropped_datagrams"})
+    _attr_native_unit_of_measurement = "messages/min"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_has_entity_name = False
+
+    def __init__(self, entry, feed):
+        self._feed = feed
+        self._attr_unique_id = f"{DOMAIN}:{entry.entry_id}:station"
+        self._attr_name = "AIS station"
+        self._attr_attribution = feed.attribution
+
+    def _source(self):
+        return getattr(self._feed, "_source", None)
+
+    @property
+    def native_value(self):
+        src = self._source()
+        return None if src is None else src.stats.snapshot()["messages_per_minute"]
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        src = self._source()
+        if src is None:
+            return {}
+        s = src.stats.snapshot()
+        attrs = {
+            "udp_port": src.port,
+            "listening": src._transport is not None,
+            "vessels_heard": s["vessels_heard"],
+            "farthest_km": s["farthest_km"],
+            "farthest_mmsi": s["farthest_mmsi"],
+            "last_message": s["last_message"].isoformat() if s["last_message"] else None,
+            "invalid_sentences": src.decoder.counts["invalid"],
+        }
+        if src.stats.dropped:
+            attrs["dropped_datagrams"] = src.stats.dropped
+        if src.bind_error:
+            attrs["port_error"] = src.bind_error
+        return attrs
 
 
 class WatchedVesselsSensor(SensorEntity):
