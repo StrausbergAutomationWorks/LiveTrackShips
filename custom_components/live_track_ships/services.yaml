@@ -1,0 +1,13 @@
+set_track_hours:
+  fields:
+    hours:
+      required: true
+      default: 24
+      example: 72
+      selector:
+        number:
+          min: 1
+          max: 168
+          step: 1
+          unit_of_measurement: h
+          mode: box

@@ -51,6 +51,8 @@ from saw_livetrack import aisstream as _aisstream
 from . import enforcement as _enf
 from . import photos as _photos
 from .photos import vessel_links
+from . import tracks as _tracks
+from .tracks import track_url
 from . import icons
 from . import instance_ceiling
 from .held import HELD
@@ -239,7 +241,8 @@ class ShipEvent(GeolocationEvent):
     _attr_unit_of_measurement = UnitOfLength.KILOMETERS
     _attr_icon = "mdi:ferry"
     # The photo and the link out (backlog 346, D4g) are the same on every write: kept out of the recorder.
-    _unrecorded_attributes = frozenset({"marker_photo", "marker_links"})
+    # So is the track's address (backlog 348, D4h).
+    _unrecorded_attributes = frozenset({"marker_photo", "marker_links", "marker_track"})
 
     def __init__(self, obs: Observation, distance_km: float,
                  attribution: str | None = None, reader=None):
@@ -277,6 +280,11 @@ class ShipEvent(GeolocationEvent):
         links = vessel_links(imo, self._obs.identity)
         if links:
             attrs["marker_links"] = links
+        # D4h (backlog 348): where the card fetches this vessel's track, on click. Only while the book runs.
+        if self.hass is not None and self.hass.data.get(_tracks.STORE_KEY) is not None:
+            url = track_url(self._obs.identity)
+            if url:
+                attrs["marker_track"] = url
         book = self.hass.data.get(_photos.STORE_KEY) if self.hass is not None else None
         if book is None or not imo:
             return

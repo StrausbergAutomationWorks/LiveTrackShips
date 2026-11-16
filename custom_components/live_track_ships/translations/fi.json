@@ -135,5 +135,17 @@
       "title": "Live Trackin karttakortti on rekisteröity useammin kuin kerran",
       "description": "Myös nämä kojelautaresurssit lataavat karttakortin: {urls}. Vain yhtä käytetään, eivätkä muut tee mitään. Poista ne kohdassa Asetukset > Kojelaudat > Resurssit."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Aseta jäljen tunnit",
+      "description": "Kuinka monta tuntia kunkin aluksen jälkeä Live Track Ships säilyttää kaikilla alueilla: 1–168, oletuksena 24. Lyhennettäessä vanhemmat sijainnit poistetaan heti.",
+      "fields": {
+        "hours": {
+          "name": "Tunnit",
+          "description": "Kuinka monta tuntia jälkeä säilytetään kullekin alukselle."
+        }
+      }
+    }
   }
 }

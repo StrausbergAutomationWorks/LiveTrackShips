@@ -135,5 +135,17 @@
       "title": "Karta mapy Live Track jest zarejestrowana więcej niż raz",
       "description": "Te zasoby dashboardów też wczytują kartę mapy: {urls}. Używany jest tylko jeden, pozostałe nic nie robią. Usuń je w Ustawienia > Dashboardy > Zasoby."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Ustaw godziny śladu",
+      "description": "Ile godzin śladu każdej jednostki przechowuje Live Track Ships, dla wszystkich obszarów: od 1 do 168, domyślnie 24. Skrócenie od razu usuwa starsze pozycje.",
+      "fields": {
+        "hours": {
+          "name": "Godziny",
+          "description": "Godziny śladu przechowywane dla każdej jednostki."
+        }
+      }
+    }
   }
 }

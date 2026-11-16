@@ -40,6 +40,7 @@ from . import watch as _watch
 from .const_flow import CONF_VESSELS, KIND_WATCH, kind_of
 from . import held as _held
 from . import photos as _photos
+from . import tracks as _tracks
 from .sources import statics as _statics
 from saw_livetrack import aisstream as _aisstream
 from saw_livetrack import enforcement_list as _el
@@ -243,6 +244,7 @@ class ShipFeed:
         self.held_by_instance_cap = 0   # set by geo_location._sync (item 246)
         self.vessel_reader = None       # the EnforcementVessels list (backlog 315 task 5)
         self.events = None              # events.AreaEvents (backlog 342)
+        self.tracks = None              # tracks.TrackBook, the instance's (backlog 348)
         # ⛔ Item 246: at most one listener pass per window. Instance
         # attribute so a test can shorten it.
         self.notify_window_s = NOTIFY_WINDOW_S
@@ -353,6 +355,9 @@ class ShipFeed:
         try:
             async for obs in self._source.observations():
                 if self.store.add(obs):
+                    # Backlog 348: a kept fix inside the area joins the vessel's track (thinned there).
+                    if self.tracks is not None:
+                        self.tracks.add_obs(obs)
                     self._notify()
         except asyncio.CancelledError:
             raise
@@ -392,6 +397,30 @@ class ShipFeed:
             await self._held.async_flush()
 
 
+SERVICE_SET_TRACK_HOURS = "set_track_hours"
+
+
+def _register_track_action(hass: HomeAssistant) -> None:
+    """`live_track_ships.set_track_hours` (backlog 348): how many hours of track the instance keeps, 1-168,
+    24 by default. For every area at once; shortening drops older fixes at once. Registered once per run."""
+    if hass.services.has_service(DOMAIN, SERVICE_SET_TRACK_HOURS):
+        return
+    import voluptuous as vol
+    from homeassistant.exceptions import ServiceValidationError
+
+    async def _set(call) -> None:
+        book = await _tracks.shared(hass)
+        try:
+            hours = book.set_hours(call.data["hours"])
+        except ValueError as exc:
+            raise ServiceValidationError(str(exc)) from exc
+        await hass.async_add_executor_job(book.save)
+        _LOGGER.info("Vessel tracks now kept for %s hours", hours)
+
+    hass.services.async_register(DOMAIN, SERVICE_SET_TRACK_HOURS, _set,
+                                 schema=vol.Schema({vol.Required("hours"): vol.Coerce(float)}))
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # The vessel icons (SSOT item 254). Registered once per HA run.
     from .web import register as register_views
@@ -428,6 +457,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await _photos.shared(hass)
     except Exception:                              # noqa: BLE001
         _LOGGER.warning("Vessel photos unavailable this run", exc_info=True)
+    # Vessel tracks (backlog 348, tracks.py): one book per instance, its address and the action. Never blocks
+    # setup: a failure leaves the map without tracks.
+    try:
+        feed.tracks = await _tracks.shared(hass)
+        _register_track_action(hass)
+    except Exception:                              # noqa: BLE001
+        _LOGGER.warning("Vessel tracks unavailable this run", exc_info=True)
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

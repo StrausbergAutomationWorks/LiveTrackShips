@@ -135,5 +135,17 @@
       "title": "De Live Track-kaartkaart is meer dan eens geregistreerd",
       "description": "Deze dashboardbronnen laden de kaartkaart ook: {urls}. Er wordt er maar één gebruikt en de andere doen niets. Verwijder ze in Instellingen > Dashboards > Bronnen."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Spoorduur instellen",
+      "description": "Hoeveel uur van het spoor van elk schip Live Track Ships bewaart, voor alle gebieden: 1 tot 168, standaard 24. Inkorten verwijdert oudere posities meteen.",
+      "fields": {
+        "hours": {
+          "name": "Uren",
+          "description": "Uren spoor die voor elk schip worden bewaard."
+        }
+      }
+    }
   }
 }

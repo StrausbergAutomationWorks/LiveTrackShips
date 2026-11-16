@@ -135,5 +135,17 @@
       "title": "Live Tracks kartkort er registrert mer enn én gang",
       "description": "Disse ressursene laster også inn kartkortet: {urls}. Bare én brukes, og de andre gjør ingenting. Fjern dem under Innstillinger > Kontrollpaneler > Ressurser."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Angi sporets timer",
+      "description": "Hvor mange timer av hvert skips spor Live Track Ships tar vare på, for alle områder: 1 til 168, 24 som standard. Kortes det ned, slettes eldre posisjoner med en gang.",
+      "fields": {
+        "hours": {
+          "name": "Timer",
+          "description": "Timer med spor som tas vare på for hvert skip."
+        }
+      }
+    }
   }
 }

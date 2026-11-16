@@ -135,5 +135,17 @@
       "title": "O cartão de mapa do Live Track está registado mais de uma vez",
       "description": "Estes recursos de painel também carregam o cartão de mapa: {urls}. Apenas um é usado e os outros não fazem nada. Remova-os em Definições > Painéis > Recursos."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Definir as horas do rasto",
+      "description": "Quantas horas do rasto de cada navio o Live Track Ships guarda, para todas as áreas: de 1 a 168, 24 por omissão. Encurtá-lo apaga de imediato as posições mais antigas.",
+      "fields": {
+        "hours": {
+          "name": "Horas",
+          "description": "Horas de rasto a guardar para cada navio."
+        }
+      }
+    }
   }
 }

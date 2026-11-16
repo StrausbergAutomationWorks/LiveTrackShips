@@ -135,5 +135,17 @@
       "title": "La scheda mappa di Live Track è registrata più di una volta",
       "description": "Anche queste risorse delle plance caricano la scheda mappa: {urls}. Ne viene usata una sola e le altre non fanno nulla. Rimuovile in Impostazioni > Plance > Risorse."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Imposta le ore di traccia",
+      "description": "Quante ore della traccia di ogni nave conserva Live Track Ships, per tutte le aree: da 1 a 168, 24 per impostazione predefinita. Accorciandola, le posizioni più vecchie vengono eliminate subito.",
+      "fields": {
+        "hours": {
+          "name": "Ore",
+          "description": "Ore di traccia da conservare per ogni nave."
+        }
+      }
+    }
   }
 }

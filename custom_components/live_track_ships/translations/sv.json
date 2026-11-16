@@ -135,5 +135,17 @@
       "title": "Live Tracks kartkort är registrerat mer än en gång",
       "description": "Dessa resurser läser också in kartkortet: {urls}. Bara en används och de andra gör ingenting. Ta bort dem under Inställningar > Instrumentpaneler > Resurser."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Ange spårets timmar",
+      "description": "Hur många timmar av varje fartygs spår Live Track Ships sparar, för alla områden: 1 till 168, 24 som standard. Kortas det raderas äldre positioner direkt.",
+      "fields": {
+        "hours": {
+          "name": "Timmar",
+          "description": "Timmar spår som sparas för varje fartyg."
+        }
+      }
+    }
   }
 }

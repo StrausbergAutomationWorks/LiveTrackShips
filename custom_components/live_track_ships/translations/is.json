@@ -135,5 +135,17 @@
       "title": "Kortaspjald Live Track er skráð oftar en einu sinni",
       "description": "Þessi tilföng hlaða líka kortaspjaldinu: {urls}. Aðeins eitt er notað og hin gera ekkert. Fjarlægðu þau í Stillingar > Stjórnborð > Tilföng."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Stilla klukkustundir ferils",
+      "description": "Hversu margar klukkustundir af ferli hvers skips Live Track Ships geymir, fyrir öll svæði: 1 til 168, sjálfgefið 24. Sé hann styttur er eldri staðsetningum eytt strax.",
+      "fields": {
+        "hours": {
+          "name": "Klukkustundir",
+          "description": "Klukkustundir ferils sem geymdar eru fyrir hvert skip."
+        }
+      }
+    }
   }
 }

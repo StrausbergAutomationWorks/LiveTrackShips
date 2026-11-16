@@ -135,5 +135,17 @@
       "title": "Live Track 地图卡片被注册了不止一次",
       "description": "这些仪表盘资源也加载了地图卡片：{urls}。只有一个会被使用，其余的不起作用。请在 设置 > 仪表盘 > 资源 中删除它们。"
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "设置航迹时长",
+      "description": "Live Track Ships 为每艘船保留多少小时的航迹，适用于所有区域：1 到 168，默认 24。缩短后，较早的位置会立即删除。",
+      "fields": {
+        "hours": {
+          "name": "小时",
+          "description": "为每艘船保留的航迹小时数。"
+        }
+      }
+    }
   }
 }

@@ -135,5 +135,17 @@
       "title": "La tarjeta de mapa de Live Track está registrada más de una vez",
       "description": "Estos recursos de panel también cargan la tarjeta de mapa: {urls}. Solo se usa uno y los demás no hacen nada. Quítalos en Ajustes > Paneles > Recursos."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Fijar las horas de rastro",
+      "description": "Cuántas horas del rastro de cada buque guarda Live Track Ships, para todas las zonas: de 1 a 168, 24 por defecto. Si se acorta, las posiciones más antiguas se borran al momento.",
+      "fields": {
+        "hours": {
+          "name": "Horas",
+          "description": "Horas de rastro que se guardan para cada buque."
+        }
+      }
+    }
   }
 }

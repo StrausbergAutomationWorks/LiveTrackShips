@@ -135,5 +135,17 @@
       "title": "The Live Track map card is registered more than once",
       "description": "These dashboard resources also load the map card: {urls}. Only one is used and the others do nothing. Remove them in Settings > Dashboards > Resources."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Set track hours",
+      "description": "How many hours of each vessel's track Live Track Ships keeps, for every area: 1 to 168, 24 by default. Shortening it drops older positions at once.",
+      "fields": {
+        "hours": {
+          "name": "Hours",
+          "description": "Hours of track to keep for every vessel."
+        }
+      }
+    }
   }
 }

@@ -135,5 +135,17 @@
       "title": "Tá cárta léarscáile Live Track cláraithe níos mó ná uair amháin",
       "description": "Lódálann na hacmhainní deais seo an cárta léarscáile freisin: {urls}. Ní úsáidtear ach ceann amháin agus ní dhéanann na cinn eile faic. Bain iad i Socruithe > Deais > Acmhainní."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Socraigh uaireanta an rian",
+      "description": "Cé mhéad uair de rian gach soithigh a choinníonn Live Track Ships, do gach limistéar: 1 go 168, 24 de réir réamhshocraithe. Má ghiorraítear é, scriostar suíomhanna níos sine láithreach.",
+      "fields": {
+        "hours": {
+          "name": "Uaireanta",
+          "description": "Uaireanta rian le coinneáil do gach soitheach."
+        }
+      }
+    }
   }
 }

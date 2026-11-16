@@ -135,5 +135,17 @@
       "title": "La carte Live Track est enregistrée plusieurs fois",
       "description": "Ces ressources de tableau de bord chargent aussi la carte : {urls}. Une seule est utilisée et les autres ne font rien. Supprimez-les dans Paramètres > Tableaux de bord > Ressources."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Définir la durée de la trace",
+      "description": "Combien d'heures de la trace de chaque navire Live Track Ships conserve, pour toutes les zones : de 1 à 168, 24 par défaut. La raccourcir supprime aussitôt les positions plus anciennes.",
+      "fields": {
+        "hours": {
+          "name": "Heures",
+          "description": "Heures de trace conservées pour chaque navire."
+        }
+      }
+    }
   }
 }

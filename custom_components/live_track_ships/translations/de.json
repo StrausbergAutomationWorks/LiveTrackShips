@@ -135,5 +135,17 @@
       "title": "Die Live-Track-Kartenkarte ist mehrfach registriert",
       "description": "Diese Dashboard-Ressourcen laden die Kartenkarte ebenfalls: {urls}. Nur eine wird verwendet, die anderen bewirken nichts. Entfernen Sie sie unter Einstellungen > Dashboards > Ressourcen."
     }
+  },
+  "services": {
+    "set_track_hours": {
+      "name": "Spurdauer festlegen",
+      "description": "Wie viele Stunden der Spur jedes Schiffs Live Track Ships aufbewahrt, für alle Gebiete: 1 bis 168, standardmäßig 24. Wird sie verkürzt, werden ältere Positionen sofort gelöscht.",
+      "fields": {
+        "hours": {
+          "name": "Stunden",
+          "description": "Stunden Spur, die für jedes Schiff aufbewahrt werden."
+        }
+      }
+    }
   }
 }
