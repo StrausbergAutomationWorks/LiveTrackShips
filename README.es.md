@@ -59,6 +59,11 @@ que un carguero. Según lo que emita, su entidad puede incluir:
 Un barco que deja el transpondedor encendido en el amarre sigue en el mapa en
 su atraque mientras siga emitiendo.
 
+Quien pueda abrir tu mapa puede pulsar también **Track** en un barco así y
+ver por dónde ha pasado en las últimas 24 horas (o el tiempo que fijes), no
+solo dónde está: un barco que dejó su amarre esta mañana muestra ese amarre
+todo el día.
+
 No existe para el AIS una lista de exclusión como la de los aviones, y esta
 integración no se inventa una. Si quieres menos embarcaciones privadas en el
 mapa, reduce el radio.
@@ -257,8 +262,8 @@ esta integración puede hacer crecer tu base de datos rápidamente: en nuestro
 sistema de pruebas, una zona con 43 buques escribió 27.109 filas de estado en
 unas 30 horas, el 8,8 % de toda la base de datos. Por defecto, el recorder
 conserva 10 días y purga cada noche a las 04:12, así que el crecimiento se
-estabiliza, pero en un tamaño que quizá no quieras. Los `marker_photo` y
-`marker_links` de cada buque, y los atributos de los sensores que cambian
+estabiliza, pero en un tamaño que quizá no quieras. Los `marker_photo`, `marker_links` y
+`marker_track` de cada buque, y los atributos de los sensores que cambian
 rápido, nunca se registran.
 
 Un buque conserva el mismo ID de entidad, `geo_location.vessel_<MMSI>`, cada
@@ -482,6 +487,30 @@ segundos entre consultas, y guarda cada respuesta 30 días (14 si no hay foto)
 en `.storage/saw_vessel_photos.json`. Cuenta con fotos para más o menos uno de
 cada diez buques: en nuestro sistema de pruebas, 49 de 521 números IMO tenían
 una.
+
+### Rastros
+
+Cada buque lleva también `marker_track`. Haz clic en un buque y pulsa **Track**
+en su ventana: el mapa dibuja por dónde ha pasado, como una línea que termina
+en el buque y que crece mientras miras; **Hide track** la quita. No se dibuja
+nada hasta que lo pides, para que un puerto con mucho tráfico nunca desaparezca
+bajo las líneas. El rastro solo contiene posiciones que el buque informó
+mientras estaba en tu mapa, reducidas a una cada 25 m o cada 10 minutos y nunca
+dos en menos de 30 segundos. Tu Home Assistant lo guarda en memoria y en
+`.storage/saw_vessel_tracks.json`, así que sobrevive a un reinicio. Abarca las
+últimas 24 horas. Para guardar más o menos, ejecuta la acción
+`live_track_ships.set_track_hours` con `hours` de 1 a 168 (una semana), por
+ejemplo desde Herramientas para desarrolladores > Acciones:
+
+```yaml
+action: live_track_ships.set_track_hours
+data:
+  hours: 72
+```
+
+Se aplica a todas las zonas a la vez; un valor más corto borra al momento las
+posiciones más antiguas. El recorder de Home Assistant no registra los
+rastros.
 
 ## Dónde mira
 

@@ -58,6 +58,11 @@ comme un cargo. Selon ce qu'il émet, son entité peut contenir :
 Un bateau qui laisse son transpondeur allumé au port reste sur la carte à son
 poste tant qu'il émet.
 
+Toute personne qui peut ouvrir votre carte peut aussi appuyer sur **Track**
+pour un tel bateau et voir où il est passé ces dernières 24 heures (ou la durée
+que vous réglez), pas seulement où il se trouve : un bateau qui a quitté son
+poste ce matin montre ce poste toute la journée.
+
 Il n'existe pas de liste d'exclusion pour l'AIS, comme il en existe pour les
 avions, et cette intégration n'en invente pas. Si vous voulez moins de bateaux
 privés sur votre carte, réduisez le rayon.
@@ -264,7 +269,7 @@ données : sur notre système de test, une zone de 43 navires a écrit 27 109
 lignes d'état en 30 heures environ, soit 8,8 % de toute la base. Par défaut,
 l'enregistreur conserve 10 jours et purge chaque nuit à 04 h 12 ; la croissance
 se stabilise donc, mais à une taille que vous ne souhaitez peut-être pas. Les
-`marker_photo` et `marker_links` de chaque navire, ainsi que les attributs des
+`marker_photo`, `marker_links` et `marker_track` de chaque navire, ainsi que les attributs des
 capteurs qui changent vite, ne sont jamais enregistrés.
 
 Un navire garde le même identifiant d'entité, `geo_location.vessel_<MMSI>`,
@@ -492,6 +497,31 @@ Wikidata et Commons, 20 numéros IMO à la fois, à dix secondes d'intervalle, e
 garde chaque réponse 30 jours (14 quand il n'y a pas de photo) dans
 `.storage/saw_vessel_photos.json`. Comptez sur une photo pour environ un navire
 sur dix : sur notre système de test, 49 numéros IMO sur 521 en avaient une.
+
+### Traces
+
+Chaque navire porte aussi `marker_track`. Cliquez sur un navire et appuyez sur
+**Track** dans sa fenêtre : la carte dessine où il est passé, en une ligne qui
+se termine au navire et s'allonge sous vos yeux ; **Hide track** l'efface. Rien
+n'est dessiné avant que vous le demandiez, pour qu'un port animé ne disparaisse
+jamais sous les lignes. La trace ne contient que des positions que le navire a
+signalées pendant qu'il était sur votre carte, réduites à une tous les 25 m ou
+toutes les 10 minutes, jamais deux en moins de 30 secondes. Votre Home
+Assistant la garde en mémoire et l'enregistre dans
+`.storage/saw_vessel_tracks.json`, si bien qu'elle survit à un redémarrage. Elle
+couvre les dernières 24 heures. Pour en garder plus ou moins, lancez l'action
+`live_track_ships.set_track_hours` avec `hours` de 1 à 168 (une semaine), par
+exemple depuis Outils de développement > Actions :
+
+```yaml
+action: live_track_ships.set_track_hours
+data:
+  hours: 72
+```
+
+Le réglage vaut pour toutes les zones à la fois ; un réglage plus court
+supprime aussitôt les positions plus anciennes. L'enregistreur (recorder) de
+Home Assistant n'enregistre pas les traces.
 
 ## Où elle cherche
 

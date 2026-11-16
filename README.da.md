@@ -56,6 +56,11 @@ Afhængigt af hvad båden sender, kan dens enhed indeholde:
 En båd, der lader transponderen være tændt ved kajen, bliver på kortet ved sin
 plads, så længe den sender.
 
+Alle, der kan åbne dit kort, kan også trykke på **Track** for sådan en båd og
+se, hvor den har været det seneste døgn (eller så længe, du indstiller), ikke
+kun hvor den er nu: en båd, der forlod sin plads i morges, viser den plads hele
+dagen.
+
 Der findes ingen fravalgsliste for AIS, som der gør for fly, og denne
 integration opfinder ikke en. Vil du have færre lystbåde på kortet, så gør
 radius mindre.
@@ -251,7 +256,7 @@ kan derfor få din database til at vokse hurtigt: på vores testsystem skrev ét
 område med 43 skibe 27.109 tilstandsrækker på omkring 30 timer, 8,8 % af hele
 databasen. Som standard gemmer recorderen 10 dage og rydder op hver nat kl.
 04:12, så væksten flader ud, men ved en størrelse, du måske ikke ønsker.
-Hvert skibs `marker_photo` og `marker_links` og sensorernes hurtigt skiftende
+Hvert skibs `marker_photo`, `marker_links` og `marker_track` og sensorernes hurtigt skiftende
 attributter bliver aldrig gemt.
 
 Et skib beholder det samme entitets-id, `geo_location.vessel_<MMSI>`, hver gang
@@ -475,6 +480,29 @@ Wikidata og Commons, 20 IMO-numre ad gangen med ti sekunders mellemrum, og
 gemmer hvert svar i 30 dage (14, når der ikke er noget foto) i
 `.storage/saw_vessel_photos.json`. Regn med fotos for omtrent hvert tiende
 skib: på vores testsystem havde 49 af 521 IMO-numre et.
+
+### Spor
+
+Hvert skib har også `marker_track`. Klik på et skib, og tryk på **Track** i
+dets vindue: kortet tegner, hvor det har været, som én linje, der ender ved
+skibet og vokser, mens du ser på; **Hide track** fjerner den. Intet tegnes, før
+du beder om det, så en travl havn aldrig forsvinder under streger. Sporet
+rummer kun positioner, som skibet har meldt, mens det var på dit kort, udtyndet
+til én for hver 25 m eller 10 minutter og aldrig to inden for 30 sekunder. Din
+Home Assistant holder det i hukommelsen og gemmer det i
+`.storage/saw_vessel_tracks.json`, så det overlever en genstart. Det dækker det
+seneste døgn. Vil du gemme mere eller mindre, så kør handlingen
+`live_track_ships.set_track_hours` med `hours` fra 1 til 168 (en uge), for
+eksempel fra Udviklerværktøjer > Handlinger:
+
+```yaml
+action: live_track_ships.set_track_hours
+data:
+  hours: 72
+```
+
+Det gælder alle områder på én gang; en kortere indstilling sletter ældre
+positioner med det samme. Home Assistants recorder gemmer ikke sporene.
 
 ## Hvor den kigger
 

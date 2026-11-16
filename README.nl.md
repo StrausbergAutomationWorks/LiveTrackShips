@@ -56,6 +56,11 @@ vrachtschip. Afhankelijk van wat de boot uitzendt, kan de entiteit bevatten:
 Een boot die zijn transponder aan de steiger aan laat staan, blijft op de
 kaart op zijn ligplaats zolang hij uitzendt.
 
+Wie je kaart kan openen, kan bij zo'n boot ook op **Track** drukken en zien
+waar hij de afgelopen 24 uur (of zo lang als je instelt) is geweest, niet
+alleen waar hij nu ligt: een boot die vanochtend zijn ligplaats verliet, toont
+die ligplaats de hele dag.
+
 Voor AIS bestaat geen uitsluitingslijst zoals voor vliegtuigen, en deze
 integratie verzint er geen. Wil je minder pleziervaartuigen op je kaart, maak
 dan de straal kleiner.
@@ -260,7 +265,7 @@ integratie kan je database daardoor snel laten groeien: op ons testsysteem
 schreef één gebied met 43 schepen in ongeveer 30 uur 27.109 statusrijen, 8,8%
 van de hele database. Standaard bewaart de recorder 10 dagen en ruimt hij elke
 nacht om 04:12 op, dus de groei vlakt af, maar op een omvang die je misschien
-niet wilt. `marker_photo` en `marker_links` van elk schip, en de snel
+niet wilt. `marker_photo`, `marker_links` en `marker_track` van elk schip, en de snel
 veranderende attributen van de sensoren, worden nooit vastgelegd.
 
 Een schip houdt elke keer dat het verschijnt dezelfde entiteit-ID,
@@ -488,6 +493,29 @@ IMO-nummers tegelijk, tien seconden na elkaar, en bewaart elk antwoord 30 dagen
 (14 als er geen foto is) in `.storage/saw_vessel_photos.json`. Reken op foto's
 voor ongeveer één op de tien schepen: op ons testsysteem hadden 49 van de 521
 IMO-nummers er een.
+
+### Sporen
+
+Elk schip heeft ook `marker_track`. Klik op een schip en druk in het venster op
+**Track**: de kaart tekent waar het geweest is, als één lijn die bij het schip
+eindigt en groeit terwijl je kijkt; **Hide track** haalt hem weg. Er wordt
+niets getekend tot je erom vraagt, zodat een drukke haven nooit onder lijnen
+verdwijnt. Het spoor bevat alleen posities die het schip meldde terwijl het op
+je kaart stond, uitgedund tot één per 25 m of 10 minuten en nooit twee binnen
+30 seconden. Je Home Assistant houdt het in het geheugen en bewaart het in
+`.storage/saw_vessel_tracks.json`, dus het overleeft een herstart. Het beslaat
+de laatste 24 uur. Om meer of minder te bewaren, voer je de actie
+`live_track_ships.set_track_hours` uit met `hours` van 1 tot 168 (een week),
+bijvoorbeeld via Ontwikkelhulpmiddelen > Acties:
+
+```yaml
+action: live_track_ships.set_track_hours
+data:
+  hours: 72
+```
+
+Het geldt voor alle gebieden tegelijk; een kortere instelling verwijdert
+oudere posities meteen. De recorder van Home Assistant legt sporen niet vast.
 
 ## Waar hij kijkt
 

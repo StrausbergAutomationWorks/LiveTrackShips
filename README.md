@@ -55,6 +55,11 @@ cargo ship. Depending on what the boat broadcasts, its entity can carry:
 A boat that keeps its transponder on at the dock stays on the map at its berth
 for as long as it keeps transmitting.
 
+Anyone who can open your map can also press **Track** on such a boat and see
+where it has been over the last 24 hours (or as long as you set), not only
+where it is now: a boat that left its berth this morning shows that berth all
+day.
+
 There is no opt-out list for AIS, as there is for aircraft, and this
 integration does not invent one. If you want fewer private boats on your map,
 reduce the radius.
@@ -245,7 +250,7 @@ therefore grow your database quickly: on our test system, one area with 43
 vessels wrote 27,109 state rows in about 30 hours, 8.8% of the whole database.
 By default the recorder keeps 10 days and purges every night at 04:12, so the
 growth levels off, but at a size you may not want. Each vessel's
-`marker_photo` and `marker_links`, and the sensors' fast-changing attributes,
+`marker_photo`, `marker_links` and `marker_track`, and the sensors' fast-changing attributes,
 are never recorded.
 
 A vessel keeps the same entity id, `geo_location.vessel_<MMSI>`, every time it
@@ -459,6 +464,28 @@ Your Home Assistant asks Wikidata and Commons itself, 20 IMO numbers at a time,
 ten seconds apart, and keeps each answer for 30 days (14 when there is no
 photo) in `.storage/saw_vessel_photos.json`. Expect photos for roughly one
 vessel in ten: on our test system, 49 of 521 IMO numbers had one.
+
+### Tracks
+
+Every vessel also carries `marker_track`. Click a vessel and press **Track** in
+its popup: the map draws where it has been, as one line ending at the vessel,
+and the line grows while you watch; **Hide track** takes it off. Nothing is
+drawn until you ask, so a busy port never disappears under lines. The track
+holds only positions the vessel reported while on your map, thinned to one
+every 25 m or 10 minutes and never two within 30 seconds. Your Home Assistant
+keeps it in memory and saves it to `.storage/saw_vessel_tracks.json`, so it
+survives a restart. It covers the last 24 hours. To keep more or less, run the
+action `live_track_ships.set_track_hours` with `hours` from 1 to 168 (one
+week), for example from Developer tools > Actions:
+
+```yaml
+action: live_track_ships.set_track_hours
+data:
+  hours: 72
+```
+
+It applies to every area at once; a shorter setting drops older positions
+straight away. Home Assistant's recorder does not record tracks.
 
 ## Where it looks
 
