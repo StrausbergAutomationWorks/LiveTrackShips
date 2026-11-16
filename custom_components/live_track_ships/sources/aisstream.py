@@ -35,10 +35,13 @@ class AisStreamSource:
     domain = "live_track_ships"
 
     def __init__(self, session, api_key, boxes, statics=None, store=None,
-                 consumer=None, create_task=None):
+                 consumer=None, create_task=None, mmsis=None):
         self._session = session
         self._key = api_key
         self._boxes = boxes
+        # Backlog 343: a watch entry's list. With MMSIs this is a VESSELS
+        # consumer (worldwide, the list only), else an AREA consumer.
+        self._mmsis = list(mmsis) if mmsis else None
         # store is hass.data in production: one client per Home Assistant. A
         # private client when none is given (tests, scripts).
         self._client = _lib.shared(store if store is not None else {})
@@ -64,9 +67,14 @@ class AisStreamSource:
         """Yield Observations until closed. The client reconnects; nothing
         here does."""
         queue: asyncio.Queue = asyncio.Queue()
-        self._client.add_area(self._consumer, self._session, self._key,
-                              self._boxes, queue.put_nowait, self.domain,
-                              create_task=self._create_task)
+        if self._mmsis:
+            self._client.add_vessels(self._consumer, self._session, self._key,
+                                     self._mmsis, queue.put_nowait,
+                                     self.domain, create_task=self._create_task)
+        else:
+            self._client.add_area(self._consumer, self._session, self._key,
+                                  self._boxes, queue.put_nowait, self.domain,
+                                  create_task=self._create_task)
         self._added = True
         try:
             while True:

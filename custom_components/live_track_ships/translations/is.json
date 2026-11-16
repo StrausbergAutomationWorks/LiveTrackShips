@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Hverju viltu fylgjast með?",
+        "menu_options": {
+          "area": "Öllum skipum á svæði",
+          "watch": "Völdum skipum, hvar sem þau eru"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Skip nálægt tilteknum punkti, úr rauntíma AIS-gögnum. Ekki til siglinga.\n\nÞekkir þú skip sem verðskuldar eigin mynd á kortinu, til dæmis konungs- eða ríkissnekkju, þekkta ferju eða slökkvibát? Láttu okkur vita á {issues_url} og við teiknum það. Láttu okkur líka vita þar ef þú finnur villu í þessari þýðingu.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Hluti svæðisins er utan þjónustusvæðis",
         "description": "Um {percent}% af þessum hring liggja utan svæðisins sem BarentsWatch birtir, það er norskra hafsvæða. Skip þar birtast aldrei, sama hversu fjölfarið hafsvæðið er. Sendu inn til að nota hringinn samt, eða lokaðu glugganum og veldu minni radíus eða aðra gagnaveitu."
+      },
+      "watch": {
+        "description": "Skip sem þú velur, fylgst með hvar sem er í heiminum gegnum aisstream.io, með atburði þegar eitt þeirra kemur, leggur úr höfn, þagnar, heyrist aftur eða skiptir um áfangastað. Ekki til siglinga.\n\nÞekkir þú skip sem á skilið sína eigin mynd á kortinu? Láttu okkur vita á {issues_url}. Tilkynntu þar líka villur í þessari þýðingu.",
+        "data": {
+          "api_key": "API-lykill",
+          "vessels": "Skip"
+        },
+        "data_description": {
+          "api_key": "Fáðu ókeypis lykil á {aisstream_url}. Lykill svæðis sem þú hefur þegar sett upp er fylltur inn.",
+          "vessels": "Eitt skip í línu: 9 stafa MMSI þess og síðan eigið heiti ef þú vilt, til dæmis 244650000 Bátur pabba. Mest {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io þarf API-lykil. Ókeypis á {aisstream_url}, eða veldu Digitraffic í staðinn.",
       "invalid_location": "Þessi punktur er ekki á jörðinni. Færðu merkið og reyndu aftur.",
       "client_id_required": "BarentsWatch þarf biðlaraauðkenni. Skráðu ókeypis AIS-biðlara á barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch þarf biðlaraleyndarmál. Það birtist einu sinni þegar biðlarinn er búinn til; búðu til nýtt ef þú geymdir það ekki."
+      "client_secret_required": "BarentsWatch þarf biðlaraleyndarmál. Það birtist einu sinni þegar biðlarinn er búinn til; búðu til nýtt ef þú geymdir það ekki.",
+      "vessels_invalid": "Hver lína verður að byrja á 9 stafa MMSI.",
+      "vessels_empty": "Bættu við að minnsta kosti einu skipi.",
+      "vessels_too_many": "Mest {max_vessels} skip á einum lista.",
+      "watch_key_required": "Til að fylgjast með skipum þarf API-lykil frá aisstream.io. Fáðu ókeypis lykil á {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Þessi gagnaveita fylgist þegar með þessari miðju."
+      "already_configured": "Þessi gagnaveita fylgist þegar með þessari miðju.",
+      "watch_exists": "Vöktuð skip eru þegar sett upp. Breyttu listanum í stillingum þeirrar færslu."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Hluti svæðisins er utan þjónustusvæðis",
         "description": "Um {percent}% af þessum hring liggja utan svæðisins sem BarentsWatch birtir, það er norskra hafsvæða. Skip þar birtast aldrei, sama hversu fjölfarið hafsvæðið er. Sendu inn til að vista stillingarnar samt, eða lokaðu glugganum til að halda núverandi stillingum."
+      },
+      "watch": {
+        "description": "Eitt skip í línu: 9 stafa MMSI þess og síðan eigið heiti ef þú vilt. Listinn er endurhlaðinn þegar þú vistar.\n\nÞekkir þú skip sem á skilið sína eigin mynd á kortinu? Láttu okkur vita á {issues_url}.",
+        "data": {
+          "vessels": "Skip"
+        },
+        "data_description": {
+          "vessels": "Mest {max_vessels}. Eyddu línu til að hætta að fylgjast með því skipi."
+        }
       }
     },
     "error": {
       "invalid_location": "Þessi punktur er ekki á jörðinni. Færðu merkið og reyndu aftur.",
-      "already_watched": "Annað svæði með sömu gagnaveitu fylgist þegar með þessari miðju."
+      "already_watched": "Annað svæði með sömu gagnaveitu fylgist þegar með þessari miðju.",
+      "vessels_invalid": "Hver lína verður að byrja á 9 stafa MMSI.",
+      "vessels_empty": "Bættu við að minnsta kosti einu skipi.",
+      "vessels_too_many": "Mest {max_vessels} skip á einum lista."
     }
   },
   "entity": {

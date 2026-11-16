@@ -21,6 +21,7 @@ from pathlib import Path
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_FINAL_WRITE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.aiohttp_client import async_create_clientsession, async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 
@@ -34,6 +35,8 @@ from .const_flow import (
 from .const_flow import attribution_for
 from .geo import DEFAULT_RADIUS_KM, bounding_boxes, listen_margin_km
 from . import events as _events
+from . import watch as _watch
+from .const_flow import CONF_VESSELS, KIND_WATCH, kind_of
 from . import held as _held
 from .sources import statics as _statics
 from saw_livetrack import aisstream as _aisstream
@@ -205,12 +208,27 @@ class ShipFeed:
         self.hass = hass
         self.entry = entry
         cfg = {**entry.data, **entry.options}
-        self.lat = cfg[CONF_LATITUDE]
-        self.lon = cfg[CONF_LONGITUDE]
-        self.radius = cfg.get(CONF_RADIUS_KM, DEFAULT_RADIUS_KM)
-        self.store = VesselStore(
-            self.lat, self.lon, self.radius,
-            cfg.get(CONF_MAX_VESSELS, DEFAULT_MAX_VESSELS))
+        self.kind = kind_of(cfg)
+        # Watched vessels (backlog 343): mmsi -> the user's label ("" if none).
+        self.labels: dict[str, str] = {}
+        if self.kind == KIND_WATCH:
+            # ⚠ A WORLD CIRCLE round the home: the store keeps every fix of a
+            # listed vessel wherever it is, and a vessel's state (its distance)
+            # is measured from the home. Only aisstream, only the list.
+            self.labels = {v["mmsi"]: v.get("label", "")
+                           for v in cfg.get(CONF_VESSELS) or []}
+            self.lat = hass.config.latitude
+            self.lon = hass.config.longitude
+            self.radius = _watch.WORLD_RADIUS_KM
+            self.store = VesselStore(self.lat, self.lon, self.radius,
+                                     max(1, len(self.labels)))
+        else:
+            self.lat = cfg[CONF_LATITUDE]
+            self.lon = cfg[CONF_LONGITUDE]
+            self.radius = cfg.get(CONF_RADIUS_KM, DEFAULT_RADIUS_KM)
+            self.store = VesselStore(
+                self.lat, self.lon, self.radius,
+                cfg.get(CONF_MAX_VESSELS, DEFAULT_MAX_VESSELS))
         self._cfg = cfg
         # Credit line for everything this entry shows (const_flow.ATTRIBUTION).
         self.attribution = attribution_for(cfg.get(CONF_SOURCE))
@@ -260,6 +278,18 @@ class ShipFeed:
 
     def _build_source(self):
         session = async_get_clientsession(self.hass)
+        if self.kind == KIND_WATCH:
+            from .sources.aisstream import AisStreamSource
+            # The shared client's VESSELS connection: the union of every list
+            # consumer's MMSIs on this key (Live Track SALT's too), at most 200.
+            return AisStreamSource(session, self._cfg[CONF_API_KEY], None,
+                                   statics=(self._statics.cache
+                                            if self._statics else None),
+                                   store=self.hass.data,
+                                   consumer=f"{DOMAIN}:{self.entry.entry_id}",
+                                   create_task=lambda coro, name:
+                                   self.hass.async_create_background_task(coro, name),
+                                   mmsis=sorted(self.labels))
         # ⚠ The LISTENING RING (geo.listen_margin_km, backlog 342): every
         # source is asked a little wider than the user's circle so a vessel
         # leaving is heard outside; the store keeps only the user's circle.
@@ -360,6 +390,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # the one dashboard resource row reconciled (backlog 291). Never raises.
     await async_offer_map_card(hass, DOMAIN, HERE / "frontend")
     feed = ShipFeed(hass, entry)
+    if feed.kind == KIND_WATCH:
+        # aisstream takes at most 200 MMSIs per subscription, shared with Live
+        # Track SALT's list on the same key: say so now, as an entry error,
+        # rather than as a feed that dies in the background.
+        try:
+            _aisstream.shared(hass.data)._check_cap(
+                entry.data.get(CONF_API_KEY) or entry.options.get(CONF_API_KEY),
+                f"{DOMAIN}:{entry.entry_id}", set(feed.labels))
+        except ValueError as exc:
+            raise ConfigEntryError(str(exc)) from exc
     # ! THE EnforcementVessels LIST (backlog 315 task 5): a listed vessel is drawn with the list's look
     # (enforcement.py). One reader per instance (saw_livetrack.enforcement_vessels), shared with Live Track SALT.
     first = _ev.STORE_KEY not in hass.data
@@ -375,8 +415,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await feed.start()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = feed
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    # Entry and exit events (backlog 342). AFTER the platforms: see attach().
-    feed.events = _events.attach(hass, entry, feed)
+    # Entry and exit events (backlog 342), or a watch entry's own (343).
+    # AFTER the platforms: see attach().
+    if feed.kind == KIND_WATCH:
+        feed.events = _watch.attach(hass, entry, feed)
+    else:
+        feed.events = _events.attach(hass, entry, feed)
     entry.async_on_unload(entry.add_update_listener(_reload))
     return True
 

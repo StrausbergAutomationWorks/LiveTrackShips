@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Hva vil du følge?",
+        "menu_options": {
+          "area": "Alle fartøy i et område",
+          "watch": "Utvalgte fartøy, uansett hvor de er"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Fartøy nær et punkt, fra AIS-data i sanntid. Ikke for navigasjon.\n\nKjenner du et skip som fortjener sitt eget bilde på kartet, som en kongelig eller statlig yacht, en kjent ferje eller en brannbåt? Si fra til oss på {issues_url}, så tegner vi det. Meld også fra der om feil i denne oversettelsen.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Deler av dette området mangler dekning",
         "description": "Omtrent {percent} % av sirkelen ligger utenfor området BarentsWatch publiserer, altså norske farvann. Fartøy der vises aldri, uansett hvor trafikkert farvannet er. Send inn for å bruke sirkelen likevel, eller lukk dialogen og velg en mindre radius eller en annen kilde."
+      },
+      "watch": {
+        "description": "Fartøy du velger selv, fulgt over hele verden via aisstream.io, med en hendelse når ett av dem kommer, går, blir stille, høres igjen eller endrer destinasjon. Ikke for navigasjon.\n\nKjenner du et skip som fortjener sitt eget bilde på kartet? Si fra på {issues_url}. Meld også feil i denne oversettelsen der.",
+        "data": {
+          "api_key": "API-nøkkel",
+          "vessels": "Fartøy"
+        },
+        "data_description": {
+          "api_key": "Få en gratis på {aisstream_url}. Nøkkelen fra et område du allerede har satt opp, er fylt inn.",
+          "vessels": "Ett fartøy per linje: dets 9-sifrede MMSI, deretter et eget navn om du vil, for eksempel 244650000 Pappas båt. Høyst {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io krever en API-nøkkel. Gratis på {aisstream_url}, eller velg Digitraffic i stedet.",
       "invalid_location": "Det punktet ligger ikke på jordkloden. Flytt markøren og prøv igjen.",
       "client_id_required": "BarentsWatch krever en klient-ID. Registrer en gratis AIS-klient på barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch krever en klienthemmelighet. Den vises én gang når klienten opprettes; lag en ny hvis du ikke tok vare på den."
+      "client_secret_required": "BarentsWatch krever en klienthemmelighet. Den vises én gang når klienten opprettes; lag en ny hvis du ikke tok vare på den.",
+      "vessels_invalid": "Hver linje må begynne med et 9-sifret MMSI.",
+      "vessels_empty": "Legg til minst ett fartøy.",
+      "vessels_too_many": "Høyst {max_vessels} fartøy i én liste.",
+      "watch_key_required": "Å følge fartøy krever en API-nøkkel fra aisstream.io. Få en gratis på {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Denne kilden følger allerede det midtpunktet."
+      "already_configured": "Denne kilden følger allerede det midtpunktet.",
+      "watch_exists": "Fulgte fartøy er allerede satt opp. Endre listen i innstillingene for den oppføringen."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Deler av dette området mangler dekning",
         "description": "Omtrent {percent} % av sirkelen ligger utenfor området BarentsWatch publiserer, altså norske farvann. Fartøy der vises aldri, uansett hvor trafikkert farvannet er. Send inn for å lagre innstillingene likevel, eller lukk dialogen for å beholde de nåværende."
+      },
+      "watch": {
+        "description": "Ett fartøy per linje: dets 9-sifrede MMSI, deretter et eget navn om du vil. Når du lagrer, lastes listen inn på nytt.\n\nKjenner du et skip som fortjener sitt eget bilde på kartet? Si fra på {issues_url}.",
+        "data": {
+          "vessels": "Fartøy"
+        },
+        "data_description": {
+          "vessels": "Høyst {max_vessels}. Slett en linje for å slutte å følge det fartøyet."
+        }
       }
     },
     "error": {
       "invalid_location": "Det punktet ligger ikke på jordkloden. Flytt markøren og prøv igjen.",
-      "already_watched": "Et annet område med samme kilde følger allerede dette midtpunktet."
+      "already_watched": "Et annet område med samme kilde følger allerede dette midtpunktet.",
+      "vessels_invalid": "Hver linje må begynne med et 9-sifret MMSI.",
+      "vessels_empty": "Legg til minst ett fartøy.",
+      "vessels_too_many": "Høyst {max_vessels} fartøy i én liste."
     }
   },
   "entity": {

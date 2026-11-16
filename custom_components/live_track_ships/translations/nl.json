@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Wat wil je volgen?",
+        "menu_options": {
+          "area": "Alle schepen in een gebied",
+          "watch": "Gekozen schepen, waar ze ook zijn"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Schepen rond een punt, uit live AIS-gegevens. Niet voor navigatie.\n\nKen je een schip dat een eigen afbeelding op de kaart verdient, zoals een koninklijk of staatsjacht, een bekende veerboot of een blusboot? Laat het ons weten op {issues_url}, dan tekenen we het. Meld daar ook een fout in deze vertaling.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Een deel van dit gebied heeft geen dekking",
         "description": "Ongeveer {percent}% van deze cirkel ligt buiten het gebied dat BarentsWatch publiceert, de Noorse wateren. Schepen daar verschijnen nooit, hoe druk het water ook is. Verstuur om deze cirkel toch te gebruiken, of sluit dit venster en kies een kleinere straal of een andere bron."
+      },
+      "watch": {
+        "description": "Schepen die je zelf kiest, overal ter wereld gevolgd via aisstream.io, met een gebeurtenis wanneer er een aankomt, vertrekt, stil valt, weer wordt gehoord of van bestemming verandert. Niet voor navigatie.\n\nKen je een schip dat een eigen afbeelding op de kaart verdient? Laat het ons weten op {issues_url}. Meld daar ook fouten in deze vertaling.",
+        "data": {
+          "api_key": "API-sleutel",
+          "vessels": "Schepen"
+        },
+        "data_description": {
+          "api_key": "Gratis te krijgen op {aisstream_url}. De sleutel van een gebied dat je al hebt ingesteld, is ingevuld.",
+          "vessels": "Eén schip per regel: de MMSI van 9 cijfers, daarna desgewenst een eigen naam, bijvoorbeeld 244650000 Papa's boot. Hoogstens {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io heeft een API-sleutel nodig. Gratis op {aisstream_url}, of kies Digitraffic.",
       "invalid_location": "Dat punt ligt niet op de aardbol. Verplaats de markering en probeer het opnieuw.",
       "client_id_required": "BarentsWatch heeft een client-ID nodig. Registreer een gratis AIS-client op barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch heeft een client-secret nodig. Het wordt één keer getoond bij het aanmaken van de client; maak een nieuw als je het niet hebt bewaard."
+      "client_secret_required": "BarentsWatch heeft een client-secret nodig. Het wordt één keer getoond bij het aanmaken van de client; maak een nieuw als je het niet hebt bewaard.",
+      "vessels_invalid": "Elke regel moet beginnen met een MMSI van 9 cijfers.",
+      "vessels_empty": "Voeg minstens één schip toe.",
+      "vessels_too_many": "Hoogstens {max_vessels} schepen in één lijst.",
+      "watch_key_required": "Voor het volgen van schepen is een API-sleutel van aisstream.io nodig. Gratis te krijgen op {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Deze bron volgt dat middelpunt al."
+      "already_configured": "Deze bron volgt dat middelpunt al.",
+      "watch_exists": "Gevolgde schepen zijn al ingesteld. Wijzig de lijst in de instellingen van dat item."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Een deel van dit gebied heeft geen dekking",
         "description": "Ongeveer {percent}% van deze cirkel ligt buiten het gebied dat BarentsWatch publiceert, de Noorse wateren. Schepen daar verschijnen nooit, hoe druk het water ook is. Verstuur om deze instellingen toch op te slaan, of sluit dit venster om de huidige te houden."
+      },
+      "watch": {
+        "description": "Eén schip per regel: de MMSI van 9 cijfers, daarna desgewenst een eigen naam. Opslaan laadt de lijst opnieuw.\n\nKen je een schip dat een eigen afbeelding op de kaart verdient? Laat het ons weten op {issues_url}.",
+        "data": {
+          "vessels": "Schepen"
+        },
+        "data_description": {
+          "vessels": "Hoogstens {max_vessels}. Verwijder een regel om dat schip niet meer te volgen."
+        }
       }
     },
     "error": {
       "invalid_location": "Dat punt ligt niet op de aardbol. Verplaats de markering en probeer het opnieuw.",
-      "already_watched": "Een ander gebied met dezelfde bron volgt dit middelpunt al."
+      "already_watched": "Een ander gebied met dezelfde bron volgt dit middelpunt al.",
+      "vessels_invalid": "Elke regel moet beginnen met een MMSI van 9 cijfers.",
+      "vessels_empty": "Voeg minstens één schip toe.",
+      "vessels_too_many": "Hoogstens {max_vessels} schepen in één lijst."
     }
   },
   "entity": {

@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "What do you want to follow?",
+        "menu_options": {
+          "area": "Every vessel in an area",
+          "watch": "Chosen vessels, wherever they are"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Vessels near a point, from live AIS data. Not for navigation.\n\nKnow a ship that deserves its own picture on the map, such as a royal or state yacht, a well-known ferry or a fireboat? Tell us at {issues_url} and we will draw it.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Part of this area has no coverage",
         "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to use this circle anyway, or close this dialog and choose a smaller radius or another source."
+      },
+      "watch": {
+        "description": "Vessels you choose, followed anywhere in the world on aisstream.io, with an event when one arrives, departs, goes silent, is heard again or changes its destination. Not for navigation.\n\nKnow a ship that deserves its own picture on the map? Tell us at {issues_url}.",
+        "data": {
+          "api_key": "API key",
+          "vessels": "Vessels"
+        },
+        "data_description": {
+          "api_key": "Get one free at {aisstream_url}. The key of an area you already set up is filled in.",
+          "vessels": "One vessel per line: its 9-digit MMSI, then a label of your own if you like, for example 244650000 Dad's boat. At most {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io needs an API key. Get one free at {aisstream_url}, or choose Digitraffic instead.",
       "invalid_location": "That point is not on the globe. Move the marker and try again.",
       "client_id_required": "BarentsWatch needs a client ID. Register a free AIS client at barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch needs a client secret. It is shown once when the client is created; generate a new one if you did not keep it."
+      "client_secret_required": "BarentsWatch needs a client secret. It is shown once when the client is created; generate a new one if you did not keep it.",
+      "vessels_invalid": "Each line must start with a 9-digit MMSI.",
+      "vessels_empty": "Add at least one vessel.",
+      "vessels_too_many": "At most {max_vessels} vessels in one list.",
+      "watch_key_required": "Following vessels needs an aisstream.io API key. Get one free at {aisstream_url}."
     },
     "abort": {
-      "already_configured": "This source is already watching that centre."
+      "already_configured": "This source is already watching that centre.",
+      "watch_exists": "Watched vessels are already set up. Change the list in that entry's settings."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Part of this area has no coverage",
         "description": "About {percent}% of this circle lies outside the area BarentsWatch publishes, which is Norwegian waters. Vessels there will never appear, however busy the water is. Submit to save these settings anyway, or close this dialog to keep the current ones."
+      },
+      "watch": {
+        "description": "One vessel per line: its 9-digit MMSI, then a label of your own if you like. Saving reloads the list.\n\nKnow a ship that deserves its own picture on the map? Tell us at {issues_url}.",
+        "data": {
+          "vessels": "Vessels"
+        },
+        "data_description": {
+          "vessels": "At most {max_vessels}. Remove a line to stop following that vessel."
+        }
       }
     },
     "error": {
       "invalid_location": "That point is not on the globe. Move the marker and try again.",
-      "already_watched": "Another area with the same source already watches this centre."
+      "already_watched": "Another area with the same source already watches this centre.",
+      "vessels_invalid": "Each line must start with a 9-digit MMSI.",
+      "vessels_empty": "Add at least one vessel.",
+      "vessels_too_many": "At most {max_vessels} vessels in one list."
     }
   },
   "entity": {

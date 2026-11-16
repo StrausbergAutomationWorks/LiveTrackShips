@@ -162,9 +162,6 @@ class AreaEvents:
         never a placeholder. For an exit HEARD outside, the position and
         motion are the fix outside, the identity and details the last fix
         inside (a fix outside may come before the details are relayed)."""
-        pos = outside if outside is not None else obs
-        kind = obs.kind
-        name = (obs.name or "").strip() or None
         data: dict = {"area_id": self._area_id, "area": self._area_name,
                       "identity": obs.identity}
         if reason is not None:
@@ -174,40 +171,53 @@ class AreaEvents:
         # Never on an exit: the entity is being removed in the same pass.
         if reason is None and self._drawn(obs.identity):
             data["entity_id"] = f"geo_location.vessel_{obs.identity}"
-        for key, value in (
-            ("name", name),
-            ("object_kind", kind),
-            ("ship_type", obs.ship_type),
-            ("ship_type_label", ship_type_label(obs.ship_type)),
-            ("call_sign", obs.call_sign),
-            ("imo", valid_imo(obs.imo)),
-            ("length_m", obs.length_m),
-            ("beam_m", obs.beam_m),
-            ("draught_m", obs.draught_m),
-            ("destination", obs.destination),
-            ("nav_status", _first(pos.nav_status, obs.nav_status)),
-            ("speed_kmh", pos.speed_kmh),
-            ("course_deg", pos.course_deg),
-            ("heading_deg", pos.heading_deg),
-            ("latitude", pos.latitude),
-            ("longitude", pos.longitude),
-        ):
-            if value is not None:
-                data[key] = value
-        if pos.latitude is not None and pos.longitude is not None:
-            data["distance_km"] = round(distance_km(
-                self._lat, self._lon, pos.latitude, pos.longitude), 2)
-            data["bearing_from_centre_deg"] = bearing_deg(
-                self._lat, self._lon, pos.latitude, pos.longitude)
-        if pos.observed_at is not None:
-            data["last_seen"] = pos.observed_at.isoformat()
-        if kind != "vessel":
-            for key in VESSEL_ONLY:
-                data.pop(key, None)
-            if kind in FIXED_KINDS:
-                for key in MOTION:
-                    data.pop(key, None)
+        data.update(vessel_data(obs, outside, self._lat, self._lon))
         return data
+
+
+def vessel_data(obs, outside, centre_lat, centre_lon) -> dict:
+    """A vessel's fields for an event, shared by the area events and the
+    watched-vessel events (watch.py). Names and units as the entity's
+    attributes; unknown values omitted. `outside`, when given, supplies the
+    position and motion; `obs` the identity and details."""
+    pos = outside if outside is not None else obs
+    kind = obs.kind
+    name = (obs.name or "").strip() or None
+    data: dict = {}
+    for key, value in (
+        ("name", name),
+        ("object_kind", kind),
+        ("ship_type", obs.ship_type),
+        ("ship_type_label", ship_type_label(obs.ship_type)),
+        ("call_sign", obs.call_sign),
+        ("imo", valid_imo(obs.imo)),
+        ("length_m", obs.length_m),
+        ("beam_m", obs.beam_m),
+        ("draught_m", obs.draught_m),
+        ("destination", obs.destination),
+        ("nav_status", _first(pos.nav_status, obs.nav_status)),
+        ("speed_kmh", pos.speed_kmh),
+        ("course_deg", pos.course_deg),
+        ("heading_deg", pos.heading_deg),
+        ("latitude", pos.latitude),
+        ("longitude", pos.longitude),
+    ):
+        if value is not None:
+            data[key] = value
+    if pos.latitude is not None and pos.longitude is not None:
+        data["distance_km"] = round(distance_km(
+            centre_lat, centre_lon, pos.latitude, pos.longitude), 2)
+        data["bearing_from_centre_deg"] = bearing_deg(
+            centre_lat, centre_lon, pos.latitude, pos.longitude)
+    if pos.observed_at is not None:
+        data["last_seen"] = pos.observed_at.isoformat()
+    if kind != "vessel":
+        for key in VESSEL_ONLY:
+            data.pop(key, None)
+        if kind in FIXED_KINDS:
+            for key in MOTION:
+                data.pop(key, None)
+    return data
 
 
 def _first(*values):

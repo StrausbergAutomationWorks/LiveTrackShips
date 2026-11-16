@@ -22,6 +22,27 @@ CONF_MAX_VESSELS = "max_vessels"
 CONF_CLIENT_ID = "client_id"
 CONF_CLIENT_SECRET = "client_secret"
 
+# ⚠ TWO KINDS OF ENTRY (backlog 343, Lee 2026-11-15 22:0x). An AREA (every
+# vessel inside a circle; every entry made before 343, which stores no kind)
+# and WATCHED VESSELS (a list of MMSIs followed anywhere, on aisstream's
+# VESSELS connection; at most one such entry, unique_id "watch").
+CONF_KIND = "kind"
+KIND_AREA = "area"
+KIND_WATCH = "watch"
+# The watch entry's list, stored as [{"mmsi": "123456789", "label": "..."}];
+# the dialog shows and takes it as text, one vessel per line (watch.py).
+CONF_VESSELS = "vessels"
+WATCH_UNIQUE_ID = "watch"
+# How many one entry may follow. aisstream takes at most 200 MMSIs per
+# subscription, and the VESSELS connection is shared with Live Track SALT's
+# EnforcementVessels list on the same key (saw_livetrack.aisstream MAX_MMSIS).
+MAX_WATCHED = 100
+
+
+def kind_of(cfg) -> str:
+    """An entry's kind; one that stores none is an area (every entry before 343)."""
+    return cfg.get(CONF_KIND) or KIND_AREA
+
 # ⚠ NO ICON OPTIONS (Lee, 2026-09-25). card_rotation and silhouette_only were
 # per-entry options, both default OFF, so an entry created without them drew
 # every vessel pre-rotated on a dark disc. Deleted: every entry draws the same

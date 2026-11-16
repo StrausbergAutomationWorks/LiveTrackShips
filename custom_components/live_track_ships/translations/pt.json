@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "O que quer acompanhar?",
+        "menu_options": {
+          "area": "Todas as embarcações numa área",
+          "watch": "Embarcações escolhidas, onde quer que estejam"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Embarcações perto de um ponto, com dados AIS ao vivo. Não serve para navegação.\n\nConhece um navio que merece uma imagem própria no mapa, como um iate real ou de Estado, um ferry conhecido ou um barco de bombeiros? Diga-nos em {issues_url} e nós desenhá-lo-emos. Avise-nos também aí se encontrar um erro nesta tradução.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Parte desta área não tem cobertura",
         "description": "Cerca de {percent}% deste círculo fica fora da área que o BarentsWatch publica, ou seja, as águas da Noruega. Embarcações ali nunca irão aparecer, por mais movimentada que esteja a água. Confirme para usar este círculo mesmo assim, ou feche a janela e escolha um raio menor ou outra fonte."
+      },
+      "watch": {
+        "description": "Embarcações que escolhe, acompanhadas em qualquer parte do mundo através do aisstream.io, com um evento quando uma chega, parte, fica em silêncio, volta a ser ouvida ou muda de destino. Não serve para navegação.\n\nConhece um navio que merece a sua própria imagem no mapa? Diga-nos em {issues_url}. Comunique lá também qualquer erro nesta tradução.",
+        "data": {
+          "api_key": "Chave de API",
+          "vessels": "Embarcações"
+        },
+        "data_description": {
+          "api_key": "Obtenha uma gratuitamente em {aisstream_url}. A chave de uma área que já configurou vem preenchida.",
+          "vessels": "Uma embarcação por linha: o MMSI de 9 dígitos e, se quiser, um nome seu, por exemplo 244650000 Barco do pai. No máximo {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io precisa de uma chave de API. Gratuita em {aisstream_url}, ou escolha Digitraffic.",
       "invalid_location": "Esse ponto não está no globo. Mova o marcador e tente novamente.",
       "client_id_required": "BarentsWatch precisa de um ID do cliente. Registe um cliente AIS gratuito em barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch precisa de um segredo do cliente. Ele aparece uma vez quando o cliente é criado; gere um novo se não o guardou."
+      "client_secret_required": "BarentsWatch precisa de um segredo do cliente. Ele aparece uma vez quando o cliente é criado; gere um novo se não o guardou.",
+      "vessels_invalid": "Cada linha tem de começar com um MMSI de 9 dígitos.",
+      "vessels_empty": "Adicione pelo menos uma embarcação.",
+      "vessels_too_many": "No máximo {max_vessels} embarcações numa lista.",
+      "watch_key_required": "Para acompanhar embarcações é necessária uma chave de API do aisstream.io. Obtenha uma gratuitamente em {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Esta fonte já acompanha esse centro."
+      "already_configured": "Esta fonte já acompanha esse centro.",
+      "watch_exists": "As embarcações acompanhadas já estão configuradas. Altere a lista nas definições dessa entrada."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Parte desta área não tem cobertura",
         "description": "Cerca de {percent}% deste círculo fica fora da área que o BarentsWatch publica, ou seja, as águas da Noruega. Embarcações ali nunca irão aparecer, por mais movimentada que esteja a água. Confirme para salvar estas definições mesmo assim, ou feche a janela para manter as atuais."
+      },
+      "watch": {
+        "description": "Uma embarcação por linha: o MMSI de 9 dígitos e, se quiser, um nome seu. Ao guardar, a lista é recarregada.\n\nConhece um navio que merece a sua própria imagem no mapa? Diga-nos em {issues_url}.",
+        "data": {
+          "vessels": "Embarcações"
+        },
+        "data_description": {
+          "vessels": "No máximo {max_vessels}. Apague uma linha para deixar de acompanhar essa embarcação."
+        }
       }
     },
     "error": {
       "invalid_location": "Esse ponto não está no globo. Mova o marcador e tente novamente.",
-      "already_watched": "Outra área com a mesma fonte já acompanha este centro."
+      "already_watched": "Outra área com a mesma fonte já acompanha este centro.",
+      "vessels_invalid": "Cada linha tem de começar com um MMSI de 9 dígitos.",
+      "vessels_empty": "Adicione pelo menos uma embarcação.",
+      "vessels_too_many": "No máximo {max_vessels} embarcações numa lista."
     }
   },
   "entity": {

@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Que voulez-vous suivre ?",
+        "menu_options": {
+          "area": "Tous les navires d'une zone",
+          "watch": "Des navires choisis, où qu'ils soient"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Les navires autour d'un point, d'après les données AIS en direct. Ne pas utiliser pour la navigation.\n\nVous connaissez un navire qui mérite sa propre image sur la carte, comme un yacht royal ou d'État, un ferry connu ou un bateau-pompe ? Dites-le-nous sur {issues_url} et nous le dessinerons. Signalez-y aussi toute erreur dans cette traduction.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Une partie de cette zone n'est pas couverte",
         "description": "Environ {percent} % de ce cercle se trouve hors de la zone que publie BarentsWatch, c'est-à-dire les eaux norvégiennes. Les navires qui s'y trouvent n'apparaîtront jamais, aussi fréquentée que soit l'eau. Validez pour utiliser ce cercle quand même, ou fermez cette fenêtre et choisissez un rayon plus petit ou une autre source."
+      },
+      "watch": {
+        "description": "Les navires de votre choix, suivis partout dans le monde par aisstream.io, avec un événement quand l'un d'eux arrive, appareille, se tait, est de nouveau entendu ou change de destination. Ne pas utiliser pour la navigation.\n\nVous connaissez un navire qui mérite sa propre image sur la carte ? Dites-le-nous sur {issues_url}. Signalez-y aussi toute erreur dans cette traduction.",
+        "data": {
+          "api_key": "Clé API",
+          "vessels": "Navires"
+        },
+        "data_description": {
+          "api_key": "Gratuite sur {aisstream_url}. La clé d'une zone déjà configurée est préremplie.",
+          "vessels": "Un navire par ligne : son MMSI à 9 chiffres, puis un nom de votre choix si vous le souhaitez, par exemple 244650000 Bateau de papa. {max_vessels} au plus."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io demande une clé API. Gratuite sur {aisstream_url}, ou choisissez Digitraffic.",
       "invalid_location": "Ce point n'est pas sur le globe. Déplacez le repère et réessayez.",
       "client_id_required": "BarentsWatch demande un ID client. Enregistrez un client AIS gratuit sur barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch demande un secret client. Il n'est affiché qu'une fois à la création du client ; générez-en un nouveau si vous ne l'avez pas gardé."
+      "client_secret_required": "BarentsWatch demande un secret client. Il n'est affiché qu'une fois à la création du client ; générez-en un nouveau si vous ne l'avez pas gardé.",
+      "vessels_invalid": "Chaque ligne doit commencer par un MMSI à 9 chiffres.",
+      "vessels_empty": "Ajoutez au moins un navire.",
+      "vessels_too_many": "{max_vessels} navires au plus dans une liste.",
+      "watch_key_required": "Pour suivre des navires, il faut une clé API aisstream.io. Gratuite sur {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Cette source surveille déjà ce centre."
+      "already_configured": "Cette source surveille déjà ce centre.",
+      "watch_exists": "Les navires suivis sont déjà configurés. Modifiez la liste dans les réglages de cette entrée."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Une partie de cette zone n'est pas couverte",
         "description": "Environ {percent} % de ce cercle se trouve hors de la zone que publie BarentsWatch, c'est-à-dire les eaux norvégiennes. Les navires qui s'y trouvent n'apparaîtront jamais, aussi fréquentée que soit l'eau. Validez pour enregistrer ces réglages quand même, ou fermez cette fenêtre pour garder les réglages actuels."
+      },
+      "watch": {
+        "description": "Un navire par ligne : son MMSI à 9 chiffres, puis un nom de votre choix si vous le souhaitez. L'enregistrement recharge la liste.\n\nVous connaissez un navire qui mérite sa propre image sur la carte ? Dites-le-nous sur {issues_url}.",
+        "data": {
+          "vessels": "Navires"
+        },
+        "data_description": {
+          "vessels": "{max_vessels} au plus. Supprimez une ligne pour ne plus suivre ce navire."
+        }
       }
     },
     "error": {
       "invalid_location": "Ce point n'est pas sur le globe. Déplacez le repère et réessayez.",
-      "already_watched": "Une autre zone avec la même source surveille déjà ce centre."
+      "already_watched": "Une autre zone avec la même source surveille déjà ce centre.",
+      "vessels_invalid": "Chaque ligne doit commencer par un MMSI à 9 chiffres.",
+      "vessels_empty": "Ajoutez au moins un navire.",
+      "vessels_too_many": "{max_vessels} navires au plus dans une liste."
     }
   },
   "entity": {

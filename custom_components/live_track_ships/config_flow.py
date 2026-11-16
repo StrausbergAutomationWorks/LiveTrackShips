@@ -20,6 +20,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
 from .centre import from_form, to_form
+from .watch import VesselListError, format_vessels, parse_vessels
 from .const_flow import (
     CONF_API_KEY, CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_INSTANCE_MAX,
     CONF_LATITUDE, CONF_LOCATION, CONF_LONGITUDE, CONF_MAX_VESSELS,
@@ -27,6 +28,7 @@ from .const_flow import (
     INSTANCE_MAX_STEP, INSTANCE_MAX_VESSELS, MIN_INSTANCE_MAX_VESSELS,
     CONF_SOURCE, DEFAULT_MAX_VESSELS, DOMAIN, SOURCE_AISSTREAM,
     SOURCE_BARENTSWATCH, SOURCES,
+    CONF_KIND, CONF_VESSELS, KIND_WATCH, MAX_WATCHED, WATCH_UNIQUE_ID, kind_of,
 )
 from .geo import (
     DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MAX_VESSELS, MIN_RADIUS_KM,
@@ -80,6 +82,52 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
+        """⚠ A MENU SINCE BACKLOG 343: an area (every vessel inside a circle,
+        the step that was `user` until then) or the watched vessels (a list of
+        MMSIs followed anywhere). Entries made before keep working: one with
+        no `kind` is an area (const_flow.kind_of)."""
+        return self.async_show_menu(step_id="user",
+                                    menu_options=["area", "watch"])
+
+    async def async_step_watch(self, user_input=None):
+        """The watched vessels: aisstream only (Lee 2026-11-15), one entry."""
+        await self.async_set_unique_id(WATCH_UNIQUE_ID)
+        self._abort_if_unique_id_configured(error="watch_exists")
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            key = (user_input.get(CONF_API_KEY) or "").strip()
+            if not key:
+                errors[CONF_API_KEY] = "watch_key_required"
+            try:
+                vessels = parse_vessels(user_input.get(CONF_VESSELS))
+            except VesselListError as exc:
+                errors[CONF_VESSELS] = exc.code
+            if not errors:
+                return self.async_create_entry(
+                    title="Watched vessels",
+                    data={CONF_KIND: KIND_WATCH, CONF_SOURCE: SOURCE_AISSTREAM,
+                          CONF_API_KEY: key, CONF_VESSELS: vessels})
+        prior = user_input or {}
+        return self.async_show_form(
+            step_id="watch",
+            data_schema=vol.Schema({
+                vol.Optional(CONF_API_KEY,
+                             default=prior.get(CONF_API_KEY)
+                             or self._existing(CONF_API_KEY)): cv.string,
+                vol.Required(CONF_VESSELS,
+                             default=prior.get(CONF_VESSELS, "")):
+                    selector.TextSelector(selector.TextSelectorConfig(
+                        multiline=True)),
+            }),
+            errors=errors,
+            description_placeholders={
+                "aisstream_url": AISSTREAM_ACCOUNT_URL,
+                "max_vessels": str(MAX_WATCHED),
+                "issues_url": ISSUES_URL,
+            },
+        )
+
+    async def async_step_area(self, user_input=None):
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -134,7 +182,7 @@ class LiveTrackShipsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self._create()
 
         return self.async_show_form(
-            step_id="user",
+            step_id="area",
             data_schema=self._schema(shown if user_input is not None else None),
             errors=errors,
             description_placeholders={
@@ -242,8 +290,10 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
     second closes the aisstream connection."""
 
     async def async_step_init(self, user_input=None):
-        errors: dict[str, str] = {}
         current = {**self.config_entry.data, **self.config_entry.options}
+        if kind_of(current) == KIND_WATCH:
+            return await self.async_step_watch(user_input)
+        errors: dict[str, str] = {}
         if user_input is not None:
             # The centre can move (Lee 2026-11-15). It is stored in options as
             # CONF_LATITUDE and CONF_LONGITUDE, which override data everywhere
@@ -307,6 +357,33 @@ class LiveTrackShipsOptionsFlow(config_entries.OptionsFlow):
                         step=INSTANCE_MAX_STEP,
                         mode=selector.NumberSelectorMode.SLIDER)),
                 # No icon options: one icon form for every entry (const_flow.py).
+            }),
+        )
+
+    async def async_step_watch(self, user_input=None):
+        """The watch entry's settings: its list (backlog 343). Saving reloads
+        the entry, which replaces the VESSELS subscription once."""
+        current = {**self.config_entry.data, **self.config_entry.options}
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                vessels = parse_vessels(user_input.get(CONF_VESSELS))
+            except VesselListError as exc:
+                errors[CONF_VESSELS] = exc.code
+            else:
+                return self.async_create_entry(data={CONF_VESSELS: vessels})
+        return self.async_show_form(
+            step_id="watch",
+            errors=errors,
+            description_placeholders={"max_vessels": str(MAX_WATCHED),
+                                      "issues_url": ISSUES_URL},
+            data_schema=vol.Schema({
+                vol.Required(
+                    CONF_VESSELS,
+                    default=(user_input or {}).get(CONF_VESSELS)
+                    or format_vessels(current.get(CONF_VESSELS))):
+                    selector.TextSelector(selector.TextSelectorConfig(
+                        multiline=True)),
             }),
         )
 

@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Was möchten Sie verfolgen?",
+        "menu_options": {
+          "area": "Alle Schiffe in einem Gebiet",
+          "watch": "Ausgewählte Schiffe, wo immer sie sind"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Schiffe in der Nähe eines Punktes, aus Live-AIS-Daten. Nicht zur Navigation.\n\nKennen Sie ein Schiff, das ein eigenes Bild auf der Karte verdient, etwa eine königliche oder staatliche Jacht, eine bekannte Fähre oder ein Feuerlöschboot? Sagen Sie es uns unter {issues_url}, dann zeichnen wir es. Einen Fehler in dieser Übersetzung bitte ebenfalls dort melden.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Ein Teil dieses Gebiets hat keine Abdeckung",
         "description": "Etwa {percent} % dieses Kreises liegen außerhalb des Gebiets, das BarentsWatch veröffentlicht, also der norwegischen Gewässer. Schiffe dort erscheinen nie, wie belebt das Wasser auch ist. Senden Sie ab, um diesen Kreis trotzdem zu verwenden, oder schließen Sie den Dialog und wählen Sie einen kleineren Radius oder eine andere Quelle."
+      },
+      "watch": {
+        "description": "Schiffe Ihrer Wahl, überall auf der Welt über aisstream.io verfolgt, mit einem Ereignis, wenn eines ankommt, ablegt, verstummt, wieder gehört wird oder sein Ziel ändert. Nicht zur Navigation.\n\nKennen Sie ein Schiff, das ein eigenes Bild auf der Karte verdient? Sagen Sie es uns unter {issues_url}. Einen Fehler in dieser Übersetzung bitte ebenfalls dort melden.",
+        "data": {
+          "api_key": "API-Schlüssel",
+          "vessels": "Schiffe"
+        },
+        "data_description": {
+          "api_key": "Kostenlos unter {aisstream_url}. Der Schlüssel eines bereits eingerichteten Gebiets ist eingetragen.",
+          "vessels": "Ein Schiff pro Zeile: seine 9-stellige MMSI, danach auf Wunsch eine eigene Bezeichnung, zum Beispiel 244650000 Papas Boot. Höchstens {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io braucht einen API-Schlüssel. Kostenlos unter {aisstream_url}, oder wählen Sie stattdessen Digitraffic.",
       "invalid_location": "Dieser Punkt liegt nicht auf der Erdkugel. Verschieben Sie die Markierung und versuchen Sie es erneut.",
       "client_id_required": "BarentsWatch braucht eine Client-ID. Registrieren Sie einen kostenlosen AIS-Client unter barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch braucht ein Client-Secret. Es wird einmal angezeigt, wenn der Client erstellt wird; erzeugen Sie ein neues, wenn Sie es nicht aufbewahrt haben."
+      "client_secret_required": "BarentsWatch braucht ein Client-Secret. Es wird einmal angezeigt, wenn der Client erstellt wird; erzeugen Sie ein neues, wenn Sie es nicht aufbewahrt haben.",
+      "vessels_invalid": "Jede Zeile muss mit einer 9-stelligen MMSI beginnen.",
+      "vessels_empty": "Fügen Sie mindestens ein Schiff hinzu.",
+      "vessels_too_many": "Höchstens {max_vessels} Schiffe in einer Liste.",
+      "watch_key_required": "Zum Verfolgen von Schiffen ist ein API-Schlüssel von aisstream.io nötig. Kostenlos unter {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Diese Quelle beobachtet diesen Mittelpunkt bereits."
+      "already_configured": "Diese Quelle beobachtet diesen Mittelpunkt bereits.",
+      "watch_exists": "Verfolgte Schiffe sind bereits eingerichtet. Ändern Sie die Liste in den Einstellungen dieses Eintrags."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Ein Teil dieses Gebiets hat keine Abdeckung",
         "description": "Etwa {percent} % dieses Kreises liegen außerhalb des Gebiets, das BarentsWatch veröffentlicht, also der norwegischen Gewässer. Schiffe dort erscheinen nie, wie belebt das Wasser auch ist. Senden Sie ab, um diese Einstellungen trotzdem zu speichern, oder schließen Sie den Dialog, um die bisherigen zu behalten."
+      },
+      "watch": {
+        "description": "Ein Schiff pro Zeile: seine 9-stellige MMSI, danach auf Wunsch eine eigene Bezeichnung. Beim Speichern wird die Liste neu geladen.\n\nKennen Sie ein Schiff, das ein eigenes Bild auf der Karte verdient? Sagen Sie es uns unter {issues_url}.",
+        "data": {
+          "vessels": "Schiffe"
+        },
+        "data_description": {
+          "vessels": "Höchstens {max_vessels}. Löschen Sie eine Zeile, um dieses Schiff nicht mehr zu verfolgen."
+        }
       }
     },
     "error": {
       "invalid_location": "Dieser Punkt liegt nicht auf der Erdkugel. Verschieben Sie die Markierung und versuchen Sie es erneut.",
-      "already_watched": "Ein anderes Gebiet mit derselben Quelle beobachtet diesen Mittelpunkt bereits."
+      "already_watched": "Ein anderes Gebiet mit derselben Quelle beobachtet diesen Mittelpunkt bereits.",
+      "vessels_invalid": "Jede Zeile muss mit einer 9-stelligen MMSI beginnen.",
+      "vessels_empty": "Fügen Sie mindestens ein Schiff hinzu.",
+      "vessels_too_many": "Höchstens {max_vessels} Schiffe in einer Liste."
     }
   },
   "entity": {

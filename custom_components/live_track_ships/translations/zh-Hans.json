@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "你想关注什么？",
+        "menu_options": {
+          "area": "某个区域内的所有船只",
+          "watch": "选定的船只，无论它们在哪里"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "某一地点附近的船只，来自实时 AIS 数据。不可用于导航。\n\n知道哪艘船值得在地图上拥有专属图标吗？例如皇家或国家游艇、著名渡轮或消防船。请在 {issues_url} 告诉我们，我们会为它绘制。如发现本翻译有误，也请在那里告诉我们。",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "该区域有一部分没有覆盖",
         "description": "此圆圈约有 {percent}% 位于 BarentsWatch 公布的区域（挪威水域）之外。无论那里多么繁忙，那里的船只都不会出现。提交即可仍使用此圆圈，或关闭此对话框，选择更小的半径或其他来源。"
+      },
+      "watch": {
+        "description": "你选定的船只，通过 aisstream.io 在全球任何地方跟踪；船只到港、离港、停止发送信号、重新收到信号或更改目的地时会触发事件。不可用于导航。\n\n知道哪艘船值得在地图上拥有专属图标吗？请在 {issues_url} 告诉我们。如发现本翻译有误，也请在那里反馈。",
+        "data": {
+          "api_key": "API 密钥",
+          "vessels": "船只"
+        },
+        "data_description": {
+          "api_key": "可在 {aisstream_url} 免费获取。已设置区域的密钥会自动填入。",
+          "vessels": "每行一艘船：先写 9 位 MMSI，后面可以加上你自己的名称，例如 244650000 爸爸的船。最多 {max_vessels} 艘。"
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io 需要 API 密钥。可在 {aisstream_url} 免费获取，或改选 Digitraffic。",
       "invalid_location": "该点不在地球上。请移动标记后重试。",
       "client_id_required": "BarentsWatch 需要客户端 ID。请在 barentswatch.no/minside 免费注册 AIS 客户端。",
-      "client_secret_required": "BarentsWatch 需要客户端密钥。创建客户端时只显示一次；如未保存，请重新生成。"
+      "client_secret_required": "BarentsWatch 需要客户端密钥。创建客户端时只显示一次；如未保存，请重新生成。",
+      "vessels_invalid": "每行必须以 9 位 MMSI 开头。",
+      "vessels_empty": "请至少添加一艘船。",
+      "vessels_too_many": "一个列表最多 {max_vessels} 艘船。",
+      "watch_key_required": "关注船只需要 aisstream.io 的 API 密钥。可在 {aisstream_url} 免费获取。"
     },
     "abort": {
-      "already_configured": "该来源已在观察此中心点。"
+      "already_configured": "该来源已在观察此中心点。",
+      "watch_exists": "关注的船只已经设置过了。请在该条目的设置中修改列表。"
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "该区域有一部分没有覆盖",
         "description": "此圆圈约有 {percent}% 位于 BarentsWatch 公布的区域（挪威水域）之外。无论那里多么繁忙，那里的船只都不会出现。提交即可仍保存这些设置，或关闭此对话框以保留当前设置。"
+      },
+      "watch": {
+        "description": "每行一艘船：先写 9 位 MMSI，后面可以加上你自己的名称。保存后会重新加载列表。\n\n知道哪艘船值得在地图上拥有专属图标吗？请在 {issues_url} 告诉我们。",
+        "data": {
+          "vessels": "船只"
+        },
+        "data_description": {
+          "vessels": "最多 {max_vessels} 艘。删除一行即可停止关注那艘船。"
+        }
       }
     },
     "error": {
       "invalid_location": "该点不在地球上。请移动标记后重试。",
-      "already_watched": "另一个使用相同来源的区域已在观察此中心点。"
+      "already_watched": "另一个使用相同来源的区域已在观察此中心点。",
+      "vessels_invalid": "每行必须以 9 位 MMSI 开头。",
+      "vessels_empty": "请至少添加一艘船。",
+      "vessels_too_many": "一个列表最多 {max_vessels} 艘船。"
     }
   },
   "entity": {

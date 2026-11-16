@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Hvad vil du følge?",
+        "menu_options": {
+          "area": "Alle skibe i et område",
+          "watch": "Udvalgte skibe, hvor de end er"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Skibe nær et punkt, fra AIS-data i realtid. Ikke til navigation.\n\nKender du et skib, der fortjener sit eget billede på kortet, som en kongelig eller statslig yacht, en kendt færge eller en brandbåd? Fortæl os det på {issues_url}, så tegner vi det. Meld også en fejl i denne oversættelse der.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "En del af dette område har ingen dækning",
         "description": "Omkring {percent} % af denne cirkel ligger uden for det område, BarentsWatch offentliggør, altså norske farvande. Skibe der vises aldrig, hvor travlt farvandet end er. Indsend for at bruge cirklen alligevel, eller luk dialogen og vælg en mindre radius eller en anden kilde."
+      },
+      "watch": {
+        "description": "Skibe, du selv vælger, fulgt overalt i verden via aisstream.io, med en hændelse når et af dem ankommer, sejler, tier, høres igen eller skifter destination. Ikke til navigation.\n\nKender du et skib, der fortjener sit eget billede på kortet? Fortæl os det på {issues_url}. Meld også fejl i denne oversættelse der.",
+        "data": {
+          "api_key": "API-nøgle",
+          "vessels": "Skibe"
+        },
+        "data_description": {
+          "api_key": "Få en gratis på {aisstream_url}. Nøglen fra et område, du allerede har oprettet, er udfyldt.",
+          "vessels": "Ét skib pr. linje: dets 9-cifrede MMSI og eventuelt et navn efter eget valg, for eksempel 244650000 Fars båd. Højst {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io kræver en API-nøgle. Gratis på {aisstream_url}, eller vælg Digitraffic i stedet.",
       "invalid_location": "Det punkt ligger ikke på jordkloden. Flyt markøren, og prøv igen.",
       "client_id_required": "BarentsWatch kræver et klient-id. Registrér en gratis AIS-klient på barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch kræver en klienthemmelighed. Den vises én gang, når klienten oprettes; lav en ny, hvis du ikke gemte den."
+      "client_secret_required": "BarentsWatch kræver en klienthemmelighed. Den vises én gang, når klienten oprettes; lav en ny, hvis du ikke gemte den.",
+      "vessels_invalid": "Hver linje skal begynde med et 9-cifret MMSI.",
+      "vessels_empty": "Tilføj mindst ét skib.",
+      "vessels_too_many": "Højst {max_vessels} skibe på én liste.",
+      "watch_key_required": "Det kræver en API-nøgle fra aisstream.io at følge skibe. Få en gratis på {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Denne kilde følger allerede det midtpunkt."
+      "already_configured": "Denne kilde følger allerede det midtpunkt.",
+      "watch_exists": "Fulgte skibe er allerede oprettet. Ret listen i den posts indstillinger."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "En del af dette område har ingen dækning",
         "description": "Omkring {percent} % af denne cirkel ligger uden for det område, BarentsWatch offentliggør, altså norske farvande. Skibe der vises aldrig, hvor travlt farvandet end er. Indsend for at gemme indstillingerne alligevel, eller luk dialogen for at beholde de nuværende."
+      },
+      "watch": {
+        "description": "Ét skib pr. linje: dets 9-cifrede MMSI og eventuelt et navn efter eget valg. Når du gemmer, genindlæses listen.\n\nKender du et skib, der fortjener sit eget billede på kortet? Fortæl os det på {issues_url}.",
+        "data": {
+          "vessels": "Skibe"
+        },
+        "data_description": {
+          "vessels": "Højst {max_vessels}. Slet en linje for at holde op med at følge det skib."
+        }
       }
     },
     "error": {
       "invalid_location": "Det punkt ligger ikke på jordkloden. Flyt markøren, og prøv igen.",
-      "already_watched": "Et andet område med samme kilde følger allerede dette midtpunkt."
+      "already_watched": "Et andet område med samme kilde følger allerede dette midtpunkt.",
+      "vessels_invalid": "Hver linje skal begynde med et 9-cifret MMSI.",
+      "vessels_empty": "Tilføj mindst ét skib.",
+      "vessels_too_many": "Højst {max_vessels} skibe på én liste."
     }
   },
   "entity": {

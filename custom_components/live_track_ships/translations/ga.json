@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Cad ba mhaith leat a leanúint?",
+        "menu_options": {
+          "area": "Gach soitheach i limistéar",
+          "watch": "Soithí roghnaithe, cibé áit a bhfuil siad"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Soithí in aice le pointe, ó shonraí AIS beo. Ní le haghaidh loingseoireachta.\n\nAn bhfuil aithne agat ar long ar cheart di a pictiúr féin a bheith aici ar an léarscáil, mar shampla luamh ríoga nó stáit, bád farantóireachta cáiliúil nó bád dóiteáin? Inis dúinn ag {issues_url} agus tarraingeoimid í. Inis dúinn ansin freisin má tá botún san aistriúchán seo.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Níl clúdach ar chuid den limistéar seo",
         "description": "Tá thart ar {percent}% den chiorcal seo lasmuigh den limistéar a fhoilsíonn BarentsWatch, is é sin uiscí na hIorua. Ní thaispeánfar soithí ansin choíche, is cuma cé chomh gnóthach is atá an t-uisce. Seol isteach chun an ciorcal seo a úsáid mar sin féin, nó dún an dialóg agus roghnaigh ga níos lú nó foinse eile."
+      },
+      "watch": {
+        "description": "Soithí a roghnaíonn tú, á leanúint áit ar bith ar domhan trí aisstream.io, le teagmhas nuair a thagann ceann acu, nuair a imíonn sé, nuair a thiteann sé ina thost, nuair a chloistear arís é nó nuair a athraíonn sé a cheann scríbe. Ní le haghaidh loingseoireachta.\n\nAn bhfuil aithne agat ar long atá tuillte aici a pictiúr féin ar an léarscáil? Inis dúinn ag {issues_url}. Cuir in iúl dúinn ansin freisin aon bhotún san aistriúchán seo.",
+        "data": {
+          "api_key": "Eochair API",
+          "vessels": "Soithí"
+        },
+        "data_description": {
+          "api_key": "Faigh ceann saor in aisce ag {aisstream_url}. Líontar isteach eochair limistéir atá socraithe agat cheana.",
+          "vessels": "Soitheach amháin in aghaidh na líne: a MMSI 9 ndigit, agus ansin lipéad de do chuid féin más maith leat, mar shampla 244650000 Bád Dhaid. {max_vessels} ar a mhéad."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "Tá eochair API ag teastáil ó aisstream.io. Saor in aisce ag {aisstream_url}, nó roghnaigh Digitraffic ina háit.",
       "invalid_location": "Níl an pointe sin ar an domhan. Bog an marcóir agus bain triail eile as.",
       "client_id_required": "Tá client ID ag teastáil ó BarentsWatch. Cláraigh cliant AIS saor in aisce ag barentswatch.no/minside.",
-      "client_secret_required": "Tá client secret ag teastáil ó BarentsWatch. Taispeántar é uair amháin nuair a chruthaítear an cliant; gin ceann nua mura gcoinnigh tú é."
+      "client_secret_required": "Tá client secret ag teastáil ó BarentsWatch. Taispeántar é uair amháin nuair a chruthaítear an cliant; gin ceann nua mura gcoinnigh tú é.",
+      "vessels_invalid": "Caithfidh MMSI 9 ndigit a bheith ag tús gach líne.",
+      "vessels_empty": "Cuir soitheach amháin ar a laghad leis.",
+      "vessels_too_many": "{max_vessels} soitheach ar a mhéad i liosta amháin.",
+      "watch_key_required": "Teastaíonn eochair API aisstream.io chun soithí a leanúint. Faigh ceann saor in aisce ag {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Tá an fhoinse seo ag faire an láir sin cheana."
+      "already_configured": "Tá an fhoinse seo ag faire an láir sin cheana.",
+      "watch_exists": "Tá soithí faoi fhaire socraithe cheana. Athraigh an liosta i socruithe na hiontrála sin."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Níl clúdach ar chuid den limistéar seo",
         "description": "Tá thart ar {percent}% den chiorcal seo lasmuigh den limistéar a fhoilsíonn BarentsWatch, is é sin uiscí na hIorua. Ní thaispeánfar soithí ansin choíche, is cuma cé chomh gnóthach is atá an t-uisce. Seol isteach chun na socruithe seo a shábháil mar sin féin, nó dún an dialóg chun na socruithe reatha a choinneáil."
+      },
+      "watch": {
+        "description": "Soitheach amháin in aghaidh na líne: a MMSI 9 ndigit, agus ansin lipéad de do chuid féin más maith leat. Athlódáiltear an liosta nuair a shábhálann tú.\n\nAn bhfuil aithne agat ar long atá tuillte aici a pictiúr féin ar an léarscáil? Inis dúinn ag {issues_url}.",
+        "data": {
+          "vessels": "Soithí"
+        },
+        "data_description": {
+          "vessels": "{max_vessels} ar a mhéad. Scrios líne chun stop a chur le leanúint an tsoithigh sin."
+        }
       }
     },
     "error": {
       "invalid_location": "Níl an pointe sin ar an domhan. Bog an marcóir agus bain triail eile as.",
-      "already_watched": "Tá limistéar eile leis an bhfoinse chéanna ag faire an láir seo cheana."
+      "already_watched": "Tá limistéar eile leis an bhfoinse chéanna ag faire an láir seo cheana.",
+      "vessels_invalid": "Caithfidh MMSI 9 ndigit a bheith ag tús gach líne.",
+      "vessels_empty": "Cuir soitheach amháin ar a laghad leis.",
+      "vessels_too_many": "{max_vessels} soitheach ar a mhéad i liosta amháin."
     }
   },
   "entity": {

@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "¿Qué quieres seguir?",
+        "menu_options": {
+          "area": "Todos los buques de una zona",
+          "watch": "Buques elegidos, estén donde estén"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Buques cerca de un punto, con datos AIS en tiempo real. No apto para la navegación.\n\n¿Conoces un buque que merezca su propia imagen en el mapa, como un yate real o de Estado, un ferry conocido o un barco bomba? Cuéntanoslo en {issues_url} y lo dibujaremos. Avísanos allí también si ves un error en esta traducción.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Parte de esta zona no tiene cobertura",
         "description": "Alrededor del {percent} % de este círculo queda fuera de la zona que publica BarentsWatch, es decir, las aguas de Noruega. Los buques que estén allí nunca aparecerán, por concurrida que esté el agua. Confirma para usar este círculo de todos modos, o cierra el diálogo y elige un radio menor u otra fuente."
+      },
+      "watch": {
+        "description": "Buques que eliges, seguidos en cualquier parte del mundo con aisstream.io, con un evento cuando uno llega, zarpa, deja de emitir, vuelve a oírse o cambia de destino. No sirve para navegar.\n\n¿Conoces un buque que merezca su propia imagen en el mapa? Dínoslo en {issues_url}. Comunica también allí cualquier error de esta traducción.",
+        "data": {
+          "api_key": "Clave API",
+          "vessels": "Buques"
+        },
+        "data_description": {
+          "api_key": "Consigue una gratis en {aisstream_url}. Se rellena con la clave de una zona que ya hayas configurado.",
+          "vessels": "Un buque por línea: su MMSI de 9 cifras y, si quieres, una etiqueta propia, por ejemplo 244650000 Barco de papá. Como máximo {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io necesita una clave de API. Gratis en {aisstream_url}, o elige Digitraffic.",
       "invalid_location": "Ese punto no está en el globo. Mueve el marcador y vuelve a intentarlo.",
       "client_id_required": "BarentsWatch necesita un ID de cliente. Registra un cliente AIS gratuito en barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch necesita un secreto de cliente. Se muestra una vez al crear el cliente; genera uno nuevo si no lo guardaste."
+      "client_secret_required": "BarentsWatch necesita un secreto de cliente. Se muestra una vez al crear el cliente; genera uno nuevo si no lo guardaste.",
+      "vessels_invalid": "Cada línea debe empezar con un MMSI de 9 cifras.",
+      "vessels_empty": "Añade al menos un buque.",
+      "vessels_too_many": "Como máximo {max_vessels} buques en una lista.",
+      "watch_key_required": "Para seguir buques hace falta una clave API de aisstream.io. Consigue una gratis en {aisstream_url}."
     },
     "abort": {
-      "already_configured": "Esta fuente ya vigila ese centro."
+      "already_configured": "Esta fuente ya vigila ese centro.",
+      "watch_exists": "Los buques seguidos ya están configurados. Cambia la lista en los ajustes de esa entrada."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Parte de esta zona no tiene cobertura",
         "description": "Alrededor del {percent} % de este círculo queda fuera de la zona que publica BarentsWatch, es decir, las aguas de Noruega. Los buques que estén allí nunca aparecerán, por concurrida que esté el agua. Confirma para guardar estos ajustes de todos modos, o cierra el diálogo para mantener los actuales."
+      },
+      "watch": {
+        "description": "Un buque por línea: su MMSI de 9 cifras y, si quieres, una etiqueta propia. Al guardar, la lista se recarga.\n\n¿Conoces un buque que merezca su propia imagen en el mapa? Dínoslo en {issues_url}.",
+        "data": {
+          "vessels": "Buques"
+        },
+        "data_description": {
+          "vessels": "Como máximo {max_vessels}. Borra una línea para dejar de seguir ese buque."
+        }
       }
     },
     "error": {
       "invalid_location": "Ese punto no está en el globo. Mueve el marcador y vuelve a intentarlo.",
-      "already_watched": "Otra zona con la misma fuente ya vigila este centro."
+      "already_watched": "Otra zona con la misma fuente ya vigila este centro.",
+      "vessels_invalid": "Cada línea debe empezar con un MMSI de 9 cifras.",
+      "vessels_empty": "Añade al menos un buque.",
+      "vessels_too_many": "Como máximo {max_vessels} buques en una lista."
     }
   },
   "entity": {

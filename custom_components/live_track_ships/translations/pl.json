@@ -2,6 +2,13 @@
   "config": {
     "step": {
       "user": {
+        "description": "Co chcesz śledzić?",
+        "menu_options": {
+          "area": "Wszystkie statki na obszarze",
+          "watch": "Wybrane statki, gdziekolwiek są"
+        }
+      },
+      "area": {
         "title": "Live Track Ships",
         "description": "Statki w pobliżu wybranego punktu, z danych AIS na żywo. Nie do nawigacji.\n\nZnasz statek, który zasługuje na własny obrazek na mapie, na przykład królewski lub państwowy jacht, znany prom albo łódź strażacką? Napisz do nas na {issues_url}, a go narysujemy. Tam też zgłoś błąd w tym tłumaczeniu.",
         "data": {
@@ -26,6 +33,17 @@
       "coverage": {
         "title": "Część tego obszaru nie ma zasięgu",
         "description": "Około {percent}% tego okręgu leży poza obszarem, który publikuje BarentsWatch, czyli poza wodami norweskimi. Statki tam nigdy się nie pojawią, choćby woda była bardzo ruchliwa. Zatwierdź, aby mimo to użyć tego okręgu, albo zamknij okno i wybierz mniejszy promień lub inne źródło."
+      },
+      "watch": {
+        "description": "Statki, które wybierzesz, śledzone w dowolnym miejscu na świecie przez aisstream.io, ze zdarzeniem, gdy któryś przypłynie, odpłynie, zamilknie, znów zostanie usłyszany lub zmieni port docelowy. Nie do nawigacji.\n\nZnasz statek, który zasługuje na własny obrazek na mapie? Napisz do nas: {issues_url}. Tam też zgłaszaj błędy w tym tłumaczeniu.",
+        "data": {
+          "api_key": "Klucz API",
+          "vessels": "Statki"
+        },
+        "data_description": {
+          "api_key": "Bezpłatny klucz uzyskasz na {aisstream_url}. Klucz już skonfigurowanego obszaru jest wpisany.",
+          "vessels": "Jeden statek w wierszu: jego 9-cyfrowy MMSI, a potem, jeśli chcesz, własna nazwa, na przykład 244650000 Łódź taty. Najwyżej {max_vessels}."
+        }
       }
     },
     "error": {
@@ -33,10 +51,15 @@
       "key_required": "aisstream.io wymaga klucza API. Za darmo na {aisstream_url}; możesz też wybrać Digitraffic.",
       "invalid_location": "Ten punkt nie leży na kuli ziemskiej. Przesuń znacznik i spróbuj ponownie.",
       "client_id_required": "BarentsWatch wymaga ID klienta. Zarejestruj darmowego klienta AIS na barentswatch.no/minside.",
-      "client_secret_required": "BarentsWatch wymaga sekretu klienta. Wyświetla się raz przy tworzeniu klienta; wygeneruj nowy, jeśli go nie zachowałeś."
+      "client_secret_required": "BarentsWatch wymaga sekretu klienta. Wyświetla się raz przy tworzeniu klienta; wygeneruj nowy, jeśli go nie zachowałeś.",
+      "vessels_invalid": "Każdy wiersz musi zaczynać się od 9-cyfrowego MMSI.",
+      "vessels_empty": "Dodaj co najmniej jeden statek.",
+      "vessels_too_many": "Najwyżej {max_vessels} statków na jednej liście.",
+      "watch_key_required": "Do śledzenia statków potrzebny jest klucz API aisstream.io. Bezpłatny klucz uzyskasz na {aisstream_url}."
     },
     "abort": {
-      "already_configured": "To źródło już obserwuje ten środek."
+      "already_configured": "To źródło już obserwuje ten środek.",
+      "watch_exists": "Śledzone statki są już skonfigurowane. Zmień listę w ustawieniach tego wpisu."
     }
   },
   "options": {
@@ -58,11 +81,23 @@
       "coverage": {
         "title": "Część tego obszaru nie ma zasięgu",
         "description": "Około {percent}% tego okręgu leży poza obszarem, który publikuje BarentsWatch, czyli poza wodami norweskimi. Statki tam nigdy się nie pojawią, choćby woda była bardzo ruchliwa. Zatwierdź, aby mimo to zapisać te ustawienia, albo zamknij okno, aby zachować obecne."
+      },
+      "watch": {
+        "description": "Jeden statek w wierszu: jego 9-cyfrowy MMSI, a potem, jeśli chcesz, własna nazwa. Zapisanie ponownie wczytuje listę.\n\nZnasz statek, który zasługuje na własny obrazek na mapie? Napisz do nas: {issues_url}.",
+        "data": {
+          "vessels": "Statki"
+        },
+        "data_description": {
+          "vessels": "Najwyżej {max_vessels}. Usuń wiersz, aby przestać śledzić ten statek."
+        }
       }
     },
     "error": {
       "invalid_location": "Ten punkt nie leży na kuli ziemskiej. Przesuń znacznik i spróbuj ponownie.",
-      "already_watched": "Inny obszar z tym samym źródłem już obserwuje ten środek."
+      "already_watched": "Inny obszar z tym samym źródłem już obserwuje ten środek.",
+      "vessels_invalid": "Każdy wiersz musi zaczynać się od 9-cyfrowego MMSI.",
+      "vessels_empty": "Dodaj co najmniej jeden statek.",
+      "vessels_too_many": "Najwyżej {max_vessels} statków na jednej liście."
     }
   },
   "entity": {
