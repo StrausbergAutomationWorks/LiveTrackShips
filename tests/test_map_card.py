@@ -29,8 +29,8 @@ CARD = FRONTEND / "live-track-map-card.js"
 DOMAIN = "live_track_ships"
 # LiveTrackCore reference/shared_map_card.py, SHA-256 of its LF text (bin\lt_reference_drift.py)
 REFERENCE_SHA12 = "15251d6fcc54"
-# LiveTrackMapCard release v0.1.0 (tools/vendor_card.py checks the asset's .sha256)
-RELEASE_SHA12, RELEASE_VERSION, RELEASE_SIZE = "03ca81cd9ce1", "0.1.0+5a0bc01", 962822
+# LiveTrackMapCard release v0.1.1 (tools/vendor_card.py checks the asset's .sha256)
+RELEASE_SHA12, RELEASE_VERSION, RELEASE_SIZE = "35241262f6a8", "0.1.1+4716e20", 1098110
 
 passed = failed = 0
 
