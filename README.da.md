@@ -2,269 +2,666 @@
 
 [English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Nederlands](README.nl.md) · [简体中文](README.zh-Hans.md) · [Español](README.es.md) · [Italiano](README.it.md) · **Dansk** · [Kalaallisut](README.kl.md) · [Alle sprog](#sprog)
 
-**AIS-sporing af skibe, både og fartøjer til Home Assistant.** Skibe nær dig,
-eller hvor som helst i verden du vælger, som levende markører på dit kort. En
-del af Live Track: skibe, fly og tog på ét kort.
+**Skibe og både til Home Assistant, på ét kort.** Live Track Ships sætter
+skibe, både og alt andet, der sender AIS (det radiosignal, skibe bruger til at
+fortælle, hvor de er), på dit Home Assistant-kort, nær dig eller hvor som
+helst i verden, du vælger. Den følger også udvalgte skibe, hvor de end sejler
+hen, og fortæller dine automatiseringer, når et skib kommer ind i dit område
+eller forlader det.
 
-Levende AIS-data fra havet fra [aisstream.io](https://aisstream.io),
-[Fintraffic Digitraffic](https://www.digitraffic.fi/en/marine-traffic/) eller
-[BarentsWatch](https://www.barentswatch.no/en/), vist som
-`geo_location`-enheder i Home Assistant og tegnet på det fælles Live
-Track-kort.
+> **Live Track Ships er ét modul i Live Track**, en familie af Home
+> Assistant-integrationer, der tegner alt, hvad der bevæger sig, og det vejr,
+> det bevæger sig igennem, på ét fælles kort: fly, skibe, tog og vejr.
+> Installer det alene eller ved siden af de andre moduler
+> ([liste nedenfor](#en-del-af-live-track-de-andre-moduler)).
 
-**Status: 0.1.0, den første udgivelse.** Tilføjes til Marketplace via et link
-(nedenfor); den er endnu ikke i Marketplaces katalog.
+> **Den vokser, og idéer er velkomne.** I dag dækker Live Track Ships hele
+> verden, hvor frivillige driver modtagere, Finland og Norge mere detaljeret,
+> og din egen modtager. Vi tilføjer flere datakilder og lande. Mangler dit?
+> [Foreslå det](#hjælp-den-med-at-vokse), eller tilføj det selv: vi hjælper
+> dig med det.
 
-## Hvad AIS er
+**Status: 0.1.0, den første udgivelse.** Tilføjes til Markedspladsen via et
+link ([nedenfor](#installation-trin-for-trin)); den er endnu ikke i
+Markedspladsens katalog.
 
-AIS (Automatic Identification System, automatisk identifikationssystem) er
-en VHF-udsendelse, som skibe bruger til at fortælle hinanden og land om deres
-position, identitet og rejse. Det svarer til ADS-B i luftfarten. Erhvervsskibe
-skal have det om bord; mange lystbåde har det frivilligt, som regel som en
-svagere klasse B-enhed.
+Eget værk af StrausbergAutomationWorks. Ikke tilknyttet eller godkendt af
+aisstream.io, Fintraffic (Finland), BarentsWatch (Norge), Wikidata, Wikimedia
+Commons, VesselFinder, MarineTraffic, nogen skibsoperatør eller nogen
+søfartsmyndighed.
 
-AIS sendes ukrypteret. Alle med en modtager kan høre det, og offentlige
-samletjenester genudgiver det.
+> ⚠ **Ikke et sikkerhedssystem.** Den viser offentlige data, ofte sekunder
+> gamle og nogle gange minutter, og kun det, modtagerne tilfældigvis hører.
+> Den er ikke til navigation, undgåelse af kollisioner eller noget andet
+> operationelt formål. På vandet skal du bruge dit eget AIS, radar, søkort og
+> VHF-radio.
 
-## Hvad der vises
+---
 
-**Alt, hvad kilden sender.** Intet filtreres fra, og der er ingen indstilling
-til at skjule en kategori.
+## Indhold
 
-| I dataene | Vist |
+1. [Alt, hvad den gør](#alt-hvad-den-gør)
+2. [Hvor den virker](#hvor-den-virker)
+3. [En del af Live Track: de andre moduler](#en-del-af-live-track-de-andre-moduler)
+4. [Før du begynder](#før-du-begynder)
+5. [Installation, trin for trin](#installation-trin-for-trin)
+6. [Opsætning, trin for trin](#opsætning-trin-for-trin)
+7. [Gratis nøgler, der slår mere til, trin for trin](#gratis-nøgler-der-slår-mere-til-trin-for-trin)
+8. [Sæt kortet på et dashboard](#sæt-kortet-på-et-dashboard)
+9. [Brug den i automatiseringer](#brug-den-i-automatiseringer)
+10. [Alt på kortet i detaljer](#alt-på-kortet-i-detaljer)
+11. [Alle entiteter, den opretter](#alle-entiteter-den-opretter)
+12. [Hvad den sender og henter](#hvad-den-sender-og-henter)
+13. [Hjælp den med at vokse](#hjælp-den-med-at-vokse)
+14. [Sprog](#sprog)
+15. [Tak og licenser](#tak-og-licenser)
+16. [Nøgleord](#nøgleord)
+
+---
+
+## Alt, hvad den gør
+
+### På kortet, uden at sætte noget op
+
+Du tilføjer et **område**: et midtpunkt og en radius på kortet, og én
+datakilde. Alt nedenfor vises så i det område. Fintraffic Digitraffic
+(Finland) og din egen modtager kræver ingen nøgle; aisstream.io og
+BarentsWatch (Norge) kræver en gratis nøgle
+([nedenfor](#med-din-egen-gratis-nøgle-eller-konto)).
+
+| Hvad | Hvor | Fra |
+|---|---|---|
+| **Skibe**: fragtskibe, tankskibe, færger, slæbebåde, fiskefartøjer, lystbåde og sejlbåde, hver med sit eget billede, drejet efter sin kurs | i hvert område | den kilde, du vælger |
+| **Det, der ikke er skibe**: bøjer på fiskeredskaber, navigationshjælpemidler, AIS-basestationer, rednings- og eftersøgningsfly og nødradiofyr | i hvert område, når kilden sender dem | den kilde, du vælger |
+| **Fotos og links**: et foto af skibet, når et er kendt, og et link til skibet på VesselFinder | hvert skib med IMO-nummer eller MMSI | Wikidata og Wikimedia Commons |
+| **Spor**: hvor et skib har været de seneste 24 timer, tegnet når du beder om det | hvert skib | gemt af din egen Home Assistant |
+| **Kystvagtens skibe i udlændingeopgaver**, tegnet i kystvagtens farver | hvor end de høres | den offentlige liste EnforcementVessels |
+| **Ankomster og afgange**: en hændelse til dine automatiseringer, når et skib kommer ind i et område eller forlader det | i hvert område | beregnet af din egen Home Assistant |
+
+### Med din egen gratis nøgle eller konto
+
+| Gratis nøgle eller konto | Hvad den tilføjer |
 |---|---|
-| Fragtskibe, tankskibe, slæbebåde, færger, passagerskibe | ja |
-| Fiskeri-, lods-, myndigheds- og andre arbejdsfartøjer | ja |
-| **Private lystbåde og sejlbåde** | **ja, med navn og position** |
-| **Bøjer fra fiskeredskaber**, der sender AIS | **ja, tegnet som en fisk** |
-| Eftersøgnings- og redningsfly (SAR) | når kilden sender dem |
-| Navigationshjælpemidler: bøjer, båker, fyr | når kilden sender dem |
-| AIS-basestationer på land | når kilden sender dem |
+| **aisstream.io**-nøgle | skibe overalt i verden, hvor frivillige driver modtagere; og **fulgte skibe**: udvalgte skibe, fulgt hvor de end er, med en hændelse, når et ankommer, afgår, bliver tavst eller skifter destination |
+| **BarentsWatch**-konto (Norge) | skibe i norske farvande, Svalbard medregnet, med navn og skibstype ved hver position |
 
-### Private både vises, og du bør vide, hvad det betyder
+Hver tager få minutter at få: [trin for trin nedenfor](#gratis-nøgler-der-slår-mere-til-trin-for-trin).
+
+---
+
+## Hvor den virker
+
+| Region | Hvad du får | Fra | Kræver |
+|---|---|---|---|
+| **Hele verden** | skibe, hvor frivillige driver modtagere: godt ved travle kyster og havne, sparsomt eller intet andre steder | aisstream.io | en gratis nøgle |
+| **Europa**: Finland og Østersøen | skibe i finske og baltiske farvande, nye positioner hvert minut | Fintraffic Digitraffic (Finland) | intet |
+| **Europa**: Norge | skibe i norske farvande, Svalbard medregnet, med navn og type ved hver position | BarentsWatch (Norge) | en gratis konto |
+| **Din egen modtager**: overalt | alt, hvad din antenne hører, uden internet | din egen AIS-modtager | en modtager, der sender NMEA over UDP |
+
+Du vælger én kilde til hvert område. Hvilke slags ting der vises, hvor friske
+positionerne er, og hvor fuldstændige skibsdata er, afhænger alt sammen af den
+kilde.
+
+⚠ **Dækningen er god, hvor der er modtagere, og fraværende, hvor der ikke
+er.** Ingen indstilling kan skabe dækning, der ikke findes. Målt 2026-09-02
+med aisstream.io omkring Chicago (USA): 100 skibe på 120 sekunder på de Store
+Søer, men nul skibe på en time i kanalerne syd for byen, hvor der ellers
+sejler pramme: kommercielle tjenester ser dem via satellit, og det har gratis
+kilder ikke. **Ingen skibe i dit område kan betyde ingen modtagere, ikke
+ingen både.** Tjek, at din kilde dækker dit farvand, før du beslutter, at
+noget er i stykker.
+
+⚠ **Din egen modtager:**
+
+* Ét område lytter på én port. To modtagere kræver to porte.
+* Alt, hvad modtageren hører inden for din cirkel, vises, også
+  navigationshjælpemidler og basestationer. Dens stationssensor tæller også,
+  hvad den hører uden for cirklen.
+* En NMEA-sætning har ingen dato, så en positions tid er det tidspunkt, Home
+  Assistant modtog den.
+* Drejehastigheden vises ikke for denne kilde.
+* Indtil videre er dette testet med optagede sætninger sendt over UDP, ikke
+  med en modtager. Hvis du prøver det med din,
+  [så fortæl os, hvordan det gik](#hjælp-den-med-at-vokse).
+
+Ikke på listen? [Fortæl os det](#hjælp-den-med-at-vokse). Hvor nogen
+offentliggør data åbent, ser vi på at tilføje dem.
+
+---
+
+## En del af Live Track: de andre moduler
+
+Live Track er en række Home Assistant-integrationer, én for hver slags ting,
+der bevæger sig, alle tegnet på det samme kortkort. Hver virker for sig;
+sammen giver de ét levende billede. De deler kortkortet og et Python-bibliotek
+([saw-livetrack](https://github.com/StrausbergAutomationWorks/LiveTrackCore)),
+så installerer du endnu et modul, kommer der ingen ekstra forespørgsler til en
+kilde, som et andet allerede læser.
+
+| Modul | Hvad det sætter på kortet | Status |
+|---|---|---|
+| [Live Track Aircraft](https://github.com/StrausbergAutomationWorks/LiveTrackAircraft) | fly over dig via ADS-B, med ruter og typeikoner | udgivet |
+| **Live Track Ships** | skibe og både via AIS, nær dig eller hvor som helst (dette modul) | udgivet |
+| [Live Track Commuter Rail](https://github.com/StrausbergAutomationWorks/LiveTrackCommuterRail) | nærbanetog i Nordamerika, Europa og Australien | udgivet |
+| [Live Track Intercity Rail](https://github.com/StrausbergAutomationWorks/LiveTrackIntercityRail) | intercity- og fjerntog i Nordamerika, Europa og Australien | udgivet |
+| [Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT) | fly og skibe fra udlændinge- og føderale ordensmyndigheder, fra offentlige lister | udgivet |
+| [Live Track Weather](https://github.com/StrausbergAutomationWorks/LiveTrackWeather) | vejr, storme og naturfarer | udgivet |
+| Live Track Stations | afgangstavler og "tid til at gå"-påmindelser for hver station | planlagt |
+| Live Track Satellites | satellitter, der passerer over dig | planlagt |
+| Live Track Freight Trains | gods- og arbejdstog, hvor jernbaner offentliggør dem | planlagt |
+| Live Track Transit | bybusser, sporvogne, færger og metro | planlagt |
+| Live Track Intercity Buses | fjern- og regionalbusser | planlagt |
+| Live Track Commuter Buses | pendlerbusser | planlagt |
+| [LiveTrackMapCard](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard) | det fælles kortkort, som hvert modul tegner på | udgivet, installeres med hvert modul |
+
+Alt er gratis og open source. Intet holdes tilbage til sponsorer.
+
+---
+
+## Før du begynder
+
+* **Home Assistant** 2026.11 eller nyere.
+* **Markedspladsen** (HACS) i din Home Assistant, så du nemt kan installere
+  og opdatere. Uden den kan du kopiere filerne manuelt.
+* **Internetadgang** for Home Assistant, til onlinekilderne og fotoene. Din
+  egen modtager virker uden.
+* **En datakilde.** Digitraffic (Finland) og din egen modtager kræver ingen
+  konto. aisstream.io og BarentsWatch (Norge) kræver en gratis nøgle
+  ([trin for trin](#gratis-nøgler-der-slår-mere-til-trin-for-trin)).
+* **Valgfrit: din egen AIS-modtager.** Modtageren, eller det program, der
+  afkoder den, sender NMEA-sætninger (`!AIVDM`) over UDP til din Home
+  Assistants adresse på det samme netværk. I AIS-catcher er det
+  `-u <address> <port>`; i rtl-ais `-h <address> -P <port>`; OpenCPN og
+  Signal K tilføjer det som en UDP-udgangsforbindelse. En modtager, der
+  sluttes til via USB, for eksempel en dAISy, skal bruge et af de programmer
+  til at sende sine sætninger videre.
+* **Valgfrit: auto-entities** fra Markedspladsen, til at sætte markørerne på
+  kortet (se [Sæt kortet på et dashboard](#sæt-kortet-på-et-dashboard)).
+* Intet at betale. Digitraffic og din egen modtager kræver ingen konto; de
+  gratis nøgler skal kun bruges til aisstream.io og BarentsWatch.
+
+---
+
+## Installation, trin for trin
+
+### Fra Markedspladsen (anbefalet)
+
+Live Track Ships er endnu ikke i Markedspladsens katalog. Tilføj det via dets
+link:
+
+1. Åbn **Indstillinger → Markedsplads** (HACS) i Home Assistant.
+2. Vælg **Tilføj fra link** (eller menuen med tre prikker →
+   **Brugerdefinerede repositories**).
+3. Skriv `StrausbergAutomationWorks/LiveTrackShips`. Hvis du bliver spurgt om
+   typen, så vælg **Integration**.
+4. Find **Live Track Ships** på listen, og vælg **Download** eller
+   **Installer**.
+5. **Genstart Home Assistant**: **Indstillinger → System → Reparationer**
+   tilbyder genstarten, eller brug **Indstillinger → System → Genstart**.
+
+### Manuelt
+
+1. Hent kildekoden til den
+   [seneste udgivelse](https://github.com/StrausbergAutomationWorks/LiveTrackShips/releases/latest).
+2. Kopiér mappen `custom_components/live_track_ships` fra den over i mappen
+   `custom_components` i din Home Assistants konfigurationsmappe (opret
+   `custom_components`, hvis den ikke findes).
+3. Genstart Home Assistant.
+
+---
+
+## Opsætning, trin for trin
+
+1. Åbn **Indstillinger → Enheder & tjenester**.
+2. Vælg **Tilføj integration** (nederst til højre), og søg efter **Live Track
+   Ships**.
+3. Vælg **Alle skibe i et område**. (Det andet valg, **Udvalgte skibe, hvor de
+   end er**, følger en liste af skibe overalt: se
+   [Fulgte skibe](#fulgte-skibe-udvalgte-skibe-overalt).)
+4. **Datakilde**: vælg én. Er du i tvivl: i Finland Fintraffic Digitraffic,
+   som ikke kræver nøgle; i Norge BarentsWatch; alle andre steder
+   aisstream.io.
+5. **API-nøgle** (aisstream.io), eller **Klient-id** og **Klienthemmelighed**
+   (BarentsWatch): indsæt dem
+   ([sådan får du dem](#gratis-nøgler-der-slår-mere-til-trin-for-trin)). Et
+   område, du allerede har sat op, udfylder dem for dig.
+6. **UDP-port (din egen modtager)**: kun til din egen modtager. Skriv den
+   port, den sender til, fra 1024 til 65535. Lad 10110 stå, hvis du ikke har
+   ændret den.
+7. **Midtpunkt**: træk markøren til midten af det farvand, du vil holde øje
+   med. Den starter ved dit hjem.
+8. **Radius (km)**: fra 1 til 500 km (0,6 til 310 miles). Er du i tvivl, så
+   behold 50 km (31 miles).
+9. **Højeste antal fulgte skibe**: behold 1.000, medmindre din maskine er
+   lille.
+10. Vælg **Indsend**.
+
+Det er det hele. Skibene vises inden for et minut eller to, efterhånden som
+kilden sender dem. Skibstyper og størrelser kommer til i de næste minutter.
+Hvert område er én post med titlen *Ships near <latitude>, <longitude>*.
+Tilføj flere områder på samme måde.
+
+* Den samme kilde kan ikke holde øje med det samme midtpunkt to gange.
+* Ligger mindst 5 % af en BarentsWatch-cirkel uden for de farvande,
+  BarentsWatch offentliggør, siger dialogen hvor meget, før området oprettes.
+  Vælg **Indsend** for at beholde cirklen alligevel.
+
+### Ændr, hvad den viser: indstillingerne
+
+Åbn **Indstillinger → Enheder & tjenester → Live Track Ships → Konfigurér**
+(tandhjulet) på det område, du vil ændre. Hver indstilling, i almindelige
+ord:
+
+| Indstilling | Hvad den gør | Standard |
+|---|---|---|
+| **Midtpunkt** | flytter området; det omdøbes efter sin nye position og genindlæses | dit hjem |
+| **Radius (km)** | hvor langt fra midtpunktet skibe vises, 1 til 500 km (0,6 til 310 miles) | 50 km (31 miles) |
+| **Højeste antal fulgte skibe** | en sikkerhedsgrænse for dette område, 1 til 5.000; er der flere, beholdes de nærmeste | 1.000 |
+| **Højeste antal skibe på kortet, alle Live Track Ships-poster tilsammen** | loftet for alle dine områder tilsammen, 100 til 2.500; sænk det på en lille maskine; den laveste indstilling på noget område gælder | 2.500 |
+| **UDP-port (din egen modtager)** | den port, din modtager sender til; ændres den, genindlæses området | 10110 |
+
+Hvor mange skibe en cirkel rummer, afhænger langt mere af, hvilket farvand det
+er, end af hvor stor den er. I test rummede en cirkel på 50 km (31 miles)
+omkring 4 skibe over Chicago (USA) og omkring 340 over Solent (England): samme
+radius, omkring 80 gange så meget trafik. Når en grænse skærer listen ned,
+siger områdets `sensor.ships_in_range` det.
+
+---
+
+## Gratis nøgler, der slår mere til, trin for trin
+
+De er alle gratis og personlige: hver person, der installerer Live Track
+Ships, får sine egne. Indsæt hver af dem i opsætningsdialogen, når du tilføjer
+et område (trin 5 i [Opsætning](#opsætning-trin-for-trin)).
+
+### aisstream.io (skibe og fulgte skibe, hele verden)
+
+1. Åbn <https://aisstream.io/account>, og log ind. (Linket **API keys** øverst
+   på aisstream.io åbner samme side.)
+2. Opret en ny API-nøgle der.
+3. Kopiér nøglen med det samme: aisstream.io viser den kun én gang.
+4. Indsæt den i **API-nøgle**.
+
+⚠ aisstream.io tillader tre forbindelser pr. konto og tre pr. offentlig
+internetadresse. Live Track Ships bruger højst to: én til alle dine områder og
+én til dine fulgte skibe, som den deler med Live Track SALT, hvis det er
+installeret med samme nøgle. Bruger andre programmer samme nøgle eller samme
+internetforbindelse, så tæl dem med.
+
+### BarentsWatch (skibe i norske farvande, Norge)
+
+1. Åbn <https://www.barentswatch.no/minside/>, og opret en bruger, eller log
+   ind.
+2. Under **API access (for developers)** (*API-tilgang (for utviklere)*) vælger
+   du **New Client** (*Ny klient*).
+3. Vælg AIS-klienten, ikke API-klienten.
+4. Kopiér **klient-id'et**. Det ser sådan ud:
+   `your.email@example.com:live_track_ships`. Indsæt det præcis, som det er, i
+   **Klient-id**.
+5. Kopiér **klienthemmeligheden** til **Klienthemmelighed**. Den vises kun én
+   gang; har du ikke gemt den, så lav en ny.
+
+---
+
+## Sæt kortet på et dashboard
+
+Kortet er [LiveTrackMapCard](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard),
+det kort, som hvert Live Track-modul tegner på. **Det installeres med Live
+Track Ships**: intet at hente, intet at kopiere, ingen ressource at tilføje.
+
+1. Åbn et betjeningspanel, vælg blyanten (**Redigér betjeningspanel**), og
+   derefter **Tilføj kort**.
+2. Rul ned til bunden, og vælg **Manuel**.
+3. Indsæt dette, og vælg **Gem**:
+
+```yaml
+type: custom:auto-entities
+card:
+  type: custom:live-track-map-card
+filter:
+  include:
+    - domain: geo_location
+      attributes:
+        source: live_track_ships
+```
+
+Markørerne kræver
+[auto-entities](https://github.com/thomasloven/lovelace-auto-entities) fra
+Markedspladsen. Er andre Live Track-moduler installeret, så tilføj ét filter
+`- domain: geo_location` mere for hver af deres kilder
+(`live_track_aircraft`, `live_track_weather` og så videre).
+
+**På kortet:**
+
+* Hvert skib tegnes med sit eget billede, drejet efter sin kurs, og glider
+  mellem sine meldte positioner hen over vandet i stedet for over land.
+* **Peg** på et skib for at se dets navn, og dets foto, når der er et.
+  **Klik** på det for at se foto, links, **Track** og **Details**
+  ([Fotos og links](#fotos-og-links), [Spor](#spor)).
+* **Filterkortet** (`custom:live-track-map-filter-card`) skjuler de
+  skibstyper, du fjerner fluebenet fra ([Skjul skibstyper](#skjul-skibstyper)).
+
+Er dine betjeningspanelers ressourcer sat op i YAML
+(`lovelace: resource_mode: yaml`), kan intet registreres for dig: en
+meddelelse under **Reparationer** giver så den præcise linje, du skal
+tilføje. Et kort, du selv har installeret via Markedspladsen, får lov at være.
+Fjernes integrationens filer, mens dens områder stadig er sat op, og er intet
+andet Live Track-modul installeret, så fjern selv kortets linje under
+**Indstillinger → Betjeningspaneler → Ressourcer**. Ethvert andet kortkort,
+der viser `geo_location`-entiteter, viser også skibene, uden deres billeder.
+
+---
+
+## Brug den i automatiseringer
+
+Alt er almindelige Home Assistant-entiteter og -hændelser, så
+automatiseringseditoren virker med dem, uden kode.
+
+**En notifikation, når et skib på over 150 m (490 fod) kommer ind i dit
+område:**
+
+1. **Indstillinger → Automatiseringer & scener → Tilføj automatisering →
+   Opret ny automatisering**.
+2. **Når**: **Tilføj udløser**, søg efter **Manuel hændelse modtages**, og
+   skriv `live_track_ships_entry` som **Hændelsestype**.
+3. **Og hvis**: **Tilføj betingelse** → **Skabelon**, og skriv denne
+   **Værdi-skabelon**: `{{ trigger.event.data.length_m | default(0) > 150 }}`
+4. **Så gør**: **Tilføj handling**, søg efter din telefons
+   notifikationshandling (den bærer din telefons navn), og skriv denne
+   besked:
+
+   ```text
+   {{ trigger.event.data.name | default('Et skib') }}, {{ trigger.event.data.length_m }} m, {{ trigger.event.data.distance_km }} km væk
+   ```
+
+5. **Gem**.
+
+**Andre idéer:** tænd et lys, når aftenfærgen når din havn i Norge; en besked,
+når et familiemedlems båd, et fulgt skib, kommer hjem til Finland; en
+notifikation, når det krydstogtskib, du skal møde, ankommer til Sydney
+(Australien); antallet af skibe i din havn på et betjeningspanel, fra
+`sensor.ships_in_range`.
+
+**Områdets hændelser.** Hvert område udløser `live_track_ships_entry`, når et
+skib kommer ind i dets cirkel, og `live_track_ships_exit`, når det forlader
+den. Hvert skib meldes; din automatisering vælger dem, der betyder noget.
+Felterne har samme navne og enheder som skibets attributter og udelader det,
+kilden ikke sendte:
+
+| Felt | Hvad det indeholder |
+|---|---|
+| `area_id`, `area` | områdets konfigurationspost-id og titel |
+| `identity` | MMSI'en |
+| `name`, `call_sign`, `imo` | når de sendes |
+| `object_kind` | `vessel`, `net_buoy`, `aton`, `base_station`, `sar_aircraft` eller `distress_beacon` |
+| `ship_type`, `ship_type_label`, `length_m`, `beam_m`, `draught_m`, `destination`, `nav_status` | kun skibe, når de sendes |
+| `speed_kmh`, `course_deg`, `heading_deg` | når de sendes |
+| `latitude`, `longitude`, `distance_km`, `bearing_from_centre_deg`, `last_seen` | hvor det blev hørt, set fra områdets midtpunkt |
+| `entity_id` | kun ved indgang: `geo_location.vessel_<MMSI>`, når skibet er på kortet |
+| `reason` | kun ved udgang: `left` (hørt uden for cirklen) eller `silent` (ikke hørt i et stykke tid, så det er måske der endnu) |
+
+⚠ Fire ting, du skal vide:
+
+* **En ankomst meldes kun, hvis skibet først blev hørt uden for cirklen.**
+  Et skib, der først høres indenfor, har måske været der hele tiden: efter en
+  genstart leverer kilderne i mange minutter skibe, der ikke har flyttet sig.
+  Et skib, som modtagerne missede på vej ind, eller et, der tænder sin
+  transponder indenfor, meldes altså ikke.
+* **En afgang, der høres udenfor, meldes altid**, også for et skib, der var
+  der, før Home Assistant startede. Et skib, der bliver tavst, meldes kun som
+  afgået (`reason: silent`), hvis dets ankomst blev meldt.
+* **En udgang venter 2 minutter.** Et skib, der kommer tilbage før, langs
+  kanten af cirklen, meldes ikke som afgået og ankommet igen.
+* **Oplysninger kan mangle ved ankomsten.** Navn, type og størrelse kommer i
+  en langsommere besked end positionen. Et skib, der høres for første gang,
+  kan ankomme med en position og intet andet.
+
+To områder over det samme farvand udløser hver deres egne hændelser.
+Grænserne for, hvor mange skibe der tegnes, får aldrig et skib til at komme
+ind eller forlade området.
+
+**De fulgte skibes hændelse.**
+[Fulgte skibe](#fulgte-skibe-udvalgte-skibe-overalt) udløser én hændelse,
+`live_track_ships_watched`, hvis `change` siger, hvad der skete:
+
+| `change` | Hvornår |
+|---|---|
+| `arrived` | skibet melder sig fortøjet eller for anker, eller holder sig uden status under 3,7 km/t (2 knob) |
+| `departed` | det sejler igen |
+| `silent` | ikke hørt i 30 minutter (6 timer, hvis det er fortøjet eller for anker); det forlader kortet og er måske der endnu |
+| `heard` | hørt igen efter `silent` |
+| `destination` | besætningen har skiftet destination; `destination_previous` indeholder den gamle |
+
+Dataene indeholder `watch_id`, `watch`, `identity`, dit `label` og de samme
+skibsfelter som områdets hændelser, med afstand og pejling fra dit hjem.
+Ankomst og afgang venter, til den nye tilstand har holdt i 5 minutter efter
+skibets eget ur, så en båd, der driver langsomt, ikke skifter frem og tilbage.
+Intet meldes ud fra et skibs første position efter en genstart: den sætter
+udgangspunktet. Destinationer tastes af besætningen og er ofte forældede.
+
+---
+
+## Alt på kortet i detaljer
+
+AIS (Automatic Identification System, automatisk identifikationssystem) er en
+VHF-radioudsendelse, som skibe bruger til at meddele deres position, identitet
+og rejse til hinanden og til land. Det er søfartens udgave af det, fly sender
+som ADS-B. Erhvervsskibe skal have det om bord; mange lystbåde har det af egen
+lyst, som regel som en svagere klasse B-enhed. AIS sendes åbent: alle med en
+modtager kan høre det, og offentlige tjenester sender det videre. **Live Track
+Ships viser alt, hvad kilden sender.** Intet filtreres fra, og der er ingen
+indstilling, der skjuler en kategori for Home Assistant.
+
+### Skibe
+
+Hvert skib er en markør, hvis tilstand er afstanden til områdets midtpunkt, i
+kilometer. De fleste skibe tegnes efter type: fragtskib, tankskib, færge,
+slæbebåd og så videre. Nogle får deres eget billede: kongelige skibe og
+statsskibe, og kendte både som en bys turbåde, vandtaxaer og brandbåde.
+Kender du et skib, der fortjener ét, hvor som helst i verden?
+[Foreslå det](#hjælp-den-med-at-vokse), med navn og MMSI- eller IMO-nummer,
+og et foto eller et link, hvis du har et.
+
+For at et skib forsvinder, så snart det sejler, bliver hver onlinekilde bedt
+om en ring, der er lidt bredere end din cirkel (10 %, mindst 1 km), og din
+egen modtager sender alt, hvad den hører. Kun skibe inden for din cirkel
+beholdes: et skib, der høres udenfor, forlader kortet med det samme. Et skib,
+der ikke høres igen, forsvinder efter en periode med stilhed. Et skib, der
+holder op med at blive vist, er ikke nødvendigvis sejlet: ingen af kilderne
+lover at levere hver besked.
+
+⚠ **Skibstypen mangler ofte, især for små både.** Position og navn kommer med
+næsten hver besked. Type og størrelse kommer i en separat, langsommere besked,
+som mange klasse B-enheder sjældent sender. Regn med, at mange skibe,
+heriblandt de fleste små både, ikke viser type eller størrelse, og at alle
+skibe har få oplysninger i flere minutter efter en genstart af Home Assistant.
+Det er dataene, ikke en fejl. Typer og størrelser, der er hørt én gang,
+gemmes på tværs af genstarter.
+
+Et skibs attributter omfatter navn, MMSI, kaldesignal, fart, kurs, retning,
+længde, bredde, skibstype, destination, `object_kind`, `last_seen` og
+`attribution`, hver kun når kilden har sendt den. Et skib, som to områder ser,
+er én entitet.
+
+### Private både og sejlbåde
 
 En lystbåd, der sender AIS, vises på dit kort præcis som et fragtskib.
-Afhængigt af hvad båden sender, kan dens enhed indeholde:
+Afhængigt af, hvad båden sender, kan dens entitet indeholde:
 
-- dens **navn**, som også er etiketten på kortet
-- dens **MMSI** og **kaldesignal**, begge faste og offentligt søgbare
-- dens **position** på omkring en meter nær, den forrige position og hvornår
-  hver blev hørt
-- fart, kurs og retning, når de sendes
-- længde, bredde og skibstype, når de sendes
+* dens **navn**, som også er etiketten på kortet;
+* dens **MMSI** og **radiokaldesignal**, begge permanente og offentligt
+  søgbare;
+* dens **position** med omkring en meters nøjagtighed, dens forrige position,
+  og hvornår hver blev hørt;
+* fart, kurs og retning, samt længde, bredde og type, når de sendes.
 
-En båd, der lader transponderen være tændt ved kajen, bliver på kortet ved sin
-plads, så længe den sender.
+En båd, der lader sin transponder være tændt ved broen, bliver stående på
+kortet ved sin bådplads, så længe den sender. Alle, der kan åbne dit kort, kan
+også trykke **Track** på sådan en båd og se, hvor den har været de seneste
+24 timer (eller så længe, som du indstiller), bådpladsen medregnet.
 
-Alle, der kan åbne dit kort, kan også trykke på **Track** for sådan en båd og
-se, hvor den har været det seneste døgn (eller så længe, du indstiller), ikke
-kun hvor den er nu: en båd, der forlod sin plads i morges, viser den plads hele
-dagen.
+Der findes ingen frabedelsesliste for AIS, som der gør for fly, og denne
+integration opfinder ikke én. Vil du have færre private både på dit kort, så
+gør radius mindre.
 
-Der findes ingen fravalgsliste for AIS, som der gør for fly, og denne
-integration opfinder ikke en. Vil du have færre lystbåde på kortet, så gør
-radius mindre.
+### Det, der ikke er skibe
 
-### Skibstypen mangler ofte, især for små både
-
-Position og navn kommer med næsten hver besked. Skibstype og størrelse kommer
-i en særskilt, sjældnere besked, og mange enheder på små både (klasse B)
-sender kun sjældent den del, der indeholder dem. Regn med, at en stor del af
-skibene, de fleste små iblandt, vises uden type eller mål, og at alle skibe er
-mangelfulde i nogle minutter efter en genstart af Home Assistant. Det er
-dataene, ikke en fejl. Typer og størrelser, der én gang er hørt, gemmes
-gennem genstarter.
-
-### Ikke alt på AIS er et skib
-
-Hver enhed har `object_kind`: `vessel`, `net_buoy`, `aton`
-(navigationshjælpemiddel), `base_station`, `sar_aircraft` eller
-`distress_beacon`. De fleste kendes på formatet af den identitet, ITU tildeler
-dem. Bøjer fra fiskeredskaber gør ikke: de sender med skibslignende
-identiteter og kendes derfor på deres fabriksnavne (FISHING BOUY, NET MARK,
-BUOY) sammen med, at der ikke sendes nogen længde.
+Hver entitet har `object_kind`: `vessel`, `net_buoy` (bøje på fiskeredskab),
+`aton` (navigationshjælpemiddel: en bøje, en båke eller et fyr),
+`base_station` (en AIS-station på land), `sar_aircraft` (et rednings- og
+eftersøgningsfly) eller `distress_beacon`. De fleste kendes fra hinanden på
+det identitetsformat, Den Internationale Telekommunikationsunion (ITU) giver
+dem. Bøjer på fiskeredskaber gør ikke: de sender med identiteter som skibe, så
+de genkendes på deres fabriksnavne (FISHING BOUY, NET MARK, BUOY) sammen med,
+at de ikke sender nogen længde.
 
 Alt, hvad der ikke er et skib, vises uden skibstype, størrelse eller
-navigationsstatus. Bøjer fra fiskeredskaber driver med deres liner; de beholder
-derfor fart og kurs og tegnes som en laks, der peger den vej, de driver.
+navigationsstatus. Bøjer på fiskeredskaber driver med deres liner, så de
+beholder fart og kurs og tegnes som en fisk, der peger i den retning, de
+driver.
 
-Hvad der vises, afhænger af kilden. Målt en aften:
+Hvilke af dem der vises, afhænger af kilden. Målt en aften:
 
-| Kilde | Bøjer fra fiskeredskaber | SAR-fly | Navigationshjælpemidler, basestationer |
+| Kilde | Bøjer på fiskeredskaber | Rednings- og eftersøgningsfly | Navigationshjælpemidler, basestationer |
 |---|---|---|---|
 | BarentsWatch | ja | ja | ingen set |
 | Digitraffic | ingen set | ja | ingen set |
 | aisstream.io | ingen set | ingen set | ingen set |
 | Din egen modtager | hvad den hører | hvad den hører | hvad den hører |
 
-aisstream.io leverede kun positions- og skibsdatabeskeder, både over de Store
-Søer og over de samme norske og danske farvande, hvor BarentsWatch viser
-bøjerne.
+aisstream.io leverede kun skibspositioner og skibsdata, både over de Store
+Søer (Nordamerika) og over de samme norske og danske farvande, hvor
+BarentsWatch viser bøjerne.
 
-## Kilder
+### Kystvagtens skibe i udlændingeopgaver
 
-Du vælger én kilde for hvert område, du opretter.
+Et skib på den offentlige liste
+[EnforcementVessels](https://github.com/StrausbergAutomationWorks/EnforcementVessels)
+(skibe fra USA's kystvagt, der bruges i udlændingeopgaver) tegnes i
+kystvagtens farver, med listens navn og myndighed, hvor end det høres.
 
-| Kilde | Dækning | Kræver |
-|---|---|---|
-| aisstream.io | hele verden, hvor frivillige har modtagere kørende | en gratis API-nøgle |
-| Fintraffic Digitraffic | finske og baltiske farvande | intet |
-| BarentsWatch AIS Live | norske farvande | gratis klient-id og klienthemmelighed |
-| Din egen AIS-modtager | så langt din antenne hører | en modtager, der sender NMEA over UDP |
+### Fulgte skibe: udvalgte skibe overalt
 
-Hvilke kategorier der vises, hvor friske positionerne er, og hvor fuldstændige
-skibsdataene er, afhænger af den kilde, du vælger.
+Ud over områder kan du følge en liste af skibe, hvor de end er: et
+familiemedlems båd, en færge, du tager, et krydstogtskib på vej hjem. Det
+kræver en aisstream.io-nøgle, og der er én sådan liste pr. Home Assistant.
 
-### Din egen modtager
+1. Åbn **Indstillinger → Enheder & tjenester**, vælg **Tilføj integration**,
+   og søg efter **Live Track Ships**.
+2. Vælg **Udvalgte skibe, hvor de end er**.
+3. **API-nøgle**: nøglen fra et område, du allerede har sat op, er udfyldt.
+4. **Skibe**: ét skib pr. linje, dets 9-cifrede MMSI og derefter, hvis du vil,
+   et navn, du selv vælger:
 
-Har du en AIS-modtager, kan Live Track Ships vise, hvad den hører, uden konto
-og uden internet. Modtageren, eller det program der afkoder den, sender
-NMEA-sætninger (`!AIVDM`) over UDP til Home Assistants adresse på en port, du
-selv vælger (10110, hvis du ikke ændrer den). I AIS-catcher er det
-`-u <address> <port>`, i rtl-ais `-h <address> -P <port>`; OpenCPN og
-Signal K tilføjer det som en udgående UDP-forbindelse. En modtager, der
-sluttes til med USB, som en dAISy, skal bruge et af de programmer til at
-sende sine sætninger videre.
+   ```text
+   244650000 Fars båd
+   366999999 Færgen
+   ```
 
-- Ét område lytter på én port; to modtagere skal bruge to porte.
-- Alt, hvad modtageren hører inden for din cirkel, vises, også
-  navigationshjælpemidler og basestationer. Stationssensoren (nedenfor) tæller
-  også, hvad den hører uden for cirklen.
-- En sætning har ingen dato, så en positions tid er det øjeblik, Home
-  Assistant modtog den.
-- Drejehastigheden vises ikke for denne kilde.
-- Indtil videre er det testet med optagede sætninger sendt over UDP, ikke med
-  en modtager. Prøver du det med din, så fortæl os, hvordan det gik, på
-  [issues-siden](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues).
+5. Vælg **Indsend**.
 
-### Kildeangivelse
+Højst 100 skibe. aisstream.io følger højst 200 MMSI'er pr. nøgle, og
+[Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT),
+hvis det er installeret med samme nøgle, bruger en del af dem. En liste, der
+ville gå over, afvises, når posten indlæses, med begrundelsen. For at ændre
+listen åbner du **Konfigurér** på posten.
 
-Hver skibsenhed og hvert områdes sensor `ships_in_range` har en attribut
-`attribution`, der nævner kilden; Home Assistant viser den i enhedens detaljer.
-To af kilderne udgiver deres data under en licens, der kræver kildeangivelse,
-og Live Track Ships ændrer de data, den modtager (enheder omregnet, kun skibe
-inden for din cirkel), så deres linjer siger det. Hvis du viser disse data for
-andre, for eksempel på et offentligt dashboard, så behold kildeangivelsen og
-læs kildens egne vilkår:
+Et fulgt skib tegnes på kortet som alle andre, hvor end det høres, og dets
+tilstand er afstanden til dit hjem. Et område, der allerede viser det,
+beholder det: ét skib, én markør. Posten tilføjer `sensor.watched_vessels`:
+hvor mange af skibene på listen der høres lige nu. Dens attribut `vessels`
+nævner dem alle, med deres navn og seneste kendte tilstand. Dens hændelse er
+beskrevet under [Brug den i automatiseringer](#brug-den-i-automatiseringer).
 
-- **aisstream.io**: ingen offentliggjorte vilkår. <https://aisstream.io>
-- **Fintraffic Digitraffic**: CC BY 4.0.
-  <https://www.digitraffic.fi/en/terms-of-service/>
-- **BarentsWatch**: Norsk lisens for offentlige data (NLOD).
-  <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
-- **Din egen modtager**: dine egne data; linjen siger det.
-- **EnforcementVessels** (listen bag kystvagt-udseendet, nedenfor): ODbL v1.0.
-  <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
+### Fotos og links
 
-De præcise linjer står i [ATTRIBUTION.md](ATTRIBUTION.md).
+Når et skib sender et IMO-nummer, og Wikidata kender et foto af skibet på
+Wikimedia Commons, har skibet `marker_photo`. Kortet viser fotoet, når du
+peger på skibet, med fotograf og licens; et klik åbner det større, med links
+til fotoets side og til dets licens. Hvert skib med IMO-nummer eller MMSI har
+også `marker_links`, et link til skibet på VesselFinder. Knappen **Details** i
+pop op-vinduet åbner skibets sædvanlige dialog.
 
-## Krav
+Din Home Assistant spørger selv Wikidata og Commons, 20 IMO-numre ad gangen,
+ti sekunder imellem, og gemmer hvert svar i 30 dage (14 dage, når der ikke er
+noget foto) i `.storage/saw_vessel_photos.json`. Regn med fotos for omkring
+hvert tiende skib: på vores testsystem havde 49 af 521 IMO-numre et.
 
-- Home Assistant 2026.11 eller nyere, med adgang til internettet for
-  onlinekilderne.
-- Til aisstream.io: en gratis API-nøgle fra
-  [aisstream.io](https://aisstream.io/account). aisstream tillader **tre
-  forbindelser pr. konto og tre pr. offentlig IP-adresse**; bruger du andre
-  værktøjer med samme nøgle, så tag højde for det. Live Track SALT bruger, hvis
-  den er installeret, en anden forbindelse med samme nøgle.
-- Til BarentsWatch: et gratis klient-id og en klienthemmelighed, som du selv
-  registrerer hos BarentsWatch. Skriv klient-id'et præcis, som det blev udstedt.
-- Til din egen modtager: en modtager og et program, der sender NMEA over UDP
-  til Home Assistant på samme netværk. Den kræver ikke internet.
-- Home Assistant installerer selv de Python-pakker, der skal bruges
-  (`saw-livetrack` og `pyais`), første gang integrationen indlæses.
+⚠ Et foto kan vise skibet under et tidligere navn: IMO-nummeret hører til
+skroget og følger det, når skibet skifter navn.
 
-## Installation
+### Spor
 
-### Fra Marketplace
+Hvert skib har også `marker_track`. Klik på et skib, og tryk **Track** i dets
+pop op-vindue: kortet tegner, hvor det har været, som én linje, der ender ved
+skibet, og linjen vokser, mens du ser på. **Hide track** fjerner den. Intet
+tegnes, før du beder om det, så en travl havn ikke forsvinder under linjer.
 
-Live Track Ships er endnu ikke i Marketplaces katalog. Tilføj den via et link:
+Sporet indeholder kun positioner, skibet meldte, mens det var på dit kort,
+tyndet ud til én for hver 25 m (82 fod) eller 10 minutter, og aldrig to inden
+for 30 sekunder. Din Home Assistant holder det i hukommelsen og gemmer det i
+`.storage/saw_vessel_tracks.json`, så det overlever en genstart. Det dækker de
+seneste 24 timer. For at gemme mere eller mindre:
 
-1. **Indstillinger > Marketplace**, derefter **Tilføj fra link**.
-2. Skriv `StrausbergAutomationWorks/LiveTrackShips`. Hvis den spørger om
-   typen, så vælg **Integration**.
-3. Installér **Live Track Ships**.
-4. Genstart Home Assistant. Marketplace tilbyder genstarten som en
-   reparation under **Indstillinger > System > Reparationer**.
+1. Åbn **Indstillinger → Værktøjer → Handlinger**.
+2. Vælg handlingen **Live Track Ships: Angiv sporets timer**.
+3. Skriv **Timer**, fra 1 til 168 (en uge), og vælg **Udfør handling**.
 
-### I hånden
+Det gælder alle områder på én gang; en kortere indstilling sletter ældre
+positioner med det samme.
 
-1. Hent kildekoden til den
-   [nyeste udgivelse](https://github.com/StrausbergAutomationWorks/LiveTrackShips/releases/latest).
-2. Kopiér dens mappe `custom_components/live_track_ships` til mappen
-   `custom_components` i Home Assistants konfigurationsmappe.
-3. Genstart Home Assistant.
+⚠ Sporet starter tomt ved en første installation. Et skib, der forlod området
+eller blev tavst, har et hul, tegnet som en lige linje mellem positionerne før
+og efter.
 
-## Opsætning
+### Skjul skibstyper
 
-**Indstillinger > Enheder og tjenester > Tilføj integration > Live Track
-Ships**, derefter **Alle skibe i et område** (det andet valg, fulgte skibe,
-står [længere nede](#fulgte-skibe-følg-udvalgte-skibe-overalt)). Hvert område
-er en selvstændig post med titlen *Ships near <bredde>, <længde>*. Dialogen
-vises på dansk, når Home Assistant er sat til dansk.
+Hvert skib har `marker_group`, `marker_group_label` og `marker_group_order`:
+en af tretten grupper (fragt; tank; passager og færge; fiskeri; lystbåde og
+sejlads; slæbebåd, lods og havnetjeneste; myndigheder, redning og politi;
+hurtigfærger og andet; type ikke sendt; bøjer på fiskeredskaber;
+navigationshjælpemidler; basestationer; rednings- og eftersøgningsfly).
+Kortkortets filterkort, `custom:live-track-map-filter-card`, viser grupperne
+med hvor mange af hver, der er på kortet, og skjuler dem, du fjerner
+fluebenet fra. Sæt det på en hvilken som helst visning af betjeningspanelet.
+Dit valg gemmes kun i den browser.
 
-| Felt | Hvad det tager | Standard |
-|---|---|---|
-| Datakilde | aisstream.io, Fintraffic Digitraffic, BarentsWatch AIS Live eller din egen AIS-modtager | aisstream.io |
-| API-nøgle | kun aisstream.io. Hentes fra et område, du allerede har oprettet; kan ændres | tom |
-| Klient-id, klienthemmelighed | kun BarentsWatch. Hentes fra et område, du allerede har oprettet | tom |
-| UDP-port | kun din egen modtager: den port, den sender NMEA til, 1024 til 65535. Afvises, hvis et andet område eller et andet program allerede bruger den | 10110 |
-| Midtpunkt | en markør på et kort; træk den hen til det farvand, du vil følge | dit hjem |
-| Radius (km) | 1 til 500 | 50 |
-| Højeste antal fulgte skibe | 1 til 5.000; en sikkerhedsgrænse for dette område, de nærmeste beholdes | 1.000 |
+Skjulningen sker kun på kortet: integrationen tæller stadig hvert skib og
+udløser sine hændelser for hvert skib. Et nødradiofyr har ingen gruppe, så det
+skjules aldrig.
 
-Den samme kilde kan ikke følge det samme midtpunkt to gange. Ligger mindst
-5 % af en BarentsWatch-cirkel uden for de farvande, BarentsWatch udgiver,
-siger dialogen hvor meget, før området oprettes; send formularen for at
-beholde cirklen alligevel.
+---
 
-**Et områdes indstillinger** (Konfigurer på dets post): midtpunktet, med den
-samme markør; radius; det højeste antal fulgte skibe; og *Højeste antal skibe
-på kortet, alle Live Track Ships-poster tilsammen*, en skyder fra 100 til
-2.500 i trin på 100 (standard 2.500); og, for din egen modtager, dens UDP-port. Flytter du midtpunktet, får området nyt
-navn efter sin position og genindlæses. Den samme kilde kan stadig ikke følge
-ét midtpunkt fra to områder.
+## Alle entiteter, den opretter
 
-## Hvad der oprettes
+| Entitet | Hvad den er |
+|---|---|
+| `geo_location.vessel_<MMSI>` | én markør for hvert skib eller andet AIS-objekt; tilstanden er afstanden til områdets midtpunkt (eller til dit hjem, for et fulgt skib), i kilometer. Den kommer og går og har intet unikt id |
+| `sensor.ships_in_range` | én pr. område: hvor mange skibe det viser, og om en grænse har skåret listen ned |
+| `sensor.ais_station` | kun din egen modtager: beskeder pr. minut. Dens attributter giver `vessels_heard` (de seneste 10 minutter), `farthest_km` og `farthest_mmsi` (fra områdets midtpunkt), `last_message`, `udp_port`, `listening`, og `port_error`, når porten ikke kan åbnes. Den opdateres hvert 30. sekund, så en modtager, der holder op med at sende, viser 0 |
+| `sensor.watched_vessels` | kun fulgte skibe: hvor mange af dine skibe på listen der høres lige nu |
 
-- **Én `geo_location`-enhed pr. skib**, `geo_location.vessel_<MMSI>`, hvis
-  tilstand er afstanden til områdets midtpunkt i kilometer. Attributterne
-  omfatter navn, MMSI, kaldesignal, fart, kurs, retning, længde, bredde,
-  skibstype, destination, `object_kind`, `last_seen` og `attribution`, hver kun
-  hvis kilden sendte den. Et skib, som to områder ser, er én enhed.
-- **Én sensor pr. område**, `sensor.ships_in_range`, der tæller de viste skibe
-  og siger det, når områdets eller hele installationens grænse beskærer
-  listen.
-- **For din egen modtager endnu en sensor**, `sensor.ais_station`: beskeder
-  pr. minut. Dens attributter er `vessels_heard` (de seneste 10 minutter),
-  `farthest_km` og `farthest_mmsi` (fra områdets midtpunkt), `last_message`,
-  `udp_port`, `listening` og `port_error`, når porten ikke kan åbnes. Den
-  opdateres hvert 30. sekund, så en modtager, der holder op med at sende,
-  viser 0.
+Attributter, der ændrer sig ved hver opdatering, holdes ude af Home
+Assistants historik, så din database ikke vokser af dem: hvert skibs
+`marker_photo`, `marker_links` og `marker_track`, og sensorernes hurtigt
+skiftende attributter.
 
-Et skib, der høres uden for din cirkel, forsvinder straks fra kortet. For at
-høre det bliver hver onlinekilde bedt om en ring lidt større end din cirkel (10 %,
-mindst 1 km), og din egen modtager sender alt, hvad den hører; kun skibe inden for din cirkel beholdes. Et skib, der ikke høres
-igen, forsvinder efter en periode med stilhed, og et skib, der holder op med
-at blive vist, er ikke nødvendigvis væk (nedenfor).
+**Din database.** Home Assistants optager gemmer en ny række, hver gang en
+entitet ændrer sig, og et sejlende skib ændrer sig med hver position, det
+melder. På vores testsystem skrev ét område med 43 skibe 27.109 rækker på
+omkring 30 timer, 8,8 % af hele databasen. Som standard gemmer optageren
+10 dage og rydder op hver nat kl. 04:12 lokal tid, så væksten flader ud, men
+ved en størrelse, du måske ikke ønsker.
 
-### Din database
+Et skib beholder det samme entitets-id, `geo_location.vessel_<MMSI>`, hver
+gang det dukker op, så ét mønster, `geo_location.vessel_*`, dækker alt, hvad
+denne integration nogensinde har sat på kortet. For kun at beholde det seneste
+døgn af det:
 
-Home Assistants recorder gemmer en ny række, hver gang en entitet ændrer sig,
-og et skib i fart ændrer sig med hver position, det melder. Denne integration
-kan derfor få din database til at vokse hurtigt: på vores testsystem skrev ét
-område med 43 skibe 27.109 tilstandsrækker på omkring 30 timer, 8,8 % af hele
-databasen. Som standard gemmer recorderen 10 dage og rydder op hver nat kl.
-04:12, så væksten flader ud, men ved en størrelse, du måske ikke ønsker.
-Hvert skibs `marker_photo`, `marker_links` og `marker_track` og sensorernes hurtigt skiftende
-attributter bliver aldrig gemt.
-
-Et skib beholder det samme entitets-id, `geo_location.vessel_<MMSI>`, hver gang
-det dukker op: en færge, der sejler og kommer tilbage, genbruger sin entitet i
-stedet for at tilføje en ny. Ét mønster, `geo_location.vessel_*`, dækker derfor
-alt, hvad denne integration nogensinde har sat på kortet. For kun at beholde
-det seneste døgn kører du `recorder.purge_entities` efter en tidsplan, for
-eksempel med denne automatisering:
+1. **Indstillinger → Automatiseringer & scener → Tilføj automatisering →
+   Opret ny automatisering**.
+2. Åbn menuen med tre prikker, vælg **Redigér i YAML**, erstat alt med dette,
+   og vælg **Gem**:
 
 ```yaml
 alias: Afkort skibshistorik
@@ -279,337 +676,158 @@ actions:
       keep_days: 1
 ```
 
-Udelader du `keep_days` (standard 0), forsvinder alle deres rækker på én gang.
-For slet ikke at gemme noget af det sætter du mønsteret under `recorder:` →
-`exclude:` → `entity_globs:` i `configuration.yaml`. Et kortkort, der er sat
-til at tegne historik (`history_start`), har så intet spor at tegne.
-`sensor.ships_in_range` er et rent tal og billigt at gemme, så dens historik
-overlever i begge tilfælde.
+Udelader du `keep_days` (standard 0), forsvinder alle deres rækker på én
+gang. Vil du slet ikke optage noget af det, så sæt mønsteret under
+`recorder:` → `exclude:` → `entity_globs:` i `configuration.yaml`; et
+kortkort, der skal tegne historik (`history_start`), har så intet spor at
+tegne. `sensor.ships_in_range` er et simpelt tal og billigt at beholde.
 
-## Hændelser: et skib kommer ind i dit område eller forlader det
+---
 
-Hvert område sender to hændelser i Home Assistant, så en automatisering kan
-fortælle dig, når et skib, du interesserer dig for, ankommer:
+## Hvad den sender og henter
 
-- `live_track_ships_entry`, når et skib kommer ind i områdets cirkel
-- `live_track_ships_exit`, når det forlader den
+**Om din placering.** Hvert områdes midtpunkt er dit hjem, medmindre du
+flytter det. Det sendes kun til den kilde, du har valgt til området: til
+aisstream.io som et rektangel omkring en cirkel, der er lidt større end din
+(10 %, mindst 1 km); til Digitraffic (Finland) som midtpunktet og den større
+radius; til BarentsWatch (Norge) som den større cirkel. For fulgte skibe
+sendes MMSI-numrene på din liste til aisstream.io. Din egen modtager sender
+intet nogen steder hen: Home Assistant lytter kun. For fotos sendes
+IMO-numrene på skibene på dit kort til Wikidata og Wikimedia Commons, uden
+noget om dig. For at stoppe alt dette sletter du området eller posten med
+fulgte skibe under **Indstillinger → Enheder & tjenester → Live Track Ships**.
+Intet andet om dig sendes nogen steder hen.
 
-Integrationen melder alle skibe; din automatisering vælger dem, der betyder
-noget. Hændelsens data har samme navne og enheder som skibets attributter og
-udelader det, kilden ikke sendte:
+**Hvor meget.**
 
-| Felt | Indhold |
-|---|---|
-| `area_id`, `area` | id'et på områdets konfigurationspost og dets titel |
-| `identity` | MMSI'en |
-| `name`, `call_sign`, `imo` | når de sendes |
-| `object_kind` | `vessel`, `net_buoy`, `aton`, `base_station`, `sar_aircraft` eller `distress_beacon` |
-| `ship_type`, `ship_type_label`, `length_m`, `beam_m`, `draught_m`, `destination`, `nav_status` | kun skibe, når de sendes |
-| `speed_kmh`, `course_deg`, `heading_deg` | når de sendes |
-| `latitude`, `longitude`, `distance_km`, `bearing_from_centre_deg`, `last_seen` | hvor det blev hørt, set fra områdets midtpunkt |
-| `entity_id` | kun ved ankomst: `geo_location.vessel_<MMSI>`, når skibet er på kortet |
-| `reason` | kun ved afgang: `left` (hørt uden for cirklen) eller `silent` (ikke hørt i opbevaringstiden, så det kan stadig være der) |
+* **aisstream.io**: én forbindelse til alle dine områder og én til dine fulgte
+  skibe, begge holdt åbne; skibene kommer, efterhånden som de melder. Efter en
+  fejl forbinder den igen efter en pause.
+* **Digitraffic**: positioner hvert 60. sekund og skibsdata hvert
+  15. minut, kun for din cirkel. Efter en fejl prøver den igen ved næste
+  runde.
+* **BarentsWatch**: én åben datastrøm pr. område. Kommer der intet i
+  150 sekunder, forbinder den igen.
+* **Fotos**: 20 IMO-numre ad gangen, 10 sekunder imellem, kun for skibe, der
+  ikke er spurgt efter de seneste 30 dage (14, hvis der ikke var noget foto).
+  En mislykket forespørgsel gentages senere.
+* **Din egen modtager**: intet hentes.
 
-Fire ting, du bør vide:
+---
 
-- **En ankomst meldes kun, hvis skibet først er hørt uden for cirklen**, i
-  ringen omkring den. Et skib, der først høres inde i cirklen, kan have ligget
-  der hele tiden: efter en genstart bliver modtagerne ved i mange minutter med
-  at levere skibe, der aldrig har flyttet sig. Et skib, som modtagerne ikke
-  hørte på vej ind, eller et, der først tænder sin transponder inde i cirklen,
-  meldes derfor ikke.
-- **En afgang, der høres udenfor, meldes altid**, også for et skib, der var
-  der, før Home Assistant startede. Et skib, der tier, meldes kun ude
-  (`reason: silent`), hvis dets ankomst blev meldt.
-- **En afgang venter 2 minutter.** Et skib, der vender tilbage inden da, langs
-  cirklens kant, meldes ikke ud og ind igen.
-- **Ved ankomsten kan oplysninger mangle.** Navn, type og størrelse kommer i en
-  sjældnere besked end positionen (ovenfor). Et skib, der høres for første
-  gang, kan ankomme med en position og intet andet; et, der er hørt før, har
-  som regel type og størrelse med.
+## Hjælp den med at vokse
 
-To områder over det samme farvand sender hver deres egne hændelser.
-Grænserne for, hvor mange skibe kortet tegner, får aldrig et skib til at
-komme ind eller forsvinde.
+Live Track Ships vokser stadig. Vi tilføjer datakilder og lande, efterhånden
+som vi finder dem, og vi vil gerne vide, hvad du kunne tænke dig næste gang.
 
-En automatisering, der giver besked, når et skib over 150 m kommer ind i et
-område:
+### Foreslå noget
 
-```yaml
-triggers:
-  - trigger: event
-    event_type: live_track_ships_entry
-conditions:
-  - condition: template
-    value_template: "{{ trigger.event.data.length_m | default(0) > 150 }}"
-actions:
-  - action: notify.notify
-    data:
-      title: "{{ trigger.event.data.name | default('Et skib') }}"
-      message: >-
-        {{ trigger.event.data.ship_type_label | default('Skib') }},
-        {{ trigger.event.data.length_m }} m,
-        {{ trigger.event.data.distance_km }} km væk, på vej ind i
-        {{ trigger.event.data.area }}.
-```
+Mangler dit land eller din AIS-tjeneste? Er noget forkert eller svært at
+forstå? Fortæl os det på den måde, der er nemmest for dig:
 
-## Fulgte skibe: følg udvalgte skibe overalt
+* [**Udfyld en kort formular**](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues/new?template=da.yml)
+  på dansk. Du skal have en gratis GitHub-konto.
+* **Skriv en e-mail** til
+  [StrausbergAutomationWorks@recordwise.org](mailto:StrausbergAutomationWorks@recordwise.org).
+  Ingen konto nødvendig.
 
-Ud over områder kan du følge en liste af skibe, hvor de end er: et
-familiemedlems båd, en færge du tager, et krydstogtskib på vej hjem.
-**Indstillinger > Enheder og tjenester > Tilføj integration > Live Track
-Ships > Udvalgte skibe, hvor de end er.** Det kræver en nøgle fra aisstream.io
-(nøglen fra et område, du allerede har oprettet, er udfyldt), og der er én
-sådan liste pr. Home Assistant.
+Uanset hvad hjælper det, hvis du fortæller os:
 
-Ét skib pr. linje: dets 9-cifrede MMSI og eventuelt et navn efter eget valg.
+* hvad du gerne vil se, og hvor i verden;
+* et link til, hvor dataene offentliggøres, hvis du kender et (en side med
+  åbne data, et offentligt feed, en tjenestes hjemmeside): ikke nødvendigt,
+  men det hjælper;
+* din Home Assistants sprog, hvis problemet er formuleringen eller en
+  oversættelse.
 
-```text
-244650000 Fars båd
-366999999 Færgen
-```
+Skriv på engelsk eller på dit eget sprog, hvad der er nemmest for dig.
 
-Højst 100 skibe. aisstream følger højst 200 MMSI'er pr. nøgle, og
-[Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT)
-bruger, hvis den er installeret med samme nøgle, en del af dem; en liste, der
-ville gå over, afvises, når posten indlæses, med begrundelsen. Ret listen i
-postens indstillinger.
+### Tilføj det selv, med vores hjælp
 
-Et fulgt skib tegnes på kortet som alle andre, hvor end det høres, og dets
-tilstand er afstanden til dit hjem. Et område, der allerede viser det,
-beholder det: ét skib, én markør. Posten opretter `sensor.watched_vessels`:
-hvor mange af skibene på listen der høres lige nu, med hvert af dem, dit navn
-for det og dets seneste kendte tilstand i attributten `vessels`.
+Vil du selv tilføje noget, hjælper vi dig med det, fra det første spørgsmål
+til den færdige udgivelse. Du behøver ikke være udvikler for at begynde:
 
-Den sender én hændelse, `live_track_ships_watched`, hvis felt `change` siger,
-hvad der skete:
+* **En oversættelse.** Teksterne i opsætningsdialogen er en kort liste af
+  sætninger i én tekstfil. Vi viser dig hvilken fil og hvilke linjer.
+* **En ny datakilde.** Fortæl os, hvor dataene offentliggøres. Vi kan skrive
+  koden sammen eller se din igennem.
+* **Test, hvor du bor.** Installer den, se på din del af kortet, og fortæl os,
+  hvad der er rigtigt, og hvad der ikke er.
+* **En rettelse til denne README.** Hvis et trin ikke passede med det, du så,
+  så fortæl os, hvad du så.
 
-| `change` | Hvornår |
-|---|---|
-| `arrived` | skibet melder sig fortøjet eller til ankers, eller bliver uden status under 2 knob |
-| `departed` | det er i fart igen |
-| `silent` | ikke hørt i 30 minutter (6 timer, hvis det er fortøjet eller til ankers); det forsvinder fra kortet og kan stadig være der |
-| `heard` | hørt igen efter `silent` |
-| `destination` | besætningen har ændret destinationen; `destination_previous` indeholder den gamle |
+[**Fortæl os, hvad du har i tankerne**](https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues/new?template=da.yml)
+eller skriv til
+[StrausbergAutomationWorks@recordwise.org](mailto:StrausbergAutomationWorks@recordwise.org),
+så svarer vi med de næste skridt.
 
-Dataene har `watch_id`, `watch`, `identity`, dit navn `label` og de samme
-skibsfelter som områdehændelserne, med afstand og retning fra dit hjem.
-Ankomst og afgang venter, til den nye tilstand har holdt i 5 minutter efter
-skibets eget ur, så en båd, der driver med 2 knob, ikke skifter frem og
-tilbage. Der meldes intet ud fra et skibs første position efter en genstart:
-den fastlægger udgangspunktet. Destinationer tastes ind af besætningen og er
-ofte forældede.
-
-## Kortkort
-
-Skibene tegnes af [LiveTrackMapCard](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard)
-(`custom:live-track-map-card`), det ene kort, som alle Live
-Track-integrationer tegner på. Det tegner hvert skibs eget billede, drejer det
-efter skibets retning og lader det glide mellem rigtige positioner hen over
-vandet i stedet for lige hen over land.
-
-**Kortet installeres sammen med integrationen.** Integrationen har en udgivet
-kopi af kortet med, stiller den til rådighed og registrerer den som
-dashboard-ressource, når Home Assistant starter; der er intet at hente eller
-kopiere ind i `www`. Alle Live Track-integrationer gør det samme, og sammen
-holder de præcis én ressourcelinje: den højeste kortversion, nogen af dem har
-med, aldrig en ældre. Et kort, der er installeret via Marketplace, røres ikke.
-Fjernes det sidste område i denne integration, går linjen videre til en anden
-Live Track-integration, eller den fjernes, hvis der ikke er flere. Se kortets
-README, afsnittet
-[Live Track](https://github.com/StrausbergAutomationWorks/LiveTrackMapCard#live-track).
-
-Er dine dashboards' ressourcer sat i YAML (`lovelace: resource_mode: yaml`),
-kan intet registreres for dig. En reparation giver så den præcise linje, der
-skal tilføjes; den ser sådan ud, med integrationens egen adresse i stedet for
-pladsholderne:
-
-```yaml
-lovelace:
-  resource_mode: yaml
-  resources:
-    - url: /live_track_ships/map-card/<12 hex>/live-track-map-card.js?v=<version>&h=<12 hex>
-      type: module
-```
-
-Fjernes integrationens filer (for eksempel via Marketplace), mens dens
-områder stadig er oprettet, og er ingen anden Live Track-integration
-installeret, er der intet tilbage til at rydde linjen op: fjern den under
-Indstillinger > Dashboards > Ressourcer. Vil du hellere installere kortet i
-hånden, så følg kortets README; ressourcelinjen for en kopi, der er
-installeret i hånden under `/local/`, peges kun over på en integrations kopi,
-når den er en nyere udgivelse.
-
-Giv det skibene med
-[auto-entities](https://github.com/thomasloven/lovelace-auto-entities),
-filtreret på `domain: geo_location` og `attributes: {source: live_track_ships}`.
-Er andre Live Track-integrationer installeret, så tilføj et filter for hver af
-deres kilder.
-
-Ethvert andet kortkort, der viser `geo_location`-enheder, viser også skibene,
-uden kortets billeder og glidninger.
-
-Et skib på den offentlige liste
-[EnforcementVessels](https://github.com/StrausbergAutomationWorks/EnforcementVessels)
-(kystvagtskibe, der bruges i immigrationsarbejde) tegnes i kystvagtens farver
-med listens navn og myndighed, hvor end det er.
-
-### Skjul skibstyper
-
-Hvert skib har `marker_group`, `marker_group_label` og `marker_group_order`:
-en af tretten grupper (fragt; tankskib; passagerer og færger; fiskeri;
-lystsejlads og sejlbåde; slæbebåde, lodser og havnetjeneste; myndigheder, SAR
-og politi; hurtigfærger og andet; type ikke sendt; bøjer på fiskeredskaber;
-navigationshjælpemidler; basestationer; SAR-fly). Kortkortets filterkort,
-`custom:live-track-map-filter-card`, viser dem med hvor mange af hver der er
-på kortet og skjuler dem, du fjerner fluebenet fra; sæt det på en hvilken som
-helst visning af dashboardet. Dit valg gemmes kun i den browser.
-Integrationen viser stadig alt: dens sensor tæller hvert skib, og dens
-hændelser udløses for hvert skib. En nødradiobøje har ingen gruppe, så den
-skjules aldrig.
-
-### Fotos og links
-
-Når et skib sender et IMO-nummer, og Wikidata kender et foto af skibet på
-Wikimedia Commons, har skibet `marker_photo`. Kortet viser fotoet i
-hover-boksen med fotograf og licens; et klik åbner det større, med links til
-fotoets side og til licensen. Hvert skib med et IMO-nummer eller et MMSI har
-også `marker_links`, et link til skibet på VesselFinder. Knappen **Details** i
-vinduet åbner skibets sædvanlige dialog. Din Home Assistant spørger selv
-Wikidata og Commons, 20 IMO-numre ad gangen med ti sekunders mellemrum, og
-gemmer hvert svar i 30 dage (14, når der ikke er noget foto) i
-`.storage/saw_vessel_photos.json`. Regn med fotos for omtrent hvert tiende
-skib: på vores testsystem havde 49 af 521 IMO-numre et.
-
-### Spor
-
-Hvert skib har også `marker_track`. Klik på et skib, og tryk på **Track** i
-dets vindue: kortet tegner, hvor det har været, som én linje, der ender ved
-skibet og vokser, mens du ser på; **Hide track** fjerner den. Intet tegnes, før
-du beder om det, så en travl havn aldrig forsvinder under streger. Sporet
-rummer kun positioner, som skibet har meldt, mens det var på dit kort, udtyndet
-til én for hver 25 m eller 10 minutter og aldrig to inden for 30 sekunder. Din
-Home Assistant holder det i hukommelsen og gemmer det i
-`.storage/saw_vessel_tracks.json`, så det overlever en genstart. Det dækker det
-seneste døgn. Vil du gemme mere eller mindre, så kør handlingen
-`live_track_ships.set_track_hours` med `hours` fra 1 til 168 (en uge), for
-eksempel fra Udviklerværktøjer > Handlinger:
-
-```yaml
-action: live_track_ships.set_track_hours
-data:
-  hours: 72
-```
-
-Det gælder alle områder på én gang; en kortere indstilling sletter ældre
-positioner med det samme. Home Assistants recorder gemmer ikke sporene.
-
-## Hvor den kigger
-
-Du sætter et **midtpunkt og en radius** på kortet. Midtpunktet kan ligge hvor
-som helst i verden; radius kan være 1 til 500 km. Standard er **50 km**. Hvert
-skibs tilstand er afstanden til dit midtpunkt.
-
-Hvor mange skibe en cirkel rummer, afhænger langt mere af *hvilket farvand*
-end af *hvor stor*. I test rummede en cirkel på 50 km omkring 4 skibe over
-Chicago og omkring 340 over Solent i det sydlige England: samme radius, cirka
-80 gange så meget trafik. Derfor beholder integrationen højst et fastsat antal
-skibe (1.000 som standard, kan sættes op til 5.000), beholder de nærmeste, når
-der er flere, og siger det på sin sensor `ships_in_range`.
-
-Alle dine områder **tilsammen** viser højst 2.500 skibe, uanset kilde. Hvert
-områdes indstillinger har skyderen fra ovenfor, som kun kan sænke den grænse;
-den laveste indstilling på et aktiveret område gælder. Sænk den på
-langsommere maskiner.
-
-## Dækning, målt i stedet for lovet
-
-Dækningen er god, hvor der er modtagere, og fraværende, hvor der ikke er, og
-**ingen indstilling kan skabe dækning, der ikke findes**.
-
-Målt 2026-09-02 omkring Chicago med aisstream.io:
-
-- **De Store Søer**: 100 forskellige skibe på 120 sekunder, alle fem søer og
-  farvandene imellem.
-- **Chicago River, midtbyen**: travl og pålidelig.
-- **Chicago Sanitary and Ship Canal, Cal-Sag Channel, Calumet River**: en time
-  med lytning, **nul skibe**. Kanalen er ikke tom: dens skubbeslæb kan ses hos
-  kommercielle tjenester via satellit-AIS, som gratis samletjenester ikke har.
-  Trafikken er virkelig; dækningen fra land er ikke.
-
-Ingen skibe i dit område kan betyde, at der ikke er modtagere, snarere end at
-der ikke er både. Tjek, at din kilde dækker dit farvand, før du antager, at
-integrationen er i stykker.
-
-Et skib, der holder op med at blive vist, er ikke nødvendigvis væk. Ingen af
-disse kilder garanterer levering, så integrationen viser, hvornår hvert skib
-sidst blev hørt, og fjerner det først efter en periode med stilhed.
-
-## Skibe, der fortjener deres eget billede
-
-De fleste skibe tegnes efter deres type. Nogle har deres eget billede:
-kongelige og statslige skibe som Kongeskibet Dannebrog, og kendte både som
-Chicagos udflugtsbåde, vandtaxaer og brandbåde. Kender du et skib, der
-fortjener ét, hvor som helst i verden? Opret en issue på
-<https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues> med navn
-og MMSI- eller IMO-nummer, gerne med et foto eller et link.
+---
 
 ## Sprog
 
 Denne README: [English](README.md), [Deutsch](README.de.md),
 [Français](README.fr.md), [Nederlands](README.nl.md),
 [简体中文](README.zh-Hans.md), [Español](README.es.md),
-[Italiano](README.it.md), **Dansk** og [Kalaallisut](README.kl.md) (et udkast,
-sendt til gennemlæsning hos Oqaasileriffik, Grønlands sprogsekretariat; indtil
-da er den danske side den pålidelige). README'en er oversat til en kort liste
-af sprog: dem, de fleste Home Assistant-brugere læser, og et par flere, hvor
-der er en god grund. Hver oversat README er fuldstændig: alt i den engelske
-står i hver af dem, og ingen sender dig tilbage til engelsk for detaljerne.
+[Italiano](README.it.md), **Dansk** og [Kalaallisut](README.kl.md) (en kort
+kladde, sendt til gennemsyn hos Oqaasileriffik, Grønlands sprogsekretariat;
+indtil da er denne danske side den pålidelige). Hver oversat README er
+komplet.
 
-Opsætningsdialogen og et områdes indstillinger vises på dit Home
-Assistant-sprog, når det er et af disse: English, Dansk, Deutsch, Español,
-Français, Gaeilge, Íslenska, Italiano, Nederlands, Norsk Bokmål, Polski,
-Português, Português (BR), Suomi, Svenska og 简体中文. Ethvert andet sprog viser
-den engelske dialog. Kalaallisut er endnu ikke et Home Assistant-sprog; vi har
-bedt Home Assistant om at tilføje det, og dialogen følger, så snart den kan
-vises.
+Opsætningsdialogen og indstillingerne vises på din Home Assistants sprog, når
+det er et af disse: English, Dansk, Deutsch, Español, Français, Gaeilge,
+Íslenska, Italiano, Nederlands, Norsk Bokmål, Polski, Português, Português
+(BR), Suomi, Svenska og 简体中文. Alle andre sprog viser engelsk. Kalaallisut er
+endnu ikke et Home Assistant-sprog; vi har bedt Home Assistant om at tilføje
+det. Kortkortets egne etiketter (**Track**, **Details**) er på engelsk på
+alle sprog.
 
-Har du fundet en fejl i en oversættelse, der ændrer meningen eller læses
-dårligt? Skriv til os på
-<https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues>.
-Oversættelserne er skrevet til dette projekt, og ikke alle er endnu læst af en
-person med sproget som modersmål.
+Fundet en fejl i en oversættelse, eller brug for et andet sprog? Fortæl os det
+på <https://github.com/StrausbergAutomationWorks/LiveTrackShips/issues>, eller
+[oversæt det med vores hjælp](#tilføj-det-selv-med-vores-hjælp).
 
-**Har du svært ved at følge med på et af disse sprog?** Bed om et andet på samme
-adresse, så prøver vi at imødekomme dig.
+---
 
-## En del af Live Track
+## Tak og licenser
 
-Live Track er en række Home Assistant-integrationer, én for hver slags ting,
-der bevæger sig, og alle tegner på samme kort. De deler et Python-bibliotek
-([saw-livetrack](https://github.com/StrausbergAutomationWorks/LiveTrackCore))
-og kortet, så endnu en integration ikke sender flere forespørgsler til en
-fælles kilde. Udgivet:
-[Live Track Aircraft](https://github.com/StrausbergAutomationWorks/LiveTrackAircraft),
-[Live Track SALT](https://github.com/StrausbergAutomationWorks/LiveTrackSALT),
-[Live Track Commuter Rail](https://github.com/StrausbergAutomationWorks/LiveTrackCommuterRail),
-[Live Track Intercity Rail](https://github.com/StrausbergAutomationWorks/LiveTrackIntercityRail)
-og Live Track Ships. Hver virker også alene.
+* **aisstream.io**: ingen offentliggjorte vilkår. <https://aisstream.io>
+* **Fintraffic Digitraffic** (Finland): data under CC BY 4.0.
+  <https://www.digitraffic.fi/en/terms-of-service/>
+* **BarentsWatch** (Norge): data under den norske licens for åbne offentlige
+  data (NLOD).
+  <https://www.barentswatch.no/en/articles/api-terms-and-conditions/>
+* **Din egen modtager**: dine egne data.
+* **Wikidata**: CC0. **Wikimedia Commons**: hvert foto under sin egen licens,
+  vist med fotograf og licens.
+* **VesselFinder**: kun linket; intet hentes derfra.
+* **EnforcementVessels**: ODbL 1.0.
+  <https://github.com/StrausbergAutomationWorks/EnforcementVessels>
 
-## Ingen tilknytning
-
-Ikke tilknyttet aisstream.io, Fintraffic, BarentsWatch, MarineTraffic,
-VesselFinder, noget rederi eller nogen søfartsmyndighed. AIS er et system for
-sikkerheden til søs; **denne integration er til interesse og ikke til
-navigation, undgåelse af kollisioner eller noget driftsformål.**
-
-## Licens
-
-Kode: MIT, i [LICENSE](LICENSE). Kildeangivelser for data og grafik:
+Hvad denne integration ændrer: enheder omregnes, og kun skibe inden for din
+cirkel beholdes. Hver skibsentitet og hvert områdes `sensor.ships_in_range`
+har en `attribution`, der nævner kilden; Home Assistant viser den i
+entitetens detaljer. Viser du disse data for andre, for eksempel på et
+offentligt betjeningspanel, så behold kildeangivelsen og læs kildens egne
+vilkår. De præcise kildeangivelser og angivelserne for skibsbillederne står i
 [ATTRIBUTION.md](ATTRIBUTION.md).
+
+Ingen af disse organisationer har lavet eller godkendt denne integration.
+
+**Kode**: MIT, i [LICENSE](LICENSE).
+
+**For udviklere:** AIS-sætninger fra din egen modtager afkodes af
+[pyais](https://github.com/M0r13n/pyais) (MIT); Home Assistant installerer
+selv `saw-livetrack` og `pyais`, første gang den indlæser integrationen.
+Testene i `tests/` køres hver for sig med Python; nogle kræver en installeret
+Home Assistant, og testene `*_live` kræver dine egne nøgler.
+
+---
 
 ## Nøgleord
 
-Home Assistant AIS · skibssporing · skibe på kortet · bådsporing · skibstrafik
-live · AIS-kort · aisstream.io · Digitraffic · BarentsWatch · geo_location ·
-HACS-integration
+Home Assistant skibe · Home Assistant AIS · skibstrafik · skibe kort ·
+skibssporing · bådsporing · søtrafik kort · AIS-kortkort · AIS-modtager ·
+NMEA · AIS-catcher · aisstream.io · Digitraffic · BarentsWatch · ship
+tracking · vessel tracker · Schiffsverfolgung · suivi des navires ·
+scheepvaart volgen · seguimiento de barcos · tracciamento navi · 船舶追踪 ·
+geo_location · kortkort · Lovelace · HACS · Marketplace · Live Track ·
+LiveTrack · StrausbergAutomationWorks
