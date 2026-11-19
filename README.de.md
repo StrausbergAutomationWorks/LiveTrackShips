@@ -876,3 +876,9 @@ ship tracking · vessel tracker · suivi des navires · scheepvaart volgen ·
 seguimiento de barcos · tracciamento navi · skibstrafik · 船舶追踪 ·
 geo_location · Kartenkarte · Lovelace · HACS · Marketplace · Live Track ·
 LiveTrack · StrausbergAutomationWorks
+
+---
+
+**Würdigung.** StrausbergAutomationWorks würdigt die indigenen Völker aller
+Länder und Gewässer auf dieser Karte, überall auf der Welt, und erweist ihren
+Ältesten, in Vergangenheit und Gegenwart, seinen Respekt.

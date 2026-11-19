@@ -851,3 +851,9 @@ Digitraffic · BarentsWatch · ship tracking · vessel tracker ·
 Schiffsverfolgung · suivi des navires · scheepvaart volgen · tracciamento
 navi · skibstrafik · 船舶追踪 · geo_location · tarjeta de mapa · Lovelace ·
 HACS · Marketplace · Live Track · LiveTrack · StrausbergAutomationWorks
+
+---
+
+**Reconocimiento.** StrausbergAutomationWorks reconoce a los pueblos indígenas
+de todas las tierras y aguas de este mapa, en todo el mundo, y presenta sus
+respetos a sus Mayores del pasado y del presente.

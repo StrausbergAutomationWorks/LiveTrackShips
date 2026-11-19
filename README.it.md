@@ -849,3 +849,9 @@ BarentsWatch · ship tracking · vessel tracker · Schiffsverfolgung · suivi de
 navires · scheepvaart volgen · seguimiento de barcos · skibstrafik · 船舶追踪 ·
 geo_location · scheda mappa · Lovelace · HACS · Marketplace · Live Track ·
 LiveTrack · StrausbergAutomationWorks
+
+---
+
+**Riconoscimento.** StrausbergAutomationWorks riconosce i popoli indigeni di
+tutte le terre e le acque di questa mappa, in tutto il mondo, e rende omaggio ai
+loro Anziani del passato e del presente.

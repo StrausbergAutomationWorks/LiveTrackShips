@@ -500,3 +500,7 @@ Live Track Ships 仍在成长。我们发现新的数据来源和国家就会添
 ## 关键词
 
 Home Assistant 船只 · Home Assistant AIS · 船舶追踪 · 船只跟踪 · 船艇追踪 · 海上交通地图 · AIS 地图卡片 · AIS 接收机 · NMEA · AIS-catcher · aisstream.io · Digitraffic · BarentsWatch · ship tracking · vessel tracker · Schiffsverfolgung · suivi des navires · scheepvaart volgen · seguimiento de barcos · tracciamento navi · skibstrafik · geo_location · 地图卡片 · Lovelace · HACS · Marketplace · Live Track · LiveTrack · StrausbergAutomationWorks
+
+---
+
+**致敬。** StrausbergAutomationWorks 向这张地图上世界各地陆地和水域的原住民族致意，并向他们过去和现在的长老致敬。

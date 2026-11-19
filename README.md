@@ -805,3 +805,9 @@ Schiffe Karte · suivi des navires · scheepvaart volgen · seguimiento de barco
 tracciamento navi · skibstrafik · skibe kort · 船舶追踪 · geo_location ·
 map card · Lovelace · HACS · Marketplace · Live Track · LiveTrack ·
 StrausbergAutomationWorks
+
+---
+
+**Acknowledgement.** StrausbergAutomationWorks acknowledges the Indigenous
+peoples of every land and water on this map, all over the world, and pays its
+respect to their Elders, past and present.
