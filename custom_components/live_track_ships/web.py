@@ -59,6 +59,18 @@ def picture_url(key: str, degrees: int | None, tone: str = "default",
     return url + "?" + "&".join(extra)
 
 
+def _render_key(key: str, degrees: int | None, tone: str, weight: float,
+                badge: bool, counter: int | None, tow, moving: bool,
+                lights: str | None) -> str | None:
+    """In the executor: the icon file's lookup (a stat) and the render, both
+    off the event loop. None when the key names no file."""
+    path = icons.icon_path(key)
+    if path is None:
+        return None
+    return icons.render(path, key, degrees, 64, tone, weight, badge, counter,
+                        tow, moving, lights)
+
+
 class ShipIconView(HomeAssistantView):
     """Return one vessel silhouette."""
 
@@ -72,9 +84,9 @@ class ShipIconView(HomeAssistantView):
 
     async def get(self, request: web.Request, key: str,
                   angle: str) -> web.Response:
-        path = icons.icon_path(key)
-        if path is None:
-            # valid_key() admits only the named icons.
+        # ! No disk on the event loop (hacs/default#14499): valid_key() is a
+        # regex and a set; the file lookup runs with the render, in _render_key.
+        if not icons.valid_key(key):
             return web.Response(status=404, text="unknown icon")
         if angle == "fixed":
             degrees: int | None = None
@@ -113,11 +125,14 @@ class ShipIconView(HomeAssistantView):
 
         try:
             svg = await request.app["hass"].async_add_executor_job(
-                icons.render, path, key, degrees, 64, tone, weight, badge,
+                _render_key, key, degrees, tone, weight, badge,
                 counter, tow, moving, lights)
         except Exception:  # noqa: BLE001
             _LOGGER.exception("Could not render %s at %s", key, angle)
             return web.Response(status=500, text="render failed")
+        if svg is None:
+            # A named icon whose file is missing from the install.
+            return web.Response(status=404, text="unknown icon")
 
         return web.Response(
             body=svg.encode("utf-8"),

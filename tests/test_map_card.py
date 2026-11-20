@@ -145,9 +145,10 @@ check("shared_map_card.py is the reference verbatim", hashlib.sha256(lf).hexdige
 man = json.loads((COMP / "manifest.json").read_text(encoding="utf-8"))
 check("manifest: http in dependencies", "http" in man.get("dependencies", []))
 check("manifest: lovelace in after_dependencies", "lovelace" in man.get("after_dependencies", []))
+# 0.2.42 since 2026-11-20: Live Track writes only its own map-card resource rows (hacs/default#14499).
 check("manifest: the saw-livetrack requirement",
       [r for r in man.get("requirements", []) if r.startswith("saw-livetrack")],
-      ["saw-livetrack>=0.2.21,<0.3"])
+      ["saw-livetrack>=0.2.42,<0.3"])
 for rel in ("strings.json", "translations/en.json"):
     issues = json.loads((COMP / rel).read_text(encoding="utf-8")).get("issues", {})
     yml = issues.get("map_card_yaml_resource", {})
