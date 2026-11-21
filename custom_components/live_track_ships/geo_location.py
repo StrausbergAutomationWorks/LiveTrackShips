@@ -263,12 +263,11 @@ class ShipEvent(GeolocationEvent):
         # heading stays meaningful at rest and is published as it is
         # (06_MAP_CONTRACT.md D4).
         self._icon: dict = {}
-        self._photo_imo: str | None = None   # the IMO whose photo this entity waits for (backlog 346)
         self._refresh_icon()
 
     @callback
     def _photo_arrived(self) -> None:
-        """photos.PhotoBook found (or did not find) this vessel's photo: write it now, not at the next fix."""
+        """The photo book found (or did not find) this vessel's photo: write it now, not at the next fix."""
         if self.hass is not None and not self.retired:
             self.async_write_ha_state()
 
@@ -286,12 +285,11 @@ class ShipEvent(GeolocationEvent):
             if url:
                 attrs["marker_track"] = url
         book = self.hass.data.get(_photos.STORE_KEY) if self.hass is not None else None
-        if book is None or not imo:
+        if book is None:
             return
-        if self._photo_imo not in (None, imo):
-            book.forget_waiter(self._photo_imo, self._photo_arrived)
-        self._photo_imo = imo
-        photo = book.photo(imo, self._photo_arrived)
+        # By IMO, and by MMSI when the IMO finds nothing or there is none (saw_livetrack.vessel_photos, 0.2.43;
+        # 2026-11-21).
+        photo = book.photo(imo, self._obs.identity, self._photo_arrived)
         if photo:
             attrs["marker_photo"] = photo
 
@@ -592,6 +590,6 @@ class ShipEvent(GeolocationEvent):
         shutdown (vessel_367152790_4) is in 06_MAP_CONTRACT.md D6a-0b.
         A photo still being looked up no longer has anyone to tell (backlog 346)."""
         book = self.hass.data.get(_photos.STORE_KEY) if self.hass is not None else None
-        if book is not None and self._photo_imo:
-            book.forget_waiter(self._photo_imo, self._photo_arrived)
+        if book is not None:
+            book.forget_waiter(self._photo_arrived)
         return None
