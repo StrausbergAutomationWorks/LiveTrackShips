@@ -336,11 +336,27 @@ filter:
         source: live_track_ships
 ```
 
-Die Markierungen brauchen
+Diese Form braucht
 [auto-entities](https://github.com/thomasloven/lovelace-auto-entities) aus dem
 Marketplace. Sind andere Live-Track-Module installiert, fügen Sie für jede
 ihrer Quellen einen weiteren Filter `- domain: geo_location` hinzu
 (`live_track_aircraft`, `live_track_weather` und so weiter).
+
+**Ohne auto-entities:** LiveTrackMapCard kann mit `entity_filter` selbst
+auswählen, was sie zeigt. Fügen Sie stattdessen dies ein; weiter muss nichts
+installiert werden:
+
+```yaml
+type: custom:live-track-map-card
+entity_filter:
+  include:
+    - domain: geo_location
+      attributes:
+        source: live_track_ships
+```
+
+Andere Live-Track-Module kommen genauso in `entity_filter`: eine weitere Regel
+`- domain: geo_location` für jede Quelle.
 
 **Auf der Karte:**
 
