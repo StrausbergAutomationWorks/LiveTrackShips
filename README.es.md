@@ -21,9 +21,8 @@ entra en tu zona o sale de ella.
 > países. ¿Falta el tuyo? [Sugiérelo](#ayúdanos-a-hacerlo-crecer), o añádelo
 > tú mismo: te ayudaremos a hacerlo.
 
-**Estado: 0.1.0, la primera versión.** Se añade al Marketplace por enlace
-([abajo](#instalación-paso-a-paso)); todavía no está en el catálogo del
-Marketplace.
+**Estado: 0.1.3, publicado.** En el catálogo del Marketplace ([instálalo más
+abajo](#instalación-paso-a-paso)).
 
 Obra original de StrausbergAutomationWorks. Sin relación con, ni respaldo de,
 aisstream.io, Fintraffic (Finlandia), BarentsWatch (Noruega), Wikidata,
@@ -187,18 +186,18 @@ Todo es gratuito y de código abierto. Nada se reserva para patrocinadores.
 
 ### Desde el Marketplace (recomendado)
 
-Live Track Ships todavía no está en el catálogo del Marketplace. Añádelo por
-su enlace:
-
 1. En Home Assistant, abre **Configuración → Marketplace** (HACS).
-2. Elige **Añadir desde un enlace** (o el menú de tres puntos →
-   **Repositorios personalizados**).
-3. Escribe `StrausbergAutomationWorks/LiveTrackShips`. Si te pide el tipo,
-   elige **Integración**.
-4. Busca **Live Track Ships** en la lista y elige **Descargar** o
-   **Instalar**.
-5. **Reinicia Home Assistant**: **Configuración → Sistema → Reparaciones**
+2. Busca **Live Track Ships** y ábrelo.
+3. Elige **Descargar** (o **Instalar**).
+4. **Reinicia Home Assistant**: **Configuración → Sistema → Reparaciones**
    ofrece el reinicio, o usa **Configuración → Sistema → Reiniciar**.
+
+Si la búsqueda no lo encuentra, añádelo por su enlace: elige **Añadir desde un
+enlace** (o el menú de tres puntos → **Repositorios personalizados**), escribe
+`StrausbergAutomationWorks/LiveTrackShips`, elige **Integración** si te pide el
+tipo y continúa desde el paso 3.
+
+Después, el Marketplace te ofrece cada nueva versión como actualización.
 
 ### A mano
 

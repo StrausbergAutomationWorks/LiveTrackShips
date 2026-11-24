@@ -21,9 +21,8 @@ verlaat.
 > toe. Ontbreekt het jouwe? [Stel het voor](#help-het-groeien), of voeg het
 > zelf toe: we helpen je daarbij.
 
-**Status: 0.1.0, de eerste release.** Via een link aan de Marktplaats toe te
-voegen ([hieronder](#installeren-stap-voor-stap)); het staat nog niet in de
-catalogus van de Marktplaats.
+**Status: 0.1.3, uitgebracht.** In de catalogus van de Marktplaats ([installeer
+het hieronder](#installeren-stap-voor-stap)).
 
 Eigen werk van StrausbergAutomationWorks. Niet verbonden aan, of
 goedgekeurd door, aisstream.io, Fintraffic (Finland), BarentsWatch
@@ -190,18 +189,18 @@ Alles is gratis en open source. Niets wordt achtergehouden voor sponsors.
 
 ### Via de Marktplaats (aanbevolen)
 
-Live Track Ships staat nog niet in de catalogus van de Marktplaats. Voeg het
-toe via de link:
-
 1. Open in Home Assistant **Instellingen → Marktplaats** (HACS).
-2. Kies **Toevoegen via link** (of het menu met drie puntjes →
-   **Aangepaste repositories**).
-3. Voer `StrausbergAutomationWorks/LiveTrackShips` in. Als naar het type wordt
-   gevraagd, kies **Integratie**.
-4. Zoek **Live Track Ships** in de lijst en kies **Downloaden** of
-   **Installeren**.
-5. **Herstart Home Assistant**: **Instellingen → Systeem → Reparaties** biedt
+2. Zoek **Live Track Ships** en open het.
+3. Kies **Downloaden** (of **Installeren**).
+4. **Herstart Home Assistant**: **Instellingen → Systeem → Reparaties** biedt
    de herstart aan, of gebruik **Instellingen → Systeem → Herstart**.
+
+Vindt de zoekfunctie het niet, voeg het dan toe via de link: kies **Toevoegen
+via link** (of het menu met drie puntjes → **Aangepaste repositories**), voer
+`StrausbergAutomationWorks/LiveTrackShips` in, kies **Integratie** als om het
+type wordt gevraagd en ga daarna verder bij stap 3.
+
+De Marktplaats biedt daarna elke nieuwe release als update aan.
 
 ### Met de hand
 

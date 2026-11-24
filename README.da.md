@@ -21,9 +21,8 @@ eller forlader det.
 > [Foreslå det](#hjælp-den-med-at-vokse), eller tilføj det selv: vi hjælper
 > dig med det.
 
-**Status: 0.1.0, den første udgivelse.** Tilføjes til Markedspladsen via et
-link ([nedenfor](#installation-trin-for-trin)); den er endnu ikke i
-Markedspladsens katalog.
+**Status: 0.1.3, udgivet.** I Markedspladsens katalog ([installer det
+nedenfor](#installation-trin-for-trin)).
 
 Eget værk af StrausbergAutomationWorks. Ikke tilknyttet eller godkendt af
 aisstream.io, Fintraffic (Finland), BarentsWatch (Norge), Wikidata, Wikimedia
@@ -186,18 +185,18 @@ Alt er gratis og open source. Intet holdes tilbage til sponsorer.
 
 ### Fra Markedspladsen (anbefalet)
 
-Live Track Ships er endnu ikke i Markedspladsens katalog. Tilføj det via dets
-link:
-
 1. Åbn **Indstillinger → Markedsplads** (HACS) i Home Assistant.
-2. Vælg **Tilføj fra link** (eller menuen med tre prikker →
-   **Brugerdefinerede repositories**).
-3. Skriv `StrausbergAutomationWorks/LiveTrackShips`. Hvis du bliver spurgt om
-   typen, så vælg **Integration**.
-4. Find **Live Track Ships** på listen, og vælg **Download** eller
-   **Installer**.
-5. **Genstart Home Assistant**: **Indstillinger → System → Reparationer**
+2. Søg efter **Live Track Ships**, og åbn det.
+3. Vælg **Download** (eller **Installer**).
+4. **Genstart Home Assistant**: **Indstillinger → System → Reparationer**
    tilbyder genstarten, eller brug **Indstillinger → System → Genstart**.
+
+Hvis søgningen ikke finder det, så tilføj det via dets link: vælg **Tilføj fra
+link** (eller menuen med tre prikker → **Brugerdefinerede repositories**), skriv
+`StrausbergAutomationWorks/LiveTrackShips`, vælg **Integration**, hvis du bliver
+spurgt om typen, og fortsæt derefter fra trin 3.
+
+Markedspladsen tilbyder derefter hver ny udgivelse som en opdatering.
 
 ### Manuelt
 
