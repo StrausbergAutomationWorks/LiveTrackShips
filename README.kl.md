@@ -16,7 +16,7 @@ piviusumik takutinneqarput. Live Track Ships Home Assistant-imut
 ilassutaavoq: umiarsuit AIS-ikkut nassiussaat takutippai, sumiinnerat,
 aqqi, sukkassusaat, sammivii, suussusaat angissusaallu.
 
-**Killiffik: 0.1.0, saqqummiussaq siulleq.**
+**Killiffik: 0.1.3, saqqummiussaq.**
 
 > **I vækst, og åben for idéer.** Vi tilføjer flere datakilder og lande.
 > Mangler dit? [Foreslå det](#forslag-og-hjælp--suggestions-and-help), eller
