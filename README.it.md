@@ -176,8 +176,6 @@ Tutto è gratuito e open source. Niente è riservato agli sponsor.
   in rtl-ais, `-h <address> -P <port>`; OpenCPN e Signal K lo aggiungono come
   connessione di uscita UDP. Un ricevitore che si collega via USB, come un
   dAISy, ha bisogno di uno di questi programmi per passare le sue frasi.
-* **Facoltativo: auto-entities** dal Marketplace, per mettere i segnaposto
-  sulla mappa (vedi [Mettere la mappa su una plancia](#mettere-la-mappa-su-una-plancia)).
 * Niente da pagare. Per Digitraffic e il tuo ricevitore non serve un account;
   le chiavi gratuite servono solo per aisstream.io e BarentsWatch.
 
@@ -313,26 +311,6 @@ aggiungere.
    **Aggiungi scheda**.
 2. Scorri fino in fondo e scegli **Manuale**.
 3. Incolla questo e scegli **Salva**:
-
-```yaml
-type: custom:auto-entities
-card:
-  type: custom:live-track-map-card
-filter:
-  include:
-    - domain: geo_location
-      attributes:
-        source: live_track_ships
-```
-
-Questa forma richiede
-[auto-entities](https://github.com/thomasloven/lovelace-auto-entities) dal
-Marketplace. Se sono installati altri moduli di Live Track, aggiungi un altro
-filtro `- domain: geo_location` per ciascuna delle loro fonti
-(`live_track_aircraft`, `live_track_weather` e così via).
-
-**Senza auto-entities:** LiveTrackMapCard può scegliere da sola cosa mostrare,
-con `entity_filter`. Incolla invece questo; non serve installare altro:
 
 ```yaml
 type: custom:live-track-map-card

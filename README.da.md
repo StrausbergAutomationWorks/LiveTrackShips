@@ -174,8 +174,6 @@ Alt er gratis og open source. Intet holdes tilbage til sponsorer.
   Signal K tilføjer det som en UDP-udgangsforbindelse. En modtager, der
   sluttes til via USB, for eksempel en dAISy, skal bruge et af de programmer
   til at sende sine sætninger videre.
-* **Valgfrit: auto-entities** fra Markedspladsen, til at sætte markørerne på
-  kortet (se [Sæt kortet på et dashboard](#sæt-kortet-på-et-dashboard)).
 * Intet at betale. Digitraffic og din egen modtager kræver ingen konto; de
   gratis nøgler skal kun bruges til aisstream.io og BarentsWatch.
 
@@ -312,26 +310,6 @@ Track Ships**: intet at hente, intet at kopiere, ingen ressource at tilføje.
    derefter **Tilføj kort**.
 2. Rul ned til bunden, og vælg **Manuel**.
 3. Indsæt dette, og vælg **Gem**:
-
-```yaml
-type: custom:auto-entities
-card:
-  type: custom:live-track-map-card
-filter:
-  include:
-    - domain: geo_location
-      attributes:
-        source: live_track_ships
-```
-
-Denne form kræver
-[auto-entities](https://github.com/thomasloven/lovelace-auto-entities) fra
-Markedspladsen. Er andre Live Track-moduler installeret, så tilføj ét filter
-`- domain: geo_location` mere for hver af deres kilder
-(`live_track_aircraft`, `live_track_weather` og så videre).
-
-**Uden auto-entities:** LiveTrackMapCard kan selv vælge, hvad den viser, med
-`entity_filter`. Indsæt dette i stedet; der skal ikke installeres mere:
 
 ```yaml
 type: custom:live-track-map-card

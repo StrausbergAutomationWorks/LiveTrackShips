@@ -177,9 +177,6 @@ Alles ist kostenlos und quelloffen. Nichts wird für Sponsoren zurückgehalten.
   Signal K richten es als UDP-Ausgangsverbindung ein. Ein Empfänger, der per
   USB angeschlossen wird, etwa ein dAISy, braucht eines dieser Programme, um
   seine Sätze weiterzugeben.
-* **Optional: auto-entities** aus dem Marketplace, um die Markierungen auf die
-  Karte zu bringen (siehe
-  [Die Karte auf ein Dashboard bringen](#die-karte-auf-ein-dashboard-bringen)).
 * Nichts zu bezahlen. Für Digitraffic und Ihren eigenen Empfänger ist kein
   Konto nötig; die kostenlosen Schlüssel braucht es nur für aisstream.io und
   BarentsWatch.
@@ -324,27 +321,6 @@ Ressource hinzuzufügen.
    dann **Karte hinzufügen**.
 2. Scrollen Sie nach unten und wählen Sie **Manuell**.
 3. Fügen Sie dies ein und wählen Sie **Speichern**:
-
-```yaml
-type: custom:auto-entities
-card:
-  type: custom:live-track-map-card
-filter:
-  include:
-    - domain: geo_location
-      attributes:
-        source: live_track_ships
-```
-
-Diese Form braucht
-[auto-entities](https://github.com/thomasloven/lovelace-auto-entities) aus dem
-Marketplace. Sind andere Live-Track-Module installiert, fügen Sie für jede
-ihrer Quellen einen weiteren Filter `- domain: geo_location` hinzu
-(`live_track_aircraft`, `live_track_weather` und so weiter).
-
-**Ohne auto-entities:** LiveTrackMapCard kann mit `entity_filter` selbst
-auswählen, was sie zeigt. Fügen Sie stattdessen dies ein; weiter muss nichts
-installiert werden:
 
 ```yaml
 type: custom:live-track-map-card

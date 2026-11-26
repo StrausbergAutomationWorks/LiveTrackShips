@@ -119,7 +119,6 @@ Live Track 是一组 Home Assistant 集成，每种移动的东西一个，全�
 * Home Assistant 需要**互联网访问**，用于在线来源和照片。你自己的接收机不需要互联网。
 * **一个数据来源。** Digitraffic（芬兰）和你自己的接收机不需要账户。aisstream.io 和 BarentsWatch（挪威）需要一个免费密钥（[分步说明](#解锁更多功能的免费密钥)）。
 * **可选：你自己的 AIS 接收机。** 接收机或为它解码的程序，通过 UDP 把 NMEA 语句（`!AIVDM`）发送到同一网络中你的 Home Assistant 的地址。在 AIS-catcher 中是 `-u <address> <port>`；在 rtl-ais 中是 `-h <address> -P <port>`；OpenCPN 和 Signal K 把它添加为 UDP 输出连接。通过 USB 连接的接收机（例如 dAISy）需要上述程序之一来转发它的语句。
-* **可选：Marketplace 中的 auto-entities**，用来把标记放到地图上（见[把地图放到仪表盘上](#把地图放到仪表盘上)）。
 * 无需付费。Digitraffic 和你自己的接收机不需要账户；只有 aisstream.io 和 BarentsWatch 需要免费密钥。
 
 ---
@@ -209,21 +208,6 @@ Live Track 是一组 Home Assistant 集成，每种移动的东西一个，全�
 1. 打开一个仪表盘，选择铅笔图标（**编辑仪表盘**），然后选择 **添加卡片**。
 2. 滚动到底部，选择 **手动**。
 3. 粘贴以下内容，然后选择 **保存**：
-
-```yaml
-type: custom:auto-entities
-card:
-  type: custom:live-track-map-card
-filter:
-  include:
-    - domain: geo_location
-      attributes:
-        source: live_track_ships
-```
-
-这种写法需要 Marketplace 中的 [auto-entities](https://github.com/thomasloven/lovelace-auto-entities)。如果安装了其他 Live Track 模块，为它们的每个来源再添加一个 `- domain: geo_location` 过滤器（`live_track_aircraft`、`live_track_weather` 等）。
-
-**不用 auto-entities：** LiveTrackMapCard 可以用 `entity_filter` 自己选择要显示的内容。改为粘贴下面这段，无需再安装其他东西：
 
 ```yaml
 type: custom:live-track-map-card
