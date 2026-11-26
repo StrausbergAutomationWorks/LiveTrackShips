@@ -20,7 +20,7 @@ tells your automations when a ship comes into your area or leaves it.
 > missing? [Suggest it](#help-it-grow), or add it yourself: we will help you do
 > it.
 
-**Status: 0.1.3, released.** In the Marketplace's catalog ([install it
+**Status: 0.1.4, released.** In the Marketplace's catalog ([install it
 below](#install-it-step-by-step)).
 
 Original work by StrausbergAutomationWorks. Not affiliated with, or endorsed

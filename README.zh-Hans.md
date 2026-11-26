@@ -8,7 +8,7 @@
 
 > **正在成长，欢迎提出想法。** Live Track Ships 目前覆盖志愿者运行接收机的全世界，芬兰和挪威更详细，还有你自己的接收机。我们正在添加更多数据来源和国家。缺少你那里的吗？[提出建议](#帮助它成长)，或者自己添加：我们会帮你完成。
 
-**状态：0.1.3，已发布。** 已在 Marketplace 的目录中（[安装方法见下文](#安装步骤)）。
+**状态：0.1.4，已发布。** 已在 Marketplace 的目录中（[安装方法见下文](#安装步骤)）。
 
 StrausbergAutomationWorks 的原创作品。与 aisstream.io、Fintraffic（芬兰）、BarentsWatch（挪威）、Wikidata、Wikimedia Commons、VesselFinder、MarineTraffic、任何船舶运营者或任何海事主管机构均无关联，也未获得它们的认可。
 

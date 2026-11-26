@@ -21,7 +21,7 @@ eller forlader det.
 > [Foreslå det](#hjælp-den-med-at-vokse), eller tilføj det selv: vi hjælper
 > dig med det.
 
-**Status: 0.1.3, udgivet.** I Markedspladsens katalog ([installer det
+**Status: 0.1.4, udgivet.** I Markedspladsens katalog ([installer det
 nedenfor](#installation-trin-for-trin)).
 
 Eget værk af StrausbergAutomationWorks. Ikke tilknyttet eller godkendt af

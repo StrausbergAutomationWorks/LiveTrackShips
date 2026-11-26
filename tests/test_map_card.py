@@ -30,7 +30,7 @@ DOMAIN = "live_track_ships"
 # LiveTrackCore reference/shared_map_card.py, SHA-256 of its LF text (bin\lt_reference_drift.py)
 REFERENCE_SHA12 = "15251d6fcc54"
 # LiveTrackMapCard release v0.1.8 (tools/vendor_card.py checks the asset's .sha256)
-RELEASE_SHA12, RELEASE_VERSION, RELEASE_SIZE = "7760014d5dda", "0.1.8+2bcbc9a", 1292750
+RELEASE_SHA12, RELEASE_VERSION, RELEASE_SIZE = "5f7719b36dd6", "0.1.12+4cc0970", 1309347
 
 passed = failed = 0
 

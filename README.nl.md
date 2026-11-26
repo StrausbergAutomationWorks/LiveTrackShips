@@ -21,7 +21,7 @@ verlaat.
 > toe. Ontbreekt het jouwe? [Stel het voor](#help-het-groeien), of voeg het
 > zelf toe: we helpen je daarbij.
 
-**Status: 0.1.3, uitgebracht.** In de catalogus van de Marktplaats ([installeer
+**Status: 0.1.4, uitgebracht.** In de catalogus van de Marktplaats ([installeer
 het hieronder](#installeren-stap-voor-stap)).
 
 Eigen werk van StrausbergAutomationWorks. Niet verbonden aan, of
